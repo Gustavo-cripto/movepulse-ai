@@ -1,5 +1,5 @@
 /* Service worker: guarda o app inteiro em cache para funcionar offline. */
-const CACHE = 'forja-v8';
+const CACHE = 'forja-v9';
 const ARQUIVOS = [
   './', './index.html', './css/style.css',
   './js/data.js', './js/store.js', './js/ia.js', './js/ui.js', './js/app.js',
