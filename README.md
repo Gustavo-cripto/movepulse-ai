@@ -22,6 +22,11 @@ Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**
 
 ## Instalar nos dispositivos
 
+![Código QR de instalação](qr-instalacao.png)
+
+Aponta a câmara ao código (ou usa [cartao-instalacao.png](cartao-instalacao.png), pronto a enviar
+ou imprimir) para abrir a app no telemóvel.
+
 É uma **PWA**: instala-se a partir do navegador, sem passar pela App Store nem pela Play Store.
 Para isso tem de estar publicada em HTTPS (Netlify, Vercel, GitHub Pages — sobe a pasta, não há
 build).
