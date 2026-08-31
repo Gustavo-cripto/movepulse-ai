@@ -1,0 +1,11 @@
+name = "forja-ia"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+# Restringe quem pode usar o servidor. Põe aqui o endereço onde publicaste a app,
+# por exemplo "https://forja.netlify.app". Deixa "*" apenas enquanto testas.
+ORIGEM_PERMITIDA = "*"
+
+# A chave NÃO se põe aqui. Guarda-a como segredo:
+#   wrangler secret put ANTHROPIC_API_KEY

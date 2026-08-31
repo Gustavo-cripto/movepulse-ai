@@ -1,0 +1,173 @@
+/* Persistência em localStorage + acesso ao estado da aplicação. */
+
+const CHAVE = 'forja.v1';
+
+const ESTADO_PADRAO = {
+  exercicios: [],                       // exercícios criados pelo usuário
+  treinos: JSON.parse(JSON.stringify(TREINOS_EXEMPLO)),
+  sessoes: [],                          // histórico de treinos concluídos
+  sessaoAtiva: null,
+  config: {
+    descanso: 90,
+    unidade: 'kg',
+    ia: { modo: 'servidor', servidor: '', chave: '' },
+  },
+  planoIA: null,                        // último plano gerado pela IA
+};
+
+let estado = carregar();
+
+function carregar(){
+  try {
+    const bruto = localStorage.getItem(CHAVE);
+    if (!bruto) return JSON.parse(JSON.stringify(ESTADO_PADRAO));
+    const salvo = JSON.parse(bruto);
+    const base = JSON.parse(JSON.stringify(ESTADO_PADRAO));
+    return { ...base, ...salvo, config: { ...base.config, ...salvo.config,
+      ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia) } } };
+  } catch (e) {
+    console.warn('Estado corrompido, recomeçando do zero.', e);
+    return JSON.parse(JSON.stringify(ESTADO_PADRAO));
+  }
+}
+
+function salvar(){
+  try {
+    localStorage.setItem(CHAVE, JSON.stringify(estado));
+  } catch (e) {
+    console.error('Não foi possível salvar.', e);
+    toast('Sem espaço para salvar os dados 😕');
+  }
+}
+
+const Store = {
+  get estado(){ return estado; },
+
+  salvar,
+
+  reset(){
+    estado = JSON.parse(JSON.stringify(ESTADO_PADRAO));
+    salvar();
+  },
+
+  /* ---------- exercícios ---------- */
+  todosExercicios(){
+    return [...EXERCICIOS_BASE, ...estado.exercicios];
+  },
+  exercicio(id){
+    return Store.todosExercicios().find(e => e.id === id)
+        || { id, nome:'Exercício removido', grupo:'—', equip:'—', tipo:'forca' };
+  },
+  criarExercicio({ nome, grupo, equip }){
+    const ex = { id: uid('ex'), nome, grupo, equip: equip || 'Livre', tipo: grupo === 'Cardio' ? 'cardio' : 'forca' };
+    estado.exercicios.push(ex);
+    salvar();
+    return ex;
+  },
+  removerExercicio(id){
+    estado.exercicios = estado.exercicios.filter(e => e.id !== id);
+    salvar();
+  },
+  ehCustomizado(id){
+    return estado.exercicios.some(e => e.id === id);
+  },
+
+  /* ---------- treinos (fichas) ---------- */
+  treino(id){ return estado.treinos.find(t => t.id === id); },
+  salvarTreino(treino){
+    const i = estado.treinos.findIndex(t => t.id === treino.id);
+    if (i >= 0) estado.treinos[i] = treino; else estado.treinos.push(treino);
+    salvar();
+  },
+  removerTreino(id){
+    estado.treinos = estado.treinos.filter(t => t.id !== id);
+    salvar();
+  },
+
+  /* ---------- sessão ativa ---------- */
+  iniciarSessao(treinoId){
+    const treino = treinoId ? Store.treino(treinoId) : null;
+    estado.sessaoAtiva = {
+      id: uid('s'),
+      treinoId: treinoId || null,
+      nome: treino ? treino.nome : 'Treino livre',
+      inicio: Date.now(),
+      exercicios: (treino ? treino.itens : []).map(it => ({
+        exId: it.exId,
+        series: Array.from({ length: it.series }, () => ({
+          reps: it.reps || '',
+          carga: Store.ultimaCarga(it.exId) || it.carga || '',
+          feito: false,
+        })),
+      })),
+    };
+    salvar();
+    return estado.sessaoAtiva;
+  },
+  cancelarSessao(){
+    estado.sessaoAtiva = null;
+    salvar();
+  },
+  finalizarSessao(){
+    const s = estado.sessaoAtiva;
+    if (!s) return null;
+    const concluida = {
+      ...s,
+      fim: Date.now(),
+      exercicios: s.exercicios
+        .map(ex => ({ ...ex, series: ex.series.filter(se => se.feito) }))
+        .filter(ex => ex.series.length),
+    };
+    estado.sessaoAtiva = null;
+    if (!concluida.exercicios.length) { salvar(); return null; }
+    estado.sessoes.unshift(concluida);
+    salvar();
+    return concluida;
+  },
+
+  /* ---------- consultas de histórico ---------- */
+  ultimaCarga(exId){
+    for (const s of estado.sessoes){
+      const ex = s.exercicios.find(e => e.exId === exId);
+      if (ex && ex.series.length) return num(ex.series[ex.series.length - 1].carga);
+    }
+    return 0;
+  },
+  seriesDoExercicio(exId){
+    // do mais antigo para o mais recente
+    const saida = [];
+    for (let i = estado.sessoes.length - 1; i >= 0; i--){
+      const s = estado.sessoes[i];
+      const ex = s.exercicios.find(e => e.exId === exId);
+      if (ex) saida.push({ data: s.fim, series: ex.series });
+    }
+    return saida;
+  },
+  exerciciosComHistorico(){
+    const ids = new Set();
+    estado.sessoes.forEach(s => s.exercicios.forEach(e => ids.add(e.exId)));
+    return [...ids].map(id => Store.exercicio(id)).sort((a,b) => a.nome.localeCompare(b.nome));
+  },
+};
+
+/* ---------- utilitários ---------- */
+function uid(prefixo){
+  return prefixo + '-' + Math.random().toString(36).slice(2, 9);
+}
+function num(v){
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isFinite(n) ? n : 0;
+}
+function volumeSessao(sessao){
+  return sessao.exercicios.reduce((tot, ex) =>
+    tot + ex.series.reduce((t, se) => t + num(se.reps) * num(se.carga), 0), 0);
+}
+function totalSeries(sessao){
+  return sessao.exercicios.reduce((t, ex) => t + ex.series.length, 0);
+}
+/** 1RM estimado pela fórmula de Epley. */
+function rm1(carga, reps){
+  const c = num(carga), r = num(reps);
+  if (!c || !r) return 0;
+  return r === 1 ? c : c * (1 + r / 30);
+}

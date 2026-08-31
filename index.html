@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="description" content="App de treinos: fotografa o equipamento do ginásio, deixa a IA montar o plano e regista os teus treinos.">
+<title>Forja — App de Treinos</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forja">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="topbar__logo">🏋️</span>
+    <div>
+      <h1>Forja</h1>
+      <p id="topbarSub">O teu diário de treino</p>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:4px">
+    <button class="btn btn--sm btn--primary" id="btnInstalar" hidden>Instalar</button>
+    <button class="icon-btn" id="btnConfig" title="Definições" aria-label="Definições">⚙️</button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ============ HOJE ============ -->
+  <section class="view" id="view-hoje">
+    <div id="hojeVazio">
+      <div class="section-head">
+        <h2>Começar treino</h2>
+      </div>
+      <div id="listaInicio" class="grid"></div>
+      <button class="btn btn--ghost btn--block" id="btnTreinoLivre">+ Treino livre (sem ficha)</button>
+
+      <div class="section-head"><h2>Últimas sessões</h2></div>
+      <div id="ultimasSessoes" class="stack"></div>
+    </div>
+
+    <div id="hojeSessao" hidden>
+      <div class="card card--session">
+        <div class="session-head">
+          <div>
+            <h2 id="sessaoNome">Treino</h2>
+            <p class="muted" id="sessaoInfo">—</p>
+          </div>
+          <div class="timer" id="cronometro">00:00</div>
+        </div>
+        <div class="session-stats">
+          <div><strong id="statSeries">0</strong><span>séries</span></div>
+          <div><strong id="statVolume">0</strong><span>kg volume</span></div>
+          <div><strong id="statExs">0</strong><span>exercícios</span></div>
+        </div>
+      </div>
+
+      <div id="sessaoExercicios" class="stack"></div>
+
+      <button class="btn btn--ghost btn--block" id="btnAddExSessao">+ Adicionar exercício</button>
+      <div class="row-actions">
+        <button class="btn btn--danger" id="btnCancelarSessao">Descartar</button>
+        <button class="btn btn--primary" id="btnFinalizarSessao">Finalizar treino</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TREINOS ============ -->
+  <section class="view" id="view-treinos" hidden>
+    <div class="section-head">
+      <h2>Minhas fichas</h2>
+      <button class="btn btn--sm btn--primary" id="btnNovoTreino">+ Nova ficha</button>
+    </div>
+    <div id="listaTreinos" class="stack"></div>
+  </section>
+
+  <!-- ============ EXERCÍCIOS ============ -->
+  <section class="view" id="view-exercicios" hidden>
+    <div class="section-head">
+      <h2>Exercícios</h2>
+      <button class="btn btn--sm btn--ghost" id="btnNovoEx">+ Criar</button>
+    </div>
+    <input class="input" type="search" id="buscaEx" placeholder="Buscar exercício…" autocomplete="off">
+    <div class="chips" id="filtrosGrupo"></div>
+    <div id="listaExercicios" class="stack"></div>
+  </section>
+
+  <!-- ============ PROGRESSO ============ -->
+  <section class="view" id="view-progresso" hidden>
+    <div class="section-head"><h2>Progresso</h2></div>
+    <div class="grid grid--stats grid--par" id="resumoStats"></div>
+
+    <div class="card">
+      <label class="label" for="selEx">Evolução por exercício</label>
+      <select class="input" id="selEx"></select>
+      <div id="grafico"></div>
+      <div class="grid grid--stats" id="recordesEx"></div>
+    </div>
+
+    <div class="section-head"><h2>Histórico</h2></div>
+    <div id="historico" class="stack"></div>
+  </section>
+  <!-- ============ PLANO IA ============ -->
+  <section class="view" id="view-ia" hidden>
+    <div class="section-head"><h2>Plano com IA</h2></div>
+    <p class="muted">Fotografa as máquinas disponíveis no ginásio. A IA identifica o equipamento e
+      monta um plano de treino que só usa o que existe lá.</p>
+
+    <div class="card">
+      <label class="label">1. Fotos do equipamento</label>
+      <div class="row-actions">
+        <button class="btn btn--sm btn--ghost" id="btnTirarFoto">📷 Tirar foto</button>
+        <button class="btn btn--sm btn--ghost" id="btnEscolherFoto">🖼 Galeria</button>
+      </div>
+      <input type="file" id="fotoCamera" accept="image/*" capture="environment" multiple hidden>
+      <input type="file" id="fotoGaleria" accept="image/*" multiple hidden>
+      <div class="fotos" id="fotos"></div>
+      <p class="item__meta" id="fotosInfo">Até 8 fotos. Ficam no dispositivo e só são enviadas quando geras o plano.</p>
+    </div>
+
+    <div class="card">
+      <label class="label">2. Perfil do cliente</label>
+      <div class="field">
+        <label class="label" for="iaObjetivo">Objetivo</label>
+        <select class="input" id="iaObjetivo">
+          <option>Hipertrofia (ganho de massa)</option>
+          <option>Perda de gordura</option>
+          <option>Força</option>
+          <option>Condição física geral</option>
+          <option>Saúde e mobilidade</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label" for="iaExperiencia">Experiência</label>
+          <select class="input" id="iaExperiencia">
+            <option>Iniciante</option><option>Intermédio</option><option>Avançado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="iaDias">Dias/semana</label>
+          <select class="input" id="iaDias">
+            <option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="iaMinutos">Tempo por sessão</label>
+        <select class="input" id="iaMinutos">
+          <option>30</option><option>45</option><option selected>60</option><option>75</option><option>90</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="iaLimitacoes">Limitações ou lesões</label>
+        <input class="input" id="iaLimitacoes" placeholder="Ex.: dor no ombro direito, joelho operado">
+      </div>
+      <div class="field">
+        <label class="label" for="iaNotas">Outras notas (opcional)</label>
+        <input class="input" id="iaNotas" placeholder="Ex.: prefiro treinos curtos e intensos">
+      </div>
+    </div>
+
+    <button class="btn btn--primary btn--block" id="btnGerarPlano">✨ Gerar plano de treino</button>
+    <p class="item__meta" id="iaEstado"></p>
+
+    <div id="iaResultado"></div>
+  </section>
+
+</main>
+
+<nav class="tabbar">
+  <button class="tab is-active" data-view="hoje"><span>🔥</span>Hoje</button>
+  <button class="tab" data-view="treinos"><span>📋</span>Fichas</button>
+  <button class="tab" data-view="exercicios"><span>💪</span>Exercícios</button>
+  <button class="tab" data-view="ia"><span>📷</span>Plano IA</button>
+  <button class="tab" data-view="progresso"><span>📈</span>Progresso</button>
+</nav>
+
+<!-- Modal genérico -->
+<div class="modal" id="modal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__box" role="dialog" aria-modal="true">
+    <div class="modal__head">
+      <h3 id="modalTitulo">Título</h3>
+      <button class="icon-btn" data-close aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal__body" id="modalCorpo"></div>
+    <div class="modal__foot" id="modalRodape"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="rest" id="rest" hidden>
+  <span>Descanso <b id="restTempo">60</b>s</span>
+  <button class="btn btn--sm btn--ghost" id="restPular">Pular</button>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/ia.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
