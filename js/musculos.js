@@ -34,6 +34,7 @@ const FIGURA = {
   ],
   costas: [
     { r:'cabeca',        f:`<circle cx="50" cy="16" r="11"/>` },
+    { r:'tronco',        f:`<rect x="36" y="30" width="28" height="60" rx="9"/>` },
     { r:'trapezio',      f:`<path d="M38 30h24l-6 14H44z"/>` },
     { r:'deltoide',      f:`<circle cx="28" cy="42" r="9"/><circle cx="72" cy="42" r="9"/>` },
     { r:'dorsais',       f:`<path d="M36 44h28l-5 30H41z"/>` },
