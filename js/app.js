@@ -41,8 +41,62 @@ function renderHoje(){
   if (s) renderSessao(s); else { pararCrono(); renderInicio(); }
 }
 
+const LETRAS_DIA = ['D','S','T','Q','Q','S','S'];
+const NOMES_DIA = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+let mesVisivel = null;   // primeiro dia do mês mostrado no calendário
+
+/** Tira de sete dias, da segunda ao domingo desta semana. */
+function renderSemana(){
+  const hoje = new Date();
+  const segunda = new Date(hoje);
+  segunda.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7));
+  const treinados = Store.diasTreinados();
+
+  $('#semana').innerHTML = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(segunda);
+    d.setDate(segunda.getDate() + i);
+    const chave = chaveDia(d);
+    const ficha = Store.treinoDoDia(d.getDay());
+    const feito = treinados.has(chave);
+    const eHoje = chave === chaveDia(hoje);
+    return `<button class="dia ${ficha ? 'tem-plano' : ''} ${feito ? 'feito' : ''} ${eHoje ? 'hoje' : ''}"
+              data-dia="${d.getDay()}" title="${ficha ? esc(ficha.nome) : 'Sem treino planeado'}">
+      <span class="dia__letra">${LETRAS_DIA[d.getDay()]}</span>
+      <span class="dia__num">${d.getDate()}</span>
+      <span class="dia__ponto"></span>
+    </button>`;
+  }).join('');
+}
+
+/** Escolher que ficha se faz em cada dia da semana. */
+function editorPrograma(){
+  const opcoes = id => ['<option value="">— descanso —</option>']
+    .concat(Store.estado.treinos.map(t =>
+      `<option value="${t.id}" ${id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`)).join('');
+
+  Modal.abrir({
+    titulo: 'Planear a semana',
+    corpo: NOMES_DIA.map((nome, i) => `
+      <div class="field">
+        <label class="label" for="dia${i}">${nome}</label>
+        <select class="input" id="dia${i}" data-dia-sel="${i}">${opcoes(Store.estado.programa[i])}</select>
+      </div>`).join('') +
+      '<p class="item__meta">Repete-se todas as semanas. Podes começar qualquer treino fora do plano na mesma.</p>',
+    acoes: [
+      { texto:'Fechar', onClick: Modal.fechar },
+      { texto:'Guardar', classe:'btn--primary', onClick(){
+          $$('[data-dia-sel]').forEach(sel => Store.definirDia(+sel.dataset.diaSel, sel.value));
+          Modal.fechar();
+          render();
+          toast('Semana planeada ✅');
+        } },
+    ],
+  });
+}
+
 function renderInicio(){
   const { treinos, sessoes } = Store.estado;
+  renderSemana();
 
   $('#listaInicio').innerHTML = treinos.length
     ? treinos.map(t => `
@@ -77,6 +131,9 @@ function renderSessao(s){
   $('#sessaoNome').textContent = s.nome;
   $('#sessaoInfo').textContent = 'Iniciado às ' +
     new Date(s.inicio).toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
+
+  // as miniaturas chegam depois: o IndexedDB é assíncrono
+  setTimeout(carregarMiniaturas, 0);
 
   $('#sessaoExercicios').innerHTML = s.exercicios.length
     ? s.exercicios.map((item, i) => {
@@ -115,6 +172,24 @@ function renderSessao(s){
 
   atualizarStats();
   iniciarCrono();
+}
+
+/** Põe a foto da máquina no cartão de cada exercício, se existir. */
+async function carregarMiniaturas(){
+  const s = Store.estado.sessaoAtiva;
+  if (!s) return;
+  for (const [i, item] of s.exercicios.entries()){
+    const foto = await Fotos.ler(item.exId).catch(() => null);
+    if (!foto) continue;
+    const cabeca = $(`[data-ex-idx="${i}"] .ex-cabeca`);
+    if (cabeca && !cabeca.querySelector('.ex-mini')){
+      const img = document.createElement('img');
+      img.className = 'ex-mini';
+      img.src = foto;
+      img.alt = '';
+      cabeca.prepend(img);
+    }
+  }
 }
 
 function atualizarStats(){
@@ -340,8 +415,9 @@ function renderExercicios(){
     : '<p class="empty">Nenhum exercício encontrado.</p>';
 }
 
-function detalheExercicio(id){
+async function detalheExercicio(id){
   const ex = Store.exercicio(id);
+  const foto = await Fotos.ler(id).catch(() => null);
   const hist = Store.seriesDoExercicio(id);
   const melhores = hist.flatMap(h => h.series);
   const melhorCarga = Math.max(0, ...melhores.map(s => num(s.carga)));
@@ -375,6 +451,13 @@ function detalheExercicio(id){
           <p>${linkDemonstracao(ex.nome)}</p>
         </div>
       </div>
+      ${foto ? `<img class="foto-maquina" src="${foto}" alt="Máquina de ${esc(ex.nome)}">` : ''}
+      <div class="row-actions" style="margin-top:10px">
+        <button class="btn btn--sm btn--ghost" id="btnFotoMaquina">📷 ${foto ? 'Trocar foto' : 'Foto da máquina'}</button>
+        ${foto ? '<button class="btn btn--sm btn--danger" id="btnApagarFoto">Remover foto</button>' : ''}
+      </div>
+      <input type="file" id="ficheiroMaquina" accept="image/*" capture="environment" hidden>
+
       <div class="grid grid--stats" style="margin-top:14px">
         ${statBox(hist.length, 'treinos')}
         ${statBox(melhorCarga ? fmtPeso(melhorCarga) + ' kg' : '—', 'melhor carga')}
@@ -390,6 +473,28 @@ function detalheExercicio(id){
       </div>` : '<p class="empty" style="margin-top:14px">Ainda sem registos.</p>'}`,
     acoes,
   });
+
+  $('#btnFotoMaquina').onclick = () => $('#ficheiroMaquina').click();
+  $('#ficheiroMaquina').onchange = async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    try {
+      const { dataUrl } = await comprimirFoto(f);
+      await Fotos.guardar(id, dataUrl);
+      toast('Foto guardada ✅');
+      detalheExercicio(id);
+      renderHoje();
+    } catch (erro) {
+      toast('Não consegui guardar a foto.');
+    }
+  };
+  const btnApagar = $('#btnApagarFoto');
+  if (btnApagar) btnApagar.onclick = async () => {
+    await Fotos.apagar(id);
+    toast('Foto removida.');
+    detalheExercicio(id);
+    renderHoje();
+  };
 }
 
 function statBox(valor, rotulo){
@@ -448,6 +553,8 @@ function renderProgresso(){
     statBox(fmtTempoTotal(tempoTotal), 'tempo total'),
   ].join('');
 
+  renderMes();
+
   const comHist = Store.exerciciosComHistorico();
   const sel = $('#selEx');
   const anterior = sel.value;
@@ -472,6 +579,38 @@ function maisRegistrado(lista){
 function fmtTempoTotal(ms){
   const min = Math.round(ms / 6e4);
   return min < 60 ? min + ' min' : (ms / 36e5).toFixed(1).replace('.', ',') + ' h';
+}
+
+/** Calendário do mês, com os dias treinados acesos. */
+function renderMes(){
+  if (!mesVisivel){
+    const h = new Date();
+    mesVisivel = new Date(h.getFullYear(), h.getMonth(), 1);
+  }
+  const ano = mesVisivel.getFullYear(), mes = mesVisivel.getMonth();
+  const treinados = Store.diasTreinados();
+  const hoje = chaveDia(new Date());
+
+  $('#mesNome').textContent = mesVisivel.toLocaleDateString('pt-PT', { month:'long', year:'numeric' });
+
+  const primeiro = new Date(ano, mes, 1);
+  const totalDias = new Date(ano, mes + 1, 0).getDate();
+  const antes = (primeiro.getDay() + 6) % 7;    // semana começa à segunda
+
+  const celulas = ['S','T','Q','Q','S','S','D'].map(l => `<div class="mes__rotulo">${l}</div>`);
+  for (let i = 0; i < antes; i++) celulas.push('<div class="mes__dia vazio"></div>');
+
+  let treinosNoMes = 0;
+  for (let d = 1; d <= totalDias; d++){
+    const chave = chaveDia(new Date(ano, mes, d));
+    const treinou = treinados.has(chave);
+    if (treinou) treinosNoMes++;
+    celulas.push(`<div class="mes__dia ${treinou ? 'treinou' : ''} ${chave === hoje ? 'hoje' : ''}">${d}</div>`);
+  }
+  $('#mes').innerHTML = celulas.join('');
+  $('#mesResumo').textContent = treinosNoMes
+    ? `${treinosNoMes} ${treinosNoMes === 1 ? 'treino' : 'treinos'} este mês.`
+    : 'Ainda sem treinos neste mês.';
 }
 
 function renderGraficoEx(exId){
@@ -850,7 +989,21 @@ function ligarEventos(){
     renderFotos();
   };
 
+  // Semana
+  $('#btnPrograma').onclick = editorPrograma;
+  $('#semana').onclick = e => {
+    const dia = e.target.closest('[data-dia]');
+    if (!dia) return;
+    const ficha = Store.treinoDoDia(+dia.dataset.dia);
+    if (!ficha) return editorPrograma();
+    if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
+    Store.iniciarSessao(ficha.id);
+    mostrar('hoje');
+  };
+
   // Progresso
+  $('#mesAnterior').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() - 1); renderMes(); };
+  $('#mesSeguinte').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() + 1); renderMes(); };
   $('#selEx').onchange = e => renderGraficoEx(e.target.value);
 
   // Descanso

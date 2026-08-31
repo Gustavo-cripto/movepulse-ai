@@ -14,6 +14,7 @@ const ESTADO_PADRAO = {
     ia: { modo: 'servidor', servidor: '', chave: '' },
   },
   planoIA: null,                        // último plano gerado pela IA
+  programa: { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null },  // domingo a sábado
 };
 
 let estado = carregar();
@@ -25,8 +26,10 @@ function carregar(){
     if (!bruto) return JSON.parse(JSON.stringify(ESTADO_PADRAO));
     const salvo = JSON.parse(bruto);
     const base = JSON.parse(JSON.stringify(ESTADO_PADRAO));
-    return { ...base, ...salvo, config: { ...base.config, ...salvo.config,
-      ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia) } } };
+    return { ...base, ...salvo,
+      programa: { ...base.programa, ...salvo.programa },
+      config: { ...base.config, ...salvo.config,
+        ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia) } } };
   } catch (e) {
     console.warn('Estado corrompido, recomeçando do zero.', e);
     return JSON.parse(JSON.stringify(ESTADO_PADRAO));
@@ -145,6 +148,22 @@ const Store = {
     }
     return saida;
   },
+  /** Chaves 'aaaa-mm-dd' dos dias em que houve treino. */
+  diasTreinados(){
+    return new Set(estado.sessoes.map(s => chaveDia(new Date(s.fim))));
+  },
+  sessoesDoDia(chave){
+    return estado.sessoes.filter(s => chaveDia(new Date(s.fim)) === chave);
+  },
+  treinoDoDia(diaSemana){
+    const id = estado.programa[diaSemana];
+    return id ? Store.treino(id) : null;
+  },
+  definirDia(diaSemana, treinoId){
+    estado.programa[diaSemana] = treinoId || null;
+    salvar();
+  },
+
   exerciciosComHistorico(){
     const ids = new Set();
     estado.sessoes.forEach(s => s.exercicios.forEach(e => ids.add(e.exId)));
@@ -153,6 +172,13 @@ const Store = {
 };
 
 /* ---------- utilitários ---------- */
+/** Data como 'aaaa-mm-dd' na hora local (não em UTC, que trocava o dia). */
+function chaveDia(data){
+  const m = String(data.getMonth() + 1).padStart(2, '0');
+  const d = String(data.getDate()).padStart(2, '0');
+  return `${data.getFullYear()}-${m}-${d}`;
+}
+
 function uid(prefixo){
   return prefixo + '-' + Math.random().toString(36).slice(2, 9);
 }

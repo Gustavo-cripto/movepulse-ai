@@ -37,6 +37,12 @@
   <section class="view" id="view-hoje">
     <div id="hojeVazio">
       <div class="section-head">
+        <h2>Esta semana</h2>
+        <button class="btn btn--sm btn--ghost" id="btnPrograma">Planear</button>
+      </div>
+      <div class="semana" id="semana"></div>
+
+      <div class="section-head">
         <h2>Começar treino</h2>
       </div>
       <div id="listaInicio" class="grid"></div>
@@ -102,6 +108,16 @@
       <select class="input" id="selEx"></select>
       <div id="grafico"></div>
       <div class="grid grid--stats" id="recordesEx"></div>
+    </div>
+
+    <div class="card">
+      <div class="mes-cabeca">
+        <button class="icon-btn" id="mesAnterior" aria-label="Mês anterior">‹</button>
+        <strong id="mesNome">—</strong>
+        <button class="icon-btn" id="mesSeguinte" aria-label="Mês seguinte">›</button>
+      </div>
+      <div class="mes" id="mes"></div>
+      <p class="item__meta" id="mesResumo"></p>
     </div>
 
     <div class="section-head"><h2>Histórico</h2></div>
@@ -205,6 +221,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/db.js"></script>
 <script src="js/ia.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/musculos.js"></script>
