@@ -1,5 +1,5 @@
 /* ============================================================
-   Forja — app de treinos. Controlador principal das telas.
+   MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
 let viewAtual = 'hoje';
@@ -765,7 +765,7 @@ function exportarDados(){
   const a = document.createElement('a');
   const data = new Date().toISOString().slice(0, 10);
   a.href = url;
-  a.download = `forja-backup-${data}.json`;
+  a.download = `movepulse-backup-${data}.json`;
   a.click();
   URL.revokeObjectURL(url);
   toast('Backup gerado ✅');

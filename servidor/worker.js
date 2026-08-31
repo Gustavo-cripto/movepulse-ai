@@ -1,5 +1,5 @@
 /* ============================================================
-   Servidor mínimo para a app Forja (Cloudflare Worker).
+   Servidor mínimo para a app MovePulse AI (Cloudflare Worker).
 
    Guarda a chave da API do lado do servidor, para que ela nunca
    fique dentro da app instalada nos telemóveis.

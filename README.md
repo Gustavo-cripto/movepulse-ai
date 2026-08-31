@@ -1,6 +1,6 @@
-# Forja — app de treinos com plano gerado por IA
+# MovePulse AI — app de treinos com plano gerado por IA
 
-**App publicada:** <https://gustavo-cripto.github.io/forja-treinos/>
+**App publicada:** <https://gustavo-cripto.github.io/movepulse-ai/>
 
 App de treinos em **HTML + CSS + JavaScript puro**: sem build, sem dependências, sem framework.
 Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**.
@@ -82,7 +82,7 @@ do dispositivo no momento em que carregas em "Gerar plano". Limpar os dados do s
 histórico — faz backup antes.
 
 Sempre que alterares ficheiros da app, sobe a versão da cache em `sw.js`
-(`const CACHE = 'forja-vN'`) para os dispositivos já instalados receberem a atualização.
+(`const CACHE = 'movepulse-vN'`) para os dispositivos já instalados receberem a atualização.
 
 ## Aviso
 

@@ -1,6 +1,7 @@
 /* Persistência em localStorage + acesso ao estado da aplicação. */
 
-const CHAVE = 'forja.v1';
+const CHAVE = 'movepulse.v1';
+const CHAVE_ANTIGA = 'forja.v1';   // nome anterior da app
 
 const ESTADO_PADRAO = {
   exercicios: [],                       // exercícios criados pelo usuário
@@ -19,7 +20,8 @@ let estado = carregar();
 
 function carregar(){
   try {
-    const bruto = localStorage.getItem(CHAVE);
+    // migra dados guardados quando a app ainda se chamava Forja
+    const bruto = localStorage.getItem(CHAVE) || localStorage.getItem(CHAVE_ANTIGA);
     if (!bruto) return JSON.parse(JSON.stringify(ESTADO_PADRAO));
     const salvo = JSON.parse(bruto);
     const base = JSON.parse(JSON.stringify(ESTADO_PADRAO));

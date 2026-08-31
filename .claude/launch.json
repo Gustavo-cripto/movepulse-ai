@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "forja",
+      "name": "movepulse",
       "runtimeExecutable": "node",
       "runtimeArgs": ["/private/tmp/claude-502/-Volumes-Disco-IA-Privada-Projects-Site-fitness/bca2fee3-0637-4c03-853b-181a90b1d16d/scratchpad/serve.js"],
       "port": 4173

@@ -1,5 +1,5 @@
-/* Service worker: guarda o app inteiro em cache para funcionar offline. */
-const CACHE = 'forja-v9';
+/* Service worker: guarda a app inteira em cache para funcionar offline. */
+const CACHE = 'movepulse-v1';
 const ARQUIVOS = [
   './', './index.html', './css/style.css',
   './js/data.js', './js/store.js', './js/ia.js', './js/ui.js', './js/app.js',

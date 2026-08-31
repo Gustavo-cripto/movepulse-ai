@@ -1,4 +1,4 @@
-# Servidor da IA
+# Servidor da IA — MovePulse AI
 
 Existe para uma razão só: **a chave da API não pode ficar dentro da app**. Qualquer pessoa que
 instale a app consegue ler tudo o que lá está — se a chave estivesse no telemóvel, estaria à vista
@@ -21,7 +21,7 @@ cd "/Volumes/Disco IA Privada/Projects/Site fitness/servidor" && wrangler login 
 cd "/Volumes/Disco IA Privada/Projects/Site fitness/servidor" && wrangler secret put ANTHROPIC_API_KEY
 ```
 
-No fim, o `wrangler deploy` mostra um endereço tipo `https://forja-ia.SEU-NOME.workers.dev`.
+No fim, o `wrangler deploy` mostra um endereço tipo `https://movepulse-ia.SEU-NOME.workers.dev`.
 Põe esse endereço na app em **⚙️ → Plano com IA → Endereço do servidor**.
 
 Depois de publicares a app, muda `ORIGEM_PERMITIDA` no `wrangler.toml` para o endereço dela e

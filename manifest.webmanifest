@@ -1,6 +1,6 @@
 {
-  "name": "Forja — App de Treinos",
-  "short_name": "Forja",
+  "name": "MovePulse AI — App de Treinos",
+  "short_name": "MovePulse",
   "description": "Fotografa o equipamento do ginásio, deixa a IA montar o plano e regista os teus treinos.",
   "start_url": "./index.html",
   "scope": "./",
