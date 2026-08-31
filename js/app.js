@@ -84,9 +84,12 @@ function renderSessao(s){
         const cardio = ex.tipo === 'cardio';
         return `<div class="card" data-ex-idx="${i}">
           <div class="card__title">
-            <div>
-              <h3>${esc(ex.nome)}</h3>
-              <p class="item__meta">${esc(ex.grupo)} · ${esc(ex.equip)}</p>
+            <div class="ex-cabeca">
+              ${diagramaMusculos(ex.grupo)}
+              <div>
+                <h3>${esc(ex.nome)}</h3>
+                <p class="item__meta">${esc(ex.grupo)} · ${esc(ex.equip)}</p>
+              </div>
             </div>
             <button class="icon-btn" data-rm-ex="${i}" aria-label="Remover exercício">🗑</button>
           </div>
@@ -365,7 +368,13 @@ function detalheExercicio(id){
   Modal.abrir({
     titulo: ex.nome,
     corpo: `
-      <p><span class="tag">${esc(ex.grupo)}</span><span class="tag">${esc(ex.equip)}</span></p>
+      <div class="ex-cabeca">
+        ${diagramaMusculos(ex.grupo)}
+        <div>
+          <p><span class="tag">${esc(ex.grupo)}</span><span class="tag">${esc(ex.equip)}</span></p>
+          <p>${linkDemonstracao(ex.nome)}</p>
+        </div>
+      </div>
       <div class="grid grid--stats" style="margin-top:14px">
         ${statBox(hist.length, 'treinos')}
         ${statBox(melhorCarga ? fmtPeso(melhorCarga) + ' kg' : '—', 'melhor carga')}
@@ -634,10 +643,12 @@ function mostrarPlano(plano, antigo){
         <p class="item__meta" style="margin:2px 0 8px">${esc(t.foco)}</p>
         ${t.exercicios.map(ex => `
           <div class="ia-ex">
+            ${diagramaMusculos(ex.grupo)}
             <div>
               <b>${esc(ex.nome)}</b>
               <span> · ${esc(ex.equipamento)}</span>
               ${ex.nota ? `<div><span>${esc(ex.nota)}</span></div>` : ''}
+              <div>${linkDemonstracao(ex.nome)}</div>
             </div>
             <div class="prescricao">${ex.series}×${ex.reps}<br><span style="color:var(--txt-dim);font-weight:400">${ex.descanso_seg}s</span></div>
           </div>`).join('')}

@@ -1,8 +1,8 @@
 /* Service worker: guarda a app inteira em cache para funcionar offline. */
-const CACHE = 'movepulse-v3';
+const CACHE = 'movepulse-v4';
 const ARQUIVOS = [
   './', './index.html', './css/style.css',
-  './js/data.js', './js/store.js', './js/ia.js', './js/ui.js', './js/app.js',
+  './js/data.js', './js/store.js', './js/ia.js', './js/ui.js', './js/musculos.js', './js/app.js',
   './manifest.webmanifest',
   './icons/icone-192.png', './icons/icone-512.png',
   './icons/maskable-512.png', './icons/apple-touch-180.png',
