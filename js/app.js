@@ -601,7 +601,11 @@ async function gerarPlano(){
   } catch (e) {
     $('#iaEstado').textContent = '';
     $('#iaResultado').innerHTML = `<div class="aviso">Não foi possível gerar o plano.<br>${esc(e.message)}
-      <br><br>Confirma o modo e as credenciais em ⚙️ → Plano com IA.</div>`;
+      <br><br>Confirma o modo e as credenciais em Plano com IA.
+      <button class="btn btn--sm btn--ghost btn--block" id="btnErroConfig" style="margin-top:12px">
+        ⚙️ Abrir definições
+      </button></div>`;
+    $('#btnErroConfig').onclick = abrirConfig;
   } finally {
     aGerarPlano = false;
     $('#btnGerarPlano').disabled = false;
