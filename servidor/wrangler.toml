@@ -2,6 +2,11 @@ name = "movepulse-ia"
 main = "worker.js"
 compatibility_date = "2026-01-01"
 
+# Publica no endereço .workers.dev, mas sem URLs de pré-visualização:
+# cada versão teria um endereço próprio, fora da origem autorizada abaixo.
+workers_dev = true
+preview_urls = false
+
 [vars]
 # Restringe quem pode usar o servidor. Põe aqui o endereço onde publicaste a app,
 # Depois de testares, troca para "https://gustavo-cripto.github.io" e volta a fazer deploy.
