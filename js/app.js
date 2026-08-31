@@ -45,6 +45,12 @@ const LETRAS_DIA = ['D','S','T','Q','Q','S','S'];
 const NOMES_DIA = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 let mesVisivel = null;   // primeiro dia do mês mostrado no calendário
 
+/** "A — Peito, Ombro e Tríceps" -> "A"; "Full body" -> "Ful" */
+function abreviar(nome){
+  const m = nome.trim().match(/^([A-Za-z0-9])\s*[—\-–:]/);
+  return m ? m[1] : nome.trim().slice(0, 3);
+}
+
 /** Tira de sete dias, da segunda ao domingo desta semana. */
 function renderSemana(){
   const hoje = new Date();
@@ -63,7 +69,7 @@ function renderSemana(){
               data-dia="${d.getDay()}" title="${ficha ? esc(ficha.nome) : 'Sem treino planeado'}">
       <span class="dia__letra">${LETRAS_DIA[d.getDay()]}</span>
       <span class="dia__num">${d.getDate()}</span>
-      <span class="dia__ponto"></span>
+      <span class="dia__marca">${feito ? '✓' : (ficha ? esc(abreviar(ficha.nome)) : '·')}</span>
     </button>`;
   }).join('');
 }

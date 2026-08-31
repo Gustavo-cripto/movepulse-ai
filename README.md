@@ -10,6 +10,11 @@ Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**
 - **Plano IA** — fotografas as máquinas disponíveis no ginásio, indicas objetivo, experiência, dias
   por semana, tempo por sessão e lesões; a IA identifica o equipamento visível e devolve um plano
   que só usa esse equipamento. Um toque adiciona os treinos às tuas fichas.
+- **Semana e mês** — planeia que ficha se faz em cada dia da semana; a tira no ecrã inicial mostra
+  a letra do treino do dia e um visto nos já feitos, e o calendário mensal no Progresso acende os
+  dias treinados.
+- **Foto da máquina** — cada exercício pode ter a fotografia da máquina real do teu ginásio, tirada
+  na hora. Aparece no detalhe do exercício e em miniatura durante o treino.
 - **Hoje** — inicia o treino a partir de uma ficha (ou livre), cronómetro, registo de séries
   (reps × carga), temporizador de descanso com aviso sonoro e volume calculado ao vivo. Se fechares
   o navegador a meio, o treino continua de onde ficou.
@@ -79,6 +84,9 @@ servidor/               Cloudflare Worker que guarda a chave da API
 ```
 
 ## Dados e privacidade
+
+As fotos das máquinas ficam em IndexedDB (uma foto ocupa mais do que todo o histórico junto) e,
+por isso, **não vão no backup** — esse leva fichas, histórico, programa e definições.
 
 Fichas, histórico e definições ficam em `localStorage`, **só no dispositivo** — não há servidor de
 dados nem sincronização entre telemóvel e Mac (usa exportar/importar em ⚙️ para passar de um para o
