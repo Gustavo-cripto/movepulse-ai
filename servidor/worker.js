@@ -59,7 +59,7 @@ export default {
     if (problema) return erro(400, problema, origem);
 
     return provedor(env) === 'nvidia'
-      ? viaNvidia(corpo, env, origem)
+      ? viaNvidia(corpo, env, origem, url.searchParams.get('diagnostico') === '1')
       : viaAnthropic(corpo, env, origem);
   },
 };
@@ -95,7 +95,7 @@ async function viaAnthropic(corpo, env, origem){
    1. cada foto é analisada em paralelo por um modelo de visão (saída curta);
    2. um modelo de texto recebe a lista de equipamento e escreve o plano.
    ------------------------------------------------ */
-async function viaNvidia(corpo, env, origem){
+async function viaNvidia(corpo, env, origem, diagnostico = false){
   if (!env.NVIDIA_API_KEY) return erro(500, 'Falta configurar NVIDIA_API_KEY no servidor.', origem);
 
   const blocos = corpo.messages[0].content;
@@ -106,8 +106,15 @@ async function viaNvidia(corpo, env, origem){
   if (!fotos.length) return erro(400, 'Nenhuma fotografia recebida.', origem);
 
   // --- etapa 1: ler as fotos (em paralelo) ---
-  const leituras = await Promise.all(fotos.map((f, i) => lerFoto(f, i, env)));
+  // Os modelos pequenos falham fotos ao acaso: se uma não der nada, tenta outra vez.
+  const leituras = await Promise.all(fotos.map(async (f, i) => {
+    const primeira = await lerFoto(f, i, env);
+    if (primeira.equipamentos.length) return primeira;
+    return lerFoto(f, i, env);
+  }));
   const equipamentos = juntarEquipamentos(leituras);
+
+  if (diagnostico) return json({ fotos: fotos.length, leituras, equipamentos }, 200, origem);
 
   if (!equipamentos.length){
     return erro(502, 'Não consegui identificar equipamento nas fotos. Tenta fotos mais próximas e com a chapa do nome visível.', origem);
@@ -116,10 +123,16 @@ async function viaNvidia(corpo, env, origem){
   // --- etapa 2: escrever o plano ---
   const sistema = `${corpo.system || ''}
 
-Equipamento identificado nas fotografias do ginásio:
+As fotografias do ginásio JÁ FORAM analisadas por ti noutra etapa. Este é o resultado dessa
+análise — é com esta lista que trabalhas. Não peças imagens nem digas que não as recebeste:
+
 ${equipamentos.map(e => `- ${e.nome} (${e.grupo}, confiança ${e.confianca})`).join('\n')}
 
 Usa apenas este equipamento e peso corporal. Repete a lista no campo "equipamentos" da resposta.
+
+Escreve em português de Portugal. Nunca uses espanhol nem português do Brasil: diz "gémeos" (não
+"panturrilha"), "elevação da anca" (não "elevação de pélvis"), "chão" (não "suelo"), "prancha"
+(não "pranca"), "agachamento" e "flexões".
 Responde APENAS com um objeto JSON válido, sem texto à volta e sem blocos de código, que obedeça
 exatamente a este JSON Schema:
 ${JSON.stringify(esquema)}`;
@@ -160,17 +173,21 @@ async function lerFoto(foto, indice, env){
       ]},
     ],
   });
-  if (r.erro) return [];
+  if (r.erro) return { erro: r.erro, equipamentos: [] };
   const limpo = extrairJson(r.texto);
-  if (!limpo) return [];
-  try { return JSON.parse(limpo).equipamentos || []; } catch { return []; }
+  if (!limpo) return { bruto: String(r.texto).slice(0, 400), equipamentos: [] };
+  try {
+    return { equipamentos: JSON.parse(limpo).equipamentos || [] };
+  } catch {
+    return { bruto: String(r.texto).slice(0, 400), equipamentos: [] };
+  }
 }
 
 /** Junta as leituras das várias fotos, sem repetir equipamento. */
 function juntarEquipamentos(leituras){
   const vistos = new Map();
-  for (const lista of leituras){
-    for (const e of lista){
+  for (const leitura of leituras){
+    for (const e of (leitura.equipamentos || [])){
       if (!e || !e.nome) continue;
       const chave = String(e.nome).toLowerCase().trim();
       if (!vistos.has(chave)) vistos.set(chave, {
@@ -209,6 +226,16 @@ async function chamarNvidia(env, pedido){
   } catch {
     return { erro:'Resposta ilegível do fornecedor.', estado:502 };
   }
+}
+
+/** Tira cercas de código e texto à volta, devolvendo só o objeto JSON. */
+function extrairJson(texto){
+  const semCercas = String(texto).replace(/```(?:json)?/gi, '').trim();
+  const inicio = semCercas.indexOf('{');
+  const fim = semCercas.lastIndexOf('}');
+  if (inicio < 0 || fim <= inicio) return null;
+  const candidato = semCercas.slice(inicio, fim + 1);
+  try { JSON.parse(candidato); return candidato; } catch { return null; }
 }
 
 async function listarModelos(env, origem){

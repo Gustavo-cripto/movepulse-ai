@@ -18,7 +18,7 @@ MODELO_TEXTO = "nvidia/nemotron-3-super-120b-a12b"
 
 # Restringe quem pode usar o servidor. Põe aqui o endereço onde publicaste a app,
 # Depois de testares, troca para "https://gustavo-cripto.github.io" e volta a fazer deploy.
-ORIGEM_PERMITIDA = "*"
+ORIGEM_PERMITIDA = "https://gustavo-cripto.github.io"
 
 # A chave NÃO se põe aqui. Guarda-a como segredo:
 #   wrangler secret put NVIDIA_API_KEY
