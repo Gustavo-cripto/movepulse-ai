@@ -1,5 +1,7 @@
 # Forja — app de treinos com plano gerado por IA
 
+**App publicada:** <https://gustavo-cripto.github.io/forja-treinos/>
+
 App de treinos em **HTML + CSS + JavaScript puro**: sem build, sem dependências, sem framework.
 Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**.
 
@@ -52,6 +54,8 @@ preciso servir por HTTP:
 ```bash
 cd "/Volumes/Disco IA Privada/Projects/Site fitness" && npx serve -l 4173
 ```
+
+Para publicar alterações basta `git push` — o GitHub Pages reconstrói sozinho.
 
 ## Estrutura
 

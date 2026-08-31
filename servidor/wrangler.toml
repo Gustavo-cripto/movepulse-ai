@@ -4,7 +4,7 @@ compatibility_date = "2026-01-01"
 
 [vars]
 # Restringe quem pode usar o servidor. Põe aqui o endereço onde publicaste a app,
-# por exemplo "https://forja.netlify.app". Deixa "*" apenas enquanto testas.
+# Depois de testares, troca para "https://gustavo-cripto.github.io" e volta a fazer deploy.
 ORIGEM_PERMITIDA = "*"
 
 # A chave NÃO se põe aqui. Guarda-a como segredo:
