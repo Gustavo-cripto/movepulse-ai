@@ -8,9 +8,18 @@ workers_dev = true
 preview_urls = false
 
 [vars]
+# Que fornecedor de IA usar: "nvidia" (plano gratuito) ou "anthropic" (Claude).
+PROVEDOR = "nvidia"
+
+# Só contam quando PROVEDOR = "nvidia". Ver os disponíveis em GET /modelos.
+# Etapa 1 (ler as fotos) e etapa 2 (escrever o plano).
+MODELO_NVIDIA = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
+MODELO_TEXTO = "nvidia/nemotron-3-super-120b-a12b"
+
 # Restringe quem pode usar o servidor. Põe aqui o endereço onde publicaste a app,
 # Depois de testares, troca para "https://gustavo-cripto.github.io" e volta a fazer deploy.
 ORIGEM_PERMITIDA = "*"
 
 # A chave NÃO se põe aqui. Guarda-a como segredo:
+#   wrangler secret put NVIDIA_API_KEY
 #   wrangler secret put ANTHROPIC_API_KEY

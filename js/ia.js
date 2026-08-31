@@ -16,6 +16,7 @@ const IA = {
   LADO_MAX: 1280,          // px no lado maior — mantém o custo de tokens baixo
   ENDPOINT: 'https://api.anthropic.com/v1/messages',
   VERSAO_API: '2023-06-01',
+  TEMPO_LIMITE: 240000,    // 4 min: se passar disto, algo correu mal do outro lado
 };
 
 /* ---------- Fotos ---------- */
@@ -154,8 +155,25 @@ Identifica o equipamento e monta o plano de treino.` });
 
 /** Envia o pedido pelo modo configurado e devolve o objeto do plano. */
 async function pedirPlano(perfil, fotos){
+  try {
+    return await pedirPlanoInterno(perfil, fotos);
+  } catch (e) {
+    if (e.name === 'TimeoutError' || e.name === 'AbortError'){
+      throw new Error('Demorou demasiado tempo. Tenta com menos fotos.');
+    }
+    if (e instanceof TypeError){
+      throw new Error('Não consegui contactar o servidor. Verifica a ligação e o endereço em ⚙️.');
+    }
+    throw e;
+  }
+}
+
+async function pedirPlanoInterno(perfil, fotos){
   const cfg = Store.estado.config.ia;
   const corpo = construirPedido(perfil, fotos);
+
+  // sem isto, uma resposta que nunca chega deixa a app à espera para sempre
+  const corte = AbortSignal.timeout(IA.TEMPO_LIMITE);
 
   let resposta;
   if (cfg.modo === 'direto'){
@@ -170,6 +188,7 @@ async function pedirPlano(perfil, fotos){
         'anthropic-dangerous-direct-browser-access':'true',
       },
       body: JSON.stringify(corpo),
+      signal: corte,
     });
   } else {
     if (!cfg.servidor) throw new Error('Falta o endereço do servidor nas configurações.');
@@ -177,6 +196,7 @@ async function pedirPlano(perfil, fotos){
       method:'POST',
       headers:{ 'content-type':'application/json' },
       body: JSON.stringify(corpo),
+      signal: corte,
     });
   }
 
