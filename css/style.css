@@ -539,3 +539,25 @@ h3{font-size:16px}
 .pontos{display:flex;justify-content:center;gap:6px;margin:4px 0 8px}
 .ponto{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
 .ponto.is-ativo{background:var(--accent-med);width:18px;border-radius:3px}
+
+/* ---------- Treinador IA ---------- */
+.conversa{display:flex;flex-direction:column;gap:10px;padding-bottom:6px}
+.balao{
+  max-width:88%;padding:11px 13px;border-radius:16px;font-size:14.5px;line-height:1.5;
+  border:1px solid var(--line);
+}
+.balao--eu{align-self:flex-end;background:var(--accent);border-color:var(--accent-med);color:var(--accent-ink)}
+.balao--bot{align-self:flex-start;background:var(--bg-elev)}
+.balao b{font-weight:700}
+.balao ul{margin:6px 0 0;padding-left:1.1em}
+.balao li{margin-bottom:3px}
+.balao--espera{color:var(--txt-dim);font-style:italic}
+.sugestoes{display:flex;gap:8px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.sugestoes::-webkit-scrollbar{display:none}
+.sugestao{
+  white-space:nowrap;background:var(--bg-elev);border:1px solid var(--line);color:var(--txt-dim);
+  border-radius:999px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer;
+}
+.barra-envio{display:flex;gap:8px;position:sticky;bottom:0;padding:8px 0 2px;background:var(--bg)}
+.barra-envio .input{flex:1}
+.barra-envio .btn{flex:none;padding:12px 16px;font-size:16px}

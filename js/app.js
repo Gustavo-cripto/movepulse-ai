@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 38;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 39;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -21,6 +21,7 @@ function mostrar(view){
 function render(){
   if (viewAtual === 'inicio')     renderInicio();
   if (viewAtual === 'treino')     renderTreino();
+  if (viewAtual === 'bot')        renderBot();
   if (viewAtual === 'perfil')     renderPerfil();
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
@@ -184,10 +185,14 @@ function renderCartaoHoje(){
 
 let mesVisivel = null;   // primeiro dia do mês mostrado no calendário
 
-/** "A — Peito, Ombro e Tríceps" -> "A"; "Full body" -> "Ful" */
+/** Reduz o nome da ficha à sua marca: "Treino B" e "B — Costas" dão ambos "B". */
 function abreviar(nome){
-  const m = nome.trim().match(/^([A-Za-z0-9])\s*[—\-–:]/);
-  return m ? m[1] : nome.trim().slice(0, 3);
+  const t = nome.trim();
+  const comTraco = t.match(/^([A-Za-z0-9])\s*[—\-–:]/);          // "A — Peito"
+  if (comTraco) return comTraco[1].toUpperCase();
+  const comPalavra = t.match(/\b(?:treino|dia|sess[ãa]o)\s+([A-Za-z0-9])\b/i);  // "Treino B"
+  if (comPalavra) return comPalavra[1].toUpperCase();
+  return t.slice(0, 3);
 }
 
 /** Tira de sete dias, da segunda ao domingo desta semana. */
@@ -1017,6 +1022,84 @@ function detalheSessao(id){
 }
 
 /* ============================================================
+   TELA: TREINADOR IA
+   ============================================================ */
+const PERGUNTAS_SUGERIDAS = [
+  'Estou a progredir bem?',
+  'Como aumento a carga sem me lesionar?',
+  'Quantas séries por semana para as costas?',
+  'O que faço se faltar a um treino?',
+  'Como aqueço antes de treinar?',
+];
+let aResponder = false;
+
+/** Formatação mínima do que o modelo devolve: negrito, listas e parágrafos. */
+function formatarResposta(texto){
+  const seguro = esc(texto);
+  const linhas = seguro.split('\n').map(l => l.trim()).filter(Boolean);
+  let html = '', emLista = false;
+  for (const linha of linhas){
+    const item = linha.match(/^[-*•]\s+(.*)$/);
+    if (item){
+      if (!emLista){ html += '<ul>'; emLista = true; }
+      html += `<li>${item[1]}</li>`;
+    } else {
+      if (emLista){ html += '</ul>'; emLista = false; }
+      html += `<p>${linha}</p>`;
+    }
+  }
+  if (emLista) html += '</ul>';
+  return html.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+}
+
+function renderBot(){
+  const conversa = Store.estado.conversa;
+
+  $('#conversa').innerHTML = conversa.length
+    ? conversa.map(m => `<div class="balao balao--${m.role === 'user' ? 'eu' : 'bot'}">
+        ${m.role === 'user' ? esc(m.content) : formatarResposta(m.content)}
+      </div>`).join('')
+    : `<div class="balao balao--bot">
+        <p>Olá${Store.estado.perfil.nome ? ', ' + esc(Store.estado.perfil.nome) : ''}. Sou o treinador
+        da app: pergunta-me sobre treino, técnica, descanso ou progressão.</p>
+        <p style="margin-top:8px;color:var(--txt-dim);font-size:13px">Conheço o teu perfil e o teu
+        plano. Não dou conselhos médicos — para dores ou lesões, procura um profissional.</p>
+      </div>`;
+
+  if (aResponder){
+    $('#conversa').insertAdjacentHTML('beforeend',
+      '<div class="balao balao--bot balao--espera">A escrever…</div>');
+  }
+
+  $('#botSugestoes').innerHTML = conversa.length ? '' :
+    PERGUNTAS_SUGERIDAS.map(q => `<button class="sugestao" data-pergunta="${esc(q)}">${esc(q)}</button>`).join('');
+
+  $('#conversa').lastElementChild?.scrollIntoView({ block:'end' });
+}
+
+async function enviarPergunta(texto){
+  const pergunta = texto.trim();
+  if (!pergunta || aResponder) return;
+
+  Store.estado.conversa.push({ role:'user', content: pergunta });
+  Store.salvar();
+  aResponder = true;
+  $('#botTexto').value = '';
+  renderBot();
+
+  try {
+    const resposta = await perguntarAoTreinador(Store.estado.conversa);
+    Store.estado.conversa.push({ role:'assistant', content: resposta });
+  } catch (e) {
+    Store.estado.conversa.push({ role:'assistant', content: `Não consegui responder. ${e.message}` });
+  } finally {
+    aResponder = false;
+    Store.salvar();
+    renderBot();
+  }
+}
+
+/* ============================================================
    TELA: PERFIL
    ============================================================ */
 function renderPerfil(){
@@ -1643,6 +1726,18 @@ function ligarEventos(){
     filtroGrupo = chip.dataset.grupo;
     renderExercicios();
   };
+
+  // Treinador IA
+  $('#botForm').onsubmit = e => { e.preventDefault(); enviarPergunta($('#botTexto').value); };
+  $('#botSugestoes').onclick = e => {
+    const b = e.target.closest('[data-pergunta]');
+    if (b) enviarPergunta(b.dataset.pergunta);
+  };
+  $('#botLimpar').onclick = () => confirmar('Apagar esta conversa?', () => {
+    Store.estado.conversa = [];
+    Store.salvar();
+    renderBot();
+  }, 'Apagar');
 
   // Perfil: guarda-se sozinho, a cada alteração
   $('#view-perfil').addEventListener('input', e => {

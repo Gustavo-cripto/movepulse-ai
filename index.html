@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=38">
+<link rel="stylesheet" href="css/style.css?v=39">
 </head>
 <body>
 
@@ -242,6 +242,20 @@
   </section>
 
 
+  <!-- ============ BOT ============ -->
+  <section class="view" id="view-bot" hidden>
+    <div class="section-head">
+      <h2>Treinador IA</h2>
+      <button class="btn btn--sm btn--ghost" id="botLimpar">Limpar</button>
+    </div>
+    <div class="conversa" id="conversa"></div>
+    <div class="sugestoes" id="botSugestoes"></div>
+    <form class="barra-envio" id="botForm">
+      <input class="input" id="botTexto" placeholder="Pergunta ao treinador…" autocomplete="off">
+      <button class="btn btn--primary" id="botEnviar" type="submit" aria-label="Enviar">➤</button>
+    </form>
+  </section>
+
   <!-- ============ PERFIL ============ -->
   <section class="view" id="view-perfil" hidden>
     <div class="section-head"><h2>Perfil</h2></div>
@@ -336,6 +350,7 @@
   <button class="tab is-active" data-view="inicio"><span>🏠</span>Início</button>
   <button class="tab" data-view="ia"><span>✨</span>Plano IA</button>
   <button class="tab" data-view="treinos"><span>📋</span>Fichas</button>
+  <button class="tab" data-view="bot"><span>💬</span>Treinador</button>
   <button class="tab" data-view="progresso"><span>📈</span>Progresso</button>
   <button class="tab" data-view="perfil"><span>👤</span>Perfil</button>
   <button class="tab tab--treino" data-view="treino" id="tabTreino" hidden>
@@ -363,14 +378,14 @@
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=38"></script>
-<script src="js/store.js?v=38"></script>
-<script src="js/db.js?v=38"></script>
-<script src="js/ia.js?v=38"></script>
-<script src="js/ui.js?v=38"></script>
-<script src="js/musculos.js?v=38"></script>
-<script src="js/animacao.js?v=38"></script>
-<script src="js/icones.js?v=38"></script>
-<script src="js/app.js?v=38"></script>
+<script src="js/data.js?v=39"></script>
+<script src="js/store.js?v=39"></script>
+<script src="js/db.js?v=39"></script>
+<script src="js/ia.js?v=39"></script>
+<script src="js/ui.js?v=39"></script>
+<script src="js/musculos.js?v=39"></script>
+<script src="js/animacao.js?v=39"></script>
+<script src="js/icones.js?v=39"></script>
+<script src="js/app.js?v=39"></script>
 </body>
 </html>

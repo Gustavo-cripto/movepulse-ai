@@ -16,6 +16,7 @@ const ESTADO_PADRAO = {
     // (No iOS, a app instalada tem armazenamento separado do Safari e não herda definições.)
     ia: { modo: 'servidor', servidor: SERVIDOR_PADRAO, chave: '' },
   },
+  conversa: [],                         // perguntas ao treinador
   planoIA: null,                        // último plano gerado pela IA
   programa: { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null },  // domingo a sábado
   planoConfig: {
@@ -44,6 +45,7 @@ function carregar(){
     return { ...base, ...salvo,
       programa: { ...base.programa, ...salvo.programa },
       perfil: { ...base.perfil, ...salvo.perfil },
+      conversa: salvo.conversa || [],
       planoConfig: { ...base.planoConfig, ...salvo.planoConfig },
       config: { ...base.config, ...salvo.config,
         ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia),

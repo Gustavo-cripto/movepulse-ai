@@ -337,3 +337,63 @@ function importarPlano(plano){
   });
   return criadas;
 }
+
+
+/* ============================================================
+   Perguntas ao treinador.
+   ============================================================ */
+
+/** Resume o perfil e o plano, para o bot responder com conhecimento de causa. */
+function contextoDoUtilizador(){
+  const p = Store.estado.perfil;
+  const plano = Store.estado.planoIA;
+  const linhas = [
+    `Objetivo: ${p.objetivo}`,
+    `Experiência: ${p.experiencia}`,
+    `Treina ${p.diasSemana.length}x por semana (${p.diasSemana.map(d => NOMES_DIA[d]).join(', ') || 'sem dias definidos'})`,
+    `Sessões de ${p.minutos} minutos`,
+  ];
+  if (p.idade)  linhas.push(`Idade: ${p.idade}`);
+  if (p.peso && p.altura) linhas.push(`${p.peso} kg, ${p.altura} cm`);
+  if (p.limitacoes) linhas.push(`Limitações: ${p.limitacoes}`);
+  if (plano){
+    linhas.push(`Plano atual: ${plano.plano.nome} — ${plano.plano.treinos.map(t => t.nome).join(', ')}`);
+  }
+  const feitos = Store.estado.sessoes.length;
+  linhas.push(`Treinos registados até agora: ${feitos}`);
+  return linhas.join('\n');
+}
+
+/** Envia a conversa ao servidor e devolve a resposta do treinador. */
+async function perguntarAoTreinador(mensagens){
+  const cfg = Store.estado.config.ia;
+  const corpo = {
+    tipo:'conversa',
+    contexto: contextoDoUtilizador(),
+    messages: mensagens.slice(-12),
+  };
+
+  const corte = AbortSignal.timeout(90000);
+  let resposta;
+  try {
+    if (cfg.modo === 'direto'){
+      throw new Error('O treinador só funciona pelo servidor. Muda o modo em ⚙️.');
+    }
+    resposta = await fetch(cfg.servidor, {
+      method:'POST',
+      headers:{ 'content-type':'application/json' },
+      body: JSON.stringify(corpo),
+      signal: corte,
+    });
+  } catch (e) {
+    if (e.name === 'TimeoutError') throw new Error('Demorou demasiado tempo. Tenta outra vez.');
+    throw e;
+  }
+
+  if (!resposta.ok){
+    const txt = await resposta.text().catch(() => '');
+    throw new Error(mensagemErro(resposta.status, txt));
+  }
+  const dados = await resposta.json();
+  return dados.resposta || 'Não recebi resposta.';
+}

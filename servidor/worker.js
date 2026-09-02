@@ -55,6 +55,12 @@ export default {
     try { corpo = await pedido.json(); }
     catch { return erro(400, 'JSON inválido.', origem); }
 
+    if (corpo.tipo === 'conversa'){
+      const problemaConversa = validarConversa(corpo);
+      if (problemaConversa) return erro(400, problemaConversa, origem);
+      return conversa(corpo, env, origem);
+    }
+
     const problema = validar(corpo);
     if (problema) return erro(400, problema, origem);
 
@@ -301,6 +307,76 @@ async function listarModelos(env, origem){
   const dados = await r.json().catch(() => ({}));
   const ids = (dados.data || []).map(m => m.id).sort();
   return json({ total: ids.length, modelos: ids }, r.status, origem);
+}
+
+const CONVERSA = { maxMensagens: 24, maxTexto: 2000, maxTokens: 900 };
+
+const SISTEMA_BOT = `És o treinador da app MovePulse AI. Respondes a dúvidas sobre treino,
+técnica de exercícios, organização da semana e progressão de cargas.
+
+Regras:
+- Português de Portugal, tratamento por "tu", sem inglês desnecessário.
+- Respostas curtas: três a seis frases, ou uma lista curta. Vai direto ao assunto.
+- Usa o perfil e o plano da pessoa quando forem relevantes para a resposta.
+- Não dás diagnósticos nem tratamentos. Perante dor, lesão, tonturas, dor no peito ou
+  doença, dizes com clareza que é caso para médico ou fisioterapeuta.
+- Não prescreves suplementos, medicamentos nem dietas de restrição severa.
+- Se não souberes, dizes que não sabes.`;
+
+function validarConversa(corpo){
+  if (!Array.isArray(corpo.messages) || !corpo.messages.length) return 'Conversa vazia.';
+  if (corpo.messages.length > CONVERSA.maxMensagens) return 'Conversa demasiado longa.';
+  for (const m of corpo.messages){
+    if (!['user','assistant'].includes(m.role)) return 'Papel inválido na conversa.';
+    if (typeof m.content !== 'string') return 'Mensagem inválida.';
+    if (m.content.length > CONVERSA.maxTexto) return 'Mensagem demasiado longa.';
+  }
+  if (corpo.contexto && String(corpo.contexto).length > 1200) return 'Contexto demasiado longo.';
+  return null;
+}
+
+/** Perguntas ao treinador. Segue o provedor configurado. */
+async function conversa(corpo, env, origem){
+  const sistema = SISTEMA_BOT + (corpo.contexto ? `\n\nSobre esta pessoa:\n${corpo.contexto}` : '');
+
+  if (provedor(env) === 'nvidia'){
+    if (!env.NVIDIA_API_KEY) return erro(500, 'Falta configurar NVIDIA_API_KEY no servidor.', origem);
+    const r = await chamarNvidia(env, {
+      model: env.MODELO_TEXTO || NVIDIA.modeloTexto,
+      max_tokens: CONVERSA.maxTokens,
+      temperature: 0.6,
+      messages: [{ role:'system', content: sistema }, ...corpo.messages],
+    });
+    if (r.erro) return erro(r.estado || 502, r.erro, origem);
+    return json({ resposta: limparResposta(r.texto) }, 200, origem);
+  }
+
+  if (!env.ANTHROPIC_API_KEY) return erro(500, 'Falta configurar ANTHROPIC_API_KEY no servidor.', origem);
+  const r = await fetch(ANTHROPIC.url, {
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version':'2023-06-01',
+    },
+    body: JSON.stringify({
+      model:'claude-opus-5',
+      max_tokens: CONVERSA.maxTokens,
+      system: sistema,
+      messages: corpo.messages.map(m => ({ role: m.role, content: m.content })),
+    }),
+  });
+  const dados = await r.json().catch(() => null);
+  if (!r.ok || !dados) return erro(r.status || 502, 'O serviço não respondeu.', origem);
+  const texto = (dados.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+  return json({ resposta: limparResposta(texto) }, 200, origem);
+}
+
+/** Tira o raciocínio que alguns modelos deixam à frente da resposta. */
+function limparResposta(texto){
+  return String(texto || '')
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .trim() || 'Não consegui responder. Tenta reformular a pergunta.';
 }
 
 /* Aceita apenas o formato que a app envia — impede que a chave
