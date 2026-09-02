@@ -570,3 +570,8 @@ h3{font-size:16px}
   border:1.5px solid var(--accent-med);
 }
 .lista-planeada span{color:var(--txt-dim);font-size:12.5px}
+
+/* músculo trabalhado, aceso durante a animação */
+.an-ativo{stroke:var(--accent-med)}
+line.an-tronco.an-ativo{stroke-width:11}
+line.an-osso.an-ativo{stroke-width:8}

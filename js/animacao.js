@@ -222,11 +222,25 @@ function interpolar(a, b, t){
   return pose;
 }
 
+/* Que segmentos do boneco acender, conforme o músculo trabalhado. */
+const SEGMENTOS_POR_GRUPO = {
+  'Peito':   ['tronco'],
+  'Costas':  ['tronco'],
+  'Abdómen': ['tronco'],
+  'Ombros':  ['braco'],
+  'Bíceps':  ['antebraco', 'braco'],
+  'Tríceps': ['braco'],
+  'Pernas':  ['coxa', 'perna'],
+  'Cardio':  ['coxa', 'perna'],
+};
+
 /** Desenha o boneco e o que ele segura. */
-function desenharBoneco(mov, t){
+function desenharBoneco(mov, t, grupo){
   const p = esqueleto(interpolar(mov.a, mov.b, t));
-  const linha = (de, para, classe) =>
-    `<line class="${classe}" x1="${de.x.toFixed(1)}" y1="${de.y.toFixed(1)}" x2="${para.x.toFixed(1)}" y2="${para.y.toFixed(1)}"/>`;
+  const acesos = SEGMENTOS_POR_GRUPO[grupo] || [];
+  const linha = (de, para, classe, segmento) =>
+    `<line class="${classe}${acesos.includes(segmento) ? ' an-ativo' : ''}"
+       x1="${de.x.toFixed(1)}" y1="${de.y.toFixed(1)}" x2="${para.x.toFixed(1)}" y2="${para.y.toFixed(1)}"/>`;
 
   let carga = '';
   if (mov.carga === 'halteres'){
@@ -251,12 +265,12 @@ function desenharBoneco(mov, t){
     <line class="an-chao" x1="8" y1="133" x2="112" y2="133"/>
     ${mov.a.sentado ? '<rect class="an-banco" x="46" y="96" width="40" height="6" rx="3"/>' : ''}
     <g${roda}>
-    ${linha(p.tornozelo, p.pe, 'an-osso')}
-    ${linha(p.tornozelo, p.joelho, 'an-osso')}
-    ${linha(p.joelho, p.anca, 'an-osso')}
-    ${linha(p.anca, p.ombro, 'an-tronco')}
-    ${linha(p.ombro, p.cotovelo, 'an-osso')}
-    ${linha(p.cotovelo, p.mao, 'an-osso')}
+    ${linha(p.tornozelo, p.pe, 'an-osso', 'pe')}
+    ${linha(p.tornozelo, p.joelho, 'an-osso', 'perna')}
+    ${linha(p.joelho, p.anca, 'an-osso', 'coxa')}
+    ${linha(p.anca, p.ombro, 'an-tronco', 'tronco')}
+    ${linha(p.ombro, p.cotovelo, 'an-osso', 'braco')}
+    ${linha(p.cotovelo, p.mao, 'an-osso', 'antebraco')}
     <circle class="an-cabeca" cx="${p.cabeca.x.toFixed(1)}" cy="${(p.cabeca.y - 4).toFixed(1)}" r="7"/>
     ${carga}
     </g>`;
@@ -268,7 +282,7 @@ function animarExercicio(elemento, ex){
   const parado = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   elemento.innerHTML = `<svg class="boneco" viewBox="0 0 120 145" aria-label="Execução de ${esc(ex.nome)}">
-    <g id="an-corpo">${desenharBoneco(mov, parado ? 0.5 : 0)}</g></svg>`;
+    <g id="an-corpo">${desenharBoneco(mov, parado ? 0.5 : 0, ex.grupo)}</g></svg>`;
 
   if (parado) return () => {};
 
@@ -282,7 +296,7 @@ function animarExercicio(elemento, ex){
     // vai e volta, com travagem nos extremos
     const linear = ciclo < 0.5 ? ciclo * 2 : (1 - ciclo) * 2;
     const t = linear < 0.5 ? 2 * linear * linear : 1 - Math.pow(-2 * linear + 2, 2) / 2;
-    corpo.innerHTML = desenharBoneco(mov, t);
+    corpo.innerHTML = desenharBoneco(mov, t, ex.grupo);
     pedido = requestAnimationFrame(passo);
   };
   pedido = requestAnimationFrame(passo);
