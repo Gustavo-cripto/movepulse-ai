@@ -1,5 +1,5 @@
 /* Service worker: guarda a app inteira em cache para funcionar offline. */
-const CACHE = 'movepulse-v36';
+const CACHE = 'movepulse-v37';
 const ARQUIVOS = [
   './', './index.html', './css/style.css',
   './js/data.js', './js/store.js', './js/db.js', './js/ia.js', './js/ui.js', './js/musculos.js', './js/animacao.js', './js/icones.js', './js/app.js',
@@ -29,7 +29,9 @@ self.addEventListener('fetch', e => {
   // Sem rede, cai na cópia guardada e continua a abrir.
   if (e.request.mode === 'navigate'){
     e.respondWith(
-      fetch(e.request)
+      // cache:'reload' ignora a cópia do navegador (o GitHub Pages guarda o
+      // HTML por 10 minutos) e vai mesmo buscar a versão publicada
+      fetch(new Request(e.request.url, { cache: 'reload' }))
         .then(resp => {
           const copia = resp.clone();
           caches.open(CACHE).then(c => c.put(e.request, copia));
