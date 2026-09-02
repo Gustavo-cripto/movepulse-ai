@@ -23,7 +23,8 @@ const ESTADO_PADRAO = {
   perfil: {
     nome:'', idade:'', altura:'', peso:'',
     objetivo:'Hipertrofia (ganho de massa)', experiencia:'Iniciante',
-    dias:'3', minutos:'60', limitacoes:'', notas:'',
+    diasSemana:[1, 3, 5],           // 0=domingo … 6=sábado
+    minutos:'60', limitacoes:'', notas:'',
   },
 };
 
@@ -167,6 +168,14 @@ const Store = {
 
   guardarPerfil(campo, valor){
     estado.perfil[campo] = valor;
+    salvar();
+  },
+
+  /** Liga ou desliga um dia de treino da semana. */
+  alternarDiaTreino(dia){
+    const dias = new Set(estado.perfil.diasSemana);
+    dias.has(dia) ? dias.delete(dia) : dias.add(dia);
+    estado.perfil.diasSemana = [...dias].sort();
     salvar();
   },
 

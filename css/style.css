@@ -407,3 +407,12 @@ h3{font-size:16px}
 /* foto da máquina e diagrama ocupam a mesma coluna na pré-visualização */
 .ia-media{display:flex;align-items:center;gap:6px}
 .ia-media .ex-mini{width:40px;height:40px}
+
+/* ---------- Escolher os dias de treino ---------- */
+.dias-escolha{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dia-opcao{
+  aspect-ratio:1;border-radius:50%;border:1px solid var(--line);background:var(--bg-elev-2);
+  color:var(--txt-dim);font:inherit;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.dia-opcao.is-ativa{background:var(--accent);border-color:var(--accent-med);color:var(--accent-ink)}

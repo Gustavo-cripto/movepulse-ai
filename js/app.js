@@ -162,8 +162,6 @@ function renderCartaoHoje(){
   preencherMiniaturas(ficha);
 }
 
-const LETRAS_DIA = ['D','S','T','Q','Q','S','S'];
-const NOMES_DIA = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 let mesVisivel = null;   // primeiro dia do mês mostrado no calendário
 
 /** "A — Peito, Ombro e Tríceps" -> "A"; "Full body" -> "Ful" */
@@ -905,7 +903,22 @@ function detalheSessao(id){
 function renderPerfil(){
   const perfil = Store.estado.perfil;
   $$('[data-perfil]').forEach(campo => { campo.value = perfil[campo.dataset.perfil] ?? ''; });
+  renderDiasTreino();
   renderImc();
+}
+
+/** Sete círculos, de segunda a domingo, para escolher quando se treina. */
+function renderDiasTreino(){
+  const escolhidos = Store.estado.perfil.diasSemana;
+  const ordem = [1, 2, 3, 4, 5, 6, 0];   // semana começa à segunda
+  $('#diasEscolha').innerHTML = ordem.map(d => `
+    <button class="dia-opcao ${escolhidos.includes(d) ? 'is-ativa' : ''}"
+            data-dia-treino="${d}" title="${NOMES_DIA[d]}">${LETRAS_DIA[d]}</button>`).join('');
+
+  const n = escolhidos.length;
+  $('#diasResumo').textContent = n
+    ? `${n} ${n === 1 ? 'treino' : 'treinos'} por semana: ${escolhidos.map(d => NOMES_DIA[d]).join(', ')}.`
+    : 'Escolhe pelo menos um dia.';
 }
 
 function renderImc(){
@@ -954,7 +967,7 @@ function renderIA(){
 
   const p = Store.estado.perfil;
   $('#perfilResumo').textContent = [p.objetivo.split(' ')[0], p.experiencia,
-    p.limitacoes ? '⚠' : null].filter(Boolean).join(' · ');
+    `${p.diasSemana.length}x/semana`, p.limitacoes ? '⚠' : null].filter(Boolean).join(' · ');
 
   renderPlanoAtual();
 
@@ -1151,13 +1164,14 @@ function mostrarPlano(plano, antigo){
 /** Distribui as fichas do plano pelos dias da semana, deixando descanso pelo meio. */
 function espalharPelaSemana(fichas){
   if (!fichas.length) return;
-  // 2 fichas -> seg e qui; 3 -> seg, qua, sex; 4 -> seg, ter, qui, sex; 5 -> seg a sex; 6 -> seg a sáb
-  const mapas = {
-    1:[1], 2:[1,4], 3:[1,3,5], 4:[1,2,4,5], 5:[1,2,3,4,5], 6:[1,2,3,4,5,6],
-  };
-  const dias = mapas[Math.min(fichas.length, 6)] || [1,3,5];
+  // Usa os dias que a pessoa escolheu no perfil; se não escolheu nenhum,
+  // reparte a semana deixando descanso pelo meio.
+  const mapas = { 1:[1], 2:[1,4], 3:[1,3,5], 4:[1,2,4,5], 5:[1,2,3,4,5], 6:[1,2,3,4,5,6] };
+  const escolhidos = Store.estado.perfil.diasSemana;
+  const dias = escolhidos.length ? escolhidos : (mapas[Math.min(fichas.length, 6)] || [1,3,5]);
+
   [0,1,2,3,4,5,6].forEach(d => Store.definirDia(d, null));
-  dias.forEach((dia, i) => Store.definirDia(dia, fichas[i].id));
+  dias.forEach((dia, i) => Store.definirDia(dia, fichas[i % fichas.length].id));
 }
 
 /* ============================================================
@@ -1332,6 +1346,12 @@ function ligarEventos(){
     if (campo === 'altura' || campo === 'peso') renderImc();
     if (campo === 'nome') renderSaudacao();
   });
+  $('#diasEscolha').onclick = e => {
+    const b = e.target.closest('[data-dia-treino]');
+    if (!b) return;
+    Store.alternarDiaTreino(+b.dataset.diaTreino);
+    renderDiasTreino();
+  };
   $('#perfilIrIA').onclick = () => mostrar('ia');
   $('#atalhoIA').onclick = () => mostrar('ia');
   $('#perfilDefinicoes').onclick = abrirConfig;

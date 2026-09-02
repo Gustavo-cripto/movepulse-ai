@@ -14,8 +14,8 @@ Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**
 - **Início** — abre no treino de hoje: saudação, cartão do treino planeado com um toque para
   começar, tira da semana (letra da ficha em cada dia, visto nos feitos) e calendário do mês com os
   dias treinados acesos. Se já treinaste hoje, mostra o resumo em vez do botão.
-- **Perfil** — nome, idade, altura, peso (com IMC), objetivo, experiência, dias por semana, tempo
-  por sessão e limitações. É este perfil que a IA usa para montar os planos, e guarda-se sozinho.
+- **Perfil** — nome, idade, altura, peso (com IMC), objetivo, experiência, **os dias da semana em
+  que treinas**, tempo por sessão e limitações. É este perfil que a IA usa para montar os planos, e guarda-se sozinho.
 - **Foto da máquina** — cada exercício pode ter a fotografia da máquina real do teu ginásio, tirada
   na hora. Aparece no detalhe do exercício e em miniatura durante o treino.
 - **Hoje** — inicia o treino a partir de uma ficha (ou livre), cronómetro, registo de séries

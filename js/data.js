@@ -3,6 +3,10 @@
 
 const GRUPOS = ['Peito','Costas','Pernas','Ombros','Bíceps','Tríceps','Abdómen','Cardio'];
 
+/* Dias da semana, com domingo em 0 — como no getDay() do JavaScript. */
+const LETRAS_DIA = ['D','S','T','Q','Q','S','S'];
+const NOMES_DIA = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+
 const EXERCICIOS_BASE = [
   // Peito
   { id:'suo-reto',      nome:'Supino reto com barra',        grupo:'Peito',   equip:'Barra' },

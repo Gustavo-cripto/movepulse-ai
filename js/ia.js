@@ -151,11 +151,11 @@ Como treina:
 Perfil do cliente:
 - Objetivo: ${perfil.objetivo}
 - Experiência: ${perfil.experiencia}
-- Dias por semana: ${perfil.dias}
+- Dias de treino: ${perfil.diasSemana.map(d => NOMES_DIA[d]).join(', ')} (${perfil.diasSemana.length} por semana)
 - Limitações/lesões: ${perfil.limitacoes || 'nenhuma indicada'}
 - Notas: ${perfil.notas || '—'}
 
-Monta o plano de treino com ${perfil.dias} treinos por semana.` });
+Monta o plano com exatamente ${perfil.diasSemana.length} treinos por semana, um para cada dia indicado.` });
 
   return {
     model: IA.MODELO,
