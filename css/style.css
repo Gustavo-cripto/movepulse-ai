@@ -431,3 +431,15 @@ h3{font-size:16px}
   display:flex;align-items:center;justify-content:center;
 }
 .dia-opcao.is-ativa{background:var(--accent);border-color:var(--accent-med);color:var(--accent-ink)}
+
+/* ---------- Grelha de grupos musculares ---------- */
+.musculos-grelha{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.musculo-op{
+  background:var(--bg-elev-2);border:1px solid var(--line);border-radius:12px;
+  padding:8px 4px 7px;cursor:pointer;font:inherit;color:var(--txt-dim);
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.musculo-op .musculos{gap:2px}
+.musculo-op .corpo{width:26px}
+.musculo-op span{font-size:11px;font-weight:600;line-height:1.1;text-align:center}
+.musculo-op.is-ativa{border-color:var(--accent-med);background:#f2fae0;color:var(--txt)}

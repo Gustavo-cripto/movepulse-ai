@@ -21,6 +21,7 @@ const ESTADO_PADRAO = {
   planoConfig: {
     local:'Ginásio', tipo:'Força e hipertrofia', duracao:'60',
     foco:'Corpo inteiro', intensidade:'Moderada', superseries:false,
+    musculos:[],                         // grupos a dar prioridade; vazio = equilibrado
     equipamento:[],                      // ids do catálogo; vazio = tudo
   },
   perfil: {
@@ -168,6 +169,14 @@ const Store = {
   },
   guardarPlanoConfig(campo, valor){
     estado.planoConfig[campo] = valor;
+    salvar();
+  },
+
+  /** Liga ou desliga um grupo muscular na prioridade do plano. */
+  alternarMusculo(grupo){
+    const escolhidos = new Set(estado.planoConfig.musculos);
+    escolhidos.has(grupo) ? escolhidos.delete(grupo) : escolhidos.add(grupo);
+    estado.planoConfig.musculos = [...escolhidos];
     salvar();
   },
 

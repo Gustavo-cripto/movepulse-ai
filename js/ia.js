@@ -120,6 +120,9 @@ Regras:
 - Tem em conta as limitações/lesões indicadas e evita exercícios que as agravem; explica a
   substituição no campo "nota" do exercício.
 - Escreve em português de Portugal, com nomes de exercícios usados em ginásio.
+- Quando forem indicados grupos a priorizar, dá-lhes mais volume (séries) do que aos restantes,
+  sem deixar o corpo desequilibrado: mantém pelo menos um exercício para os grandes grupos que
+  não foram escolhidos.
 - Não identifiques pessoas que apareçam nas fotos.
 - Isto é orientação geral de treino, não aconselhamento médico.`;
 
@@ -144,7 +147,8 @@ Como treina:
 - Local: ${cfg.local}
 - Tipo de treino: ${cfg.tipo}
 - Duração por sessão: ${cfg.duracao} minutos
-- Foco: ${cfg.foco}
+- Divisão do plano: ${cfg.foco}
+- Grupos a priorizar: ${cfg.musculos.length ? cfg.musculos.join(', ') : 'nenhum em especial — equilibra o corpo todo'}
 - Intensidade: ${cfg.intensidade}
 - Superséries: ${cfg.superseries ? 'sim' : 'não'}
 

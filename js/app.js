@@ -957,6 +957,7 @@ function renderIA(){
       b.classList.toggle('is-ativa', b.dataset.valor === String(cfg[campo])));
   });
   $('#planoSuperseries').checked = !!cfg.superseries;
+  renderMusculosPlano();
 
   $('#equipResumo').textContent = cfg.equipamento.length
     ? `${cfg.equipamento.length} de ${TOTAL_EQUIPAMENTOS}`
@@ -973,6 +974,16 @@ function renderIA(){
 
   const ultimo = Store.estado.planoIA;
   if (ultimo && !$('#iaResultado').dataset.fresco) mostrarPlano(ultimo, true);
+}
+
+/** Grelha dos grupos musculares a priorizar no plano. */
+function renderMusculosPlano(){
+  const escolhidos = Store.estado.planoConfig.musculos;
+  $('#musculosGrelha').innerHTML = GRUPOS.map(g => `
+    <button class="musculo-op ${escolhidos.includes(g) ? 'is-ativa' : ''}" data-musculo="${esc(g)}">
+      ${diagramaMusculos(g)}
+      <span>${esc(g)}</span>
+    </button>`).join('');
 }
 
 /** Cartão do plano em vigor, no topo do ecrã. */
@@ -1420,6 +1431,11 @@ function ligarEventos(){
 
   // Plano IA
   $('#view-ia').addEventListener('click', e => {
+    const musculo = e.target.closest('[data-musculo]');
+    if (musculo){
+      Store.alternarMusculo(musculo.dataset.musculo);
+      return renderMusculosPlano();
+    }
     const pastilha = e.target.closest('.pastilha');
     if (!pastilha) return;
     const campo = pastilha.parentElement.dataset.plano;
