@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 45;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 46;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1587,6 +1587,7 @@ async function gerarPlano(){
     renderPlanoAtual();
     mostrarPlano(plano, false);
     toast(`Plano criado e posto no calendário ✅`);
+    sincronizar(true);
   } catch (e) {
     $('#iaEstado').textContent = '';
     const problemaDeConfig = /servidor|chave|configura/i.test(e.message);
@@ -1730,11 +1731,154 @@ function finalizarSessao(){
   mostrar('inicio');
   if (!concluida) return toast('Nenhuma série marcada — treino descartado.');
   toast(`Treino guardado: ${fmtNum(volumeSessao(concluida))} kg de volume 🔥`);
+  sincronizar(true);
 }
 
 /* ============================================================
    Definições / dados
    ============================================================ */
+/* ============================================================
+   Conta na nuvem
+   ============================================================ */
+function ecraConta(){
+  if (!Nuvem.configurada){
+    return textoLegal('A minha conta', [
+      'A conta ainda não está ligada: falta criar o projeto na Supabase e colar as duas chaves em <b>js/nuvem.js</b>.',
+      'Enquanto isso, os dados ficam <b>só neste dispositivo</b> — usa Exportar e Importar backup para os passar para outro telemóvel.',
+    ]);
+  }
+
+  if (Nuvem.autenticado) return ecraSessaoIniciada();
+
+  Modal.abrir({
+    titulo:'Entrar ou criar conta',
+    corpo: `
+      <div class="field">
+        <label class="label" for="contaEmail">Email</label>
+        <input class="input" type="email" id="contaEmail" autocomplete="email" placeholder="tu@exemplo.pt">
+      </div>
+      <div class="field">
+        <label class="label" for="contaSenha">Palavra-passe</label>
+        <input class="input" type="password" id="contaSenha" autocomplete="current-password" placeholder="pelo menos 6 caracteres">
+      </div>
+      <p class="item__meta" id="contaEstado"></p>
+      <p class="item__meta" style="margin-top:10px">
+        A conta serve para guardar e sincronizar os teus treinos entre dispositivos.
+        <button class="demo" id="contaEsqueci" style="border:0;background:none;cursor:pointer;padding:0">Esqueci-me da palavra-passe</button>
+      </p>`,
+    acoes: [
+      { texto:'Criar conta', onClick: () => acaoConta('registar') },
+      { texto:'Entrar', classe:'btn--primary', onClick: () => acaoConta('entrar') },
+    ],
+  });
+
+  $('#contaEsqueci').onclick = async () => {
+    const email = $('#contaEmail').value.trim();
+    if (!email) return ($('#contaEstado').textContent = 'Escreve o email primeiro.');
+    try {
+      await Nuvem.recuperar(email);
+      $('#contaEstado').textContent = 'Enviámos um email para recuperares a palavra-passe.';
+    } catch (e) { $('#contaEstado').textContent = e.message; }
+  };
+}
+
+async function acaoConta(acao){
+  const email = $('#contaEmail').value.trim();
+  const senha = $('#contaSenha').value;
+  const estado = $('#contaEstado');
+  if (!email || !senha) return (estado.textContent = 'Preenche o email e a palavra-passe.');
+
+  estado.innerHTML = '<span class="a-carregar"></span>A falar com o servidor…';
+  try {
+    if (acao === 'registar'){
+      const { precisaConfirmar } = await Nuvem.registar(email, senha);
+      if (precisaConfirmar){
+        estado.textContent = 'Conta criada. Confirma o email e depois entra.';
+        return;
+      }
+    } else {
+      await Nuvem.entrar(email, senha);
+    }
+    Modal.fechar();
+    await primeiraSincronizacao();
+  } catch (e) {
+    estado.textContent = e.message;
+  }
+}
+
+/** Ao entrar, decide o que fica: o que está no telemóvel ou o que está na nuvem. */
+async function primeiraSincronizacao(){
+  toast('Sessão iniciada ✅');
+  let remoto = null;
+  try { remoto = await Nuvem.ler(); } catch (e) { return toast('Entrei, mas não li a nuvem: ' + e.message); }
+
+  const temLocal = Store.estado.sessoes.length || Store.estado.treinos.length > 3;
+  if (!remoto){ return sincronizar(); }
+  if (!temLocal) return aplicarRemoto(remoto);
+
+  Modal.abrir({
+    titulo:'Já tens dados na nuvem',
+    corpo: `<p>Esta conta tem uma cópia de <b>${fmtDataHora(new Date(remoto.atualizado).getTime())}</b>,
+      e este telemóvel também tem treinos registados. Qual queres manter?</p>
+      <p class="item__meta" style="margin-top:10px">O que não escolheres é substituído.</p>`,
+    acoes: [
+      { texto:'Os da nuvem', onClick(){ Modal.fechar(); aplicarRemoto(remoto); } },
+      { texto:'Os deste telemóvel', classe:'btn--primary', onClick(){ Modal.fechar(); sincronizar(); } },
+    ],
+  });
+}
+
+function aplicarRemoto(remoto){
+  Object.assign(Store.estado, remoto.dados);
+  Store.salvar();
+  aplicarTema();
+  mostrar('inicio');
+  toast('Dados trazidos da nuvem ✅');
+}
+
+/** Envia o estado atual para a nuvem. */
+async function sincronizar(silencioso = false){
+  if (!Nuvem.configurada || !Nuvem.autenticado) return;
+  try {
+    await Nuvem.guardar(Store.estado);
+    if (!silencioso) toast('Guardado na nuvem ✅');
+    renderDefinicoes();
+  } catch (e) {
+    if (!silencioso) toast('Não consegui guardar na nuvem: ' + e.message);
+  }
+}
+
+function ecraSessaoIniciada(){
+  Modal.abrir({
+    titulo:'A minha conta',
+    corpo: `
+      <p><b>${esc(Nuvem.email)}</b></p>
+      <p class="item__meta" style="margin-top:6px">Os teus dados são guardados na nuvem sempre que
+        acabas um treino ou mudas o plano, e podes trazê-los para outro telemóvel entrando com esta conta.</p>
+      <div class="stack" style="margin-top:14px">
+        <button class="btn btn--ghost" id="contaSincronizar">☁️ Guardar agora na nuvem</button>
+        <button class="btn btn--ghost" id="contaTrazer">⬇️ Trazer os dados da nuvem</button>
+      </div>`,
+    acoes: [
+      { texto:'Terminar sessão', classe:'btn--danger', onClick(){
+          Nuvem.sair(); Modal.fechar(); renderDefinicoes(); toast('Sessão terminada.');
+        } },
+      { texto:'Fechar', onClick: Modal.fechar },
+    ],
+  });
+  $('#contaSincronizar').onclick = () => { Modal.fechar(); sincronizar(); };
+  $('#contaTrazer').onclick = () => confirmar(
+    'Trazer os dados da nuvem substitui o que está neste telemóvel.',
+    async () => {
+      try {
+        const remoto = await Nuvem.ler();
+        if (!remoto) return toast('Ainda não há nada guardado na nuvem.');
+        Modal.fechar();
+        aplicarRemoto(remoto);
+      } catch (e) { toast(e.message); }
+    }, 'Trazer');
+}
+
 /* ============================================================
    TELA: DEFINIÇÕES
    ============================================================ */
@@ -1757,7 +1901,8 @@ function renderDefinicoes(){
   $('#defTemaValor').textContent = NOMES_TEMA[c.tema || 'auto'];
   $('#defIAValor').textContent = c.ia.modo === 'direto' ? 'chave própria' : 'servidor próprio';
   $('#defVersaoValor').textContent = VERSAO_APP;
-  $('#defContaEstado').textContent = 'só neste dispositivo';
+  $('#defContaEstado').textContent = !Nuvem.configurada ? 'por ligar'
+    : Nuvem.autenticado ? Nuvem.email : 'sem sessão';
 }
 
 function escolherTema(){
@@ -1957,11 +2102,7 @@ function ligarEventos(){
   $('#defVoltar').onclick = () => mostrar('inicio');
   $('#defTema').onclick = escolherTema;
   $('#defIA').onclick = abrirConfig;
-  $('#defConta').onclick = () => textoLegal('A minha conta', [
-    'Ainda não há contas: tudo o que registas fica <b>só neste dispositivo</b>.',
-    'Para levares os dados para outro telemóvel, usa <b>Exportar backup</b> aqui e <b>Importar backup</b> no outro.',
-    'Contas com início de sessão e sincronização automática são o passo seguinte — falta decidir como.',
-  ]);
+  $('#defConta').onclick = ecraConta;
   $('#defIdioma').onclick = () => textoLegal('Idioma', [
     'A app está em português de Portugal.',
     'Outros idiomas ainda não estão feitos. Se precisares de inglês ou espanhol, é trabalho de tradução dos textos — diz e trato disso.',
