@@ -72,6 +72,7 @@ const ESQUEMA_PLANO = {
             type:'object',
             properties:{
               nome:{ type:'string', description:'Ex.: "A — Peito e Tríceps"' },
+              dia:{ type:'string', enum: NOMES_DIA, description:'Dia da semana deste treino.' },
               foco:{ type:'string' },
               exercicios:{
                 type:'array',
@@ -91,7 +92,7 @@ const ESQUEMA_PLANO = {
                 },
               },
             },
-            required:['nome','foco','exercicios'],
+            required:['nome','dia','foco','exercicios'],
             additionalProperties:false,
           },
         },
@@ -119,6 +120,7 @@ Regras:
 - Ajusta séries, repetições e descanso ao objetivo e à experiência do cliente.
 - Tem em conta as limitações/lesões indicadas e evita exercícios que as agravem; explica a
   substituição no campo "nota" do exercício.
+- Cada treino tem de indicar em "dia" um dos dias que o cliente escolheu, sem repetir dias.
 - Escreve em português de Portugal, com nomes de exercícios usados em ginásio.
 - Quando forem indicados grupos a priorizar, dá-lhes mais volume (séries) do que aos restantes,
   sem deixar o corpo desequilibrado: mantém pelo menos um exercício para os grandes grupos que
@@ -296,6 +298,18 @@ function resolverExercicio(ex){
   });
 }
 
+/** "Segunda-feira" -> 1. Devolve -1 se não reconhecer. */
+function diaParaNumero(nome){
+  const alvo = normalizar(nome).replace(/ feira/g, '').trim();
+  return NOMES_DIA.findIndex(n => normalizar(n) === alvo);
+}
+
+/** Procura um dia da semana dentro de um texto: "Segunda-Feira — Corpo Inteiro" -> 1. */
+function diaNoTexto(texto){
+  const t = normalizar(texto).replace(/ feira/g, ' ');
+  return NOMES_DIA.findIndex(n => new RegExp(`(^| )${normalizar(n)}( |$)`).test(t));
+}
+
 /** Converte o plano da IA em fichas da app. Devolve as fichas criadas. */
 function importarPlano(plano){
   // Um plano novo substitui o anterior: sem isto, cada geração deixava
@@ -309,6 +323,8 @@ function importarPlano(plano){
       origem: 'ia',
       nome: treino.nome,
       notas: treino.foco || 'Plano IA',
+      // o dia indicado pela IA; se faltar, tenta lê-lo do nome do treino
+      dia: treino.dia ? diaParaNumero(treino.dia) : diaNoTexto(treino.nome),
       itens: treino.exercicios.map(ex => ({
         exId: resolverExercicio(ex).id,
         series: ex.series,

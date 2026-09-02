@@ -1205,7 +1205,10 @@ function mostrarPlano(plano, antigo){
 
     ${plano.plano.treinos.map(t => `
       <div class="card">
-        <div class="card__title"><h3>${esc(t.nome)}</h3></div>
+        <div class="card__title">
+          <h3>${esc(t.nome)}</h3>
+          ${t.dia ? `<span class="tag">${esc(t.dia)}</span>` : ''}
+        </div>
         <p class="item__meta" style="margin:2px 0 8px">${esc(t.foco)}</p>
         ${t.exercicios.map(ex => `
           <div class="ia-ex">
@@ -1233,24 +1236,56 @@ function mostrarPlano(plano, antigo){
         ? 'Este plano está nas tuas fichas e no calendário.'
         : `Pronto: ${plano.plano.treinos.length} fichas criadas e colocadas nos dias que escolheste.`}
     </div>
-    <button class="btn btn--primary btn--block" id="btnVerInicio" style="margin-top:10px">
-      Ver no Início
-    </button>`;
+    <div class="row-actions" style="margin-top:10px">
+      <button class="btn btn--ghost" id="btnReporPlano">Repor no calendário</button>
+      <button class="btn btn--primary" id="btnVerInicio">Ver no Início</button>
+    </div>`;
 
   $('#btnVerInicio').onclick = () => mostrar('inicio');
+  $('#btnReporPlano').onclick = () => {
+    espalharPelaSemana(importarPlano(plano.plano));
+    toast('Plano reposto no calendário ✅');
+    mostrar('inicio');
+  };
 }
 
 /** Distribui as fichas do plano pelos dias da semana, deixando descanso pelo meio. */
+/**
+ * Põe as fichas do plano no calendário.
+ * Manda o dia que a própria IA atribuiu a cada treino; onde faltar, usa os
+ * dias escolhidos no perfil; e só em último caso reparte a semana.
+ */
 function espalharPelaSemana(fichas){
   if (!fichas.length) return;
-  // Usa os dias que a pessoa escolheu no perfil; se não escolheu nenhum,
-  // reparte a semana deixando descanso pelo meio.
+
   const mapas = { 1:[1], 2:[1,4], 3:[1,3,5], 4:[1,2,4,5], 5:[1,2,3,4,5], 6:[1,2,3,4,5,6] };
-  const escolhidos = Store.estado.perfil.diasSemana;
-  const dias = escolhidos.length ? escolhidos : (mapas[Math.min(fichas.length, 6)] || [1,3,5]);
+  const doPerfil = Store.estado.perfil.diasSemana.length
+    ? [...Store.estado.perfil.diasSemana]
+    : (mapas[Math.min(fichas.length, 6)] || [1, 3, 5]);
 
   [0,1,2,3,4,5,6].forEach(d => Store.definirDia(d, null));
-  dias.forEach((dia, i) => Store.definirDia(dia, fichas[i % fichas.length].id));
+
+  const ocupados = new Set();
+  const semDia = [];
+
+  fichas.forEach(f => {
+    const dia = f.dia;
+    if (Number.isInteger(dia) && dia >= 0 && dia <= 6 && !ocupados.has(dia)){
+      Store.definirDia(dia, f.id);
+      ocupados.add(dia);
+    } else {
+      semDia.push(f);
+    }
+  });
+
+  // as que ficaram sem dia entram nos dias do perfil que ainda estejam livres
+  const livres = doPerfil.filter(d => !ocupados.has(d));
+  semDia.forEach((f, i) => {
+    const dia = livres[i] ?? [1,2,3,4,5,6,0].find(d => !ocupados.has(d));
+    if (dia === undefined) return;
+    Store.definirDia(dia, f.id);
+    ocupados.add(dia);
+  });
 }
 
 /* ============================================================
