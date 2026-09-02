@@ -394,6 +394,36 @@ function renderTreinos(){
     : '<p class="empty">Cria a tua primeira ficha para começar.</p>';
 }
 
+/** O que aconteceu (ou vai acontecer) num dia do calendário. */
+function abrirDia(chave, diaSemana){
+  const sessoes = Store.sessoesDoDia(chave);
+  const ficha = Store.treinoDoDia(diaSemana);
+  const [ano, mes, dia] = chave.split('-').map(Number);
+  const data = new Date(ano, mes - 1, dia);
+  const titulo = data.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
+
+  if (sessoes.length === 1) return detalheSessao(sessoes[0].id);
+
+  if (sessoes.length > 1){
+    return Modal.abrir({
+      titulo: titulo.charAt(0).toUpperCase() + titulo.slice(1),
+      corpo: `<div class="stack">${sessoes.map(cardSessao).join('')}</div>`,
+      acoes: [{ texto:'Fechar', onClick: Modal.fechar }],
+    });
+  }
+
+  if (ficha) return detalheTreino(ficha.id);
+
+  Modal.abrir({
+    titulo: titulo.charAt(0).toUpperCase() + titulo.slice(1),
+    corpo: `<p class="empty">Sem treino planeado para este dia.</p>`,
+    acoes: [
+      { texto:'Fechar', onClick: Modal.fechar },
+      { texto:'Planear semana', classe:'btn--primary', onClick(){ Modal.fechar(); editorPrograma(); } },
+    ],
+  });
+}
+
 /** Mostra o que a ficha tem antes de começar — nada arranca sem se carregar em Iniciar. */
 async function detalheTreino(id){
   const ficha = Store.treino(id);
@@ -784,10 +814,14 @@ function renderMes(){
 
   let treinosNoMes = 0;
   for (let d = 1; d <= totalDias; d++){
-    const chave = chaveDia(new Date(ano, mes, d));
+    const data = new Date(ano, mes, d);
+    const chave = chaveDia(data);
     const treinou = treinados.has(chave);
+    const planeado = !!Store.treinoDoDia(data.getDay());
     if (treinou) treinosNoMes++;
-    celulas.push(`<div class="mes__dia ${treinou ? 'treinou' : ''} ${chave === hoje ? 'hoje' : ''}">${d}</div>`);
+    celulas.push(`<button class="mes__dia ${treinou ? 'treinou' : ''} ${chave === hoje ? 'hoje' : ''}"
+      data-dia-mes="${chave}" data-dia-semana="${data.getDay()}">${d}${
+      planeado && !treinou ? '<span class="mes__ponto"></span>' : ''}</button>`);
   }
   $('#mes').innerHTML = celulas.join('');
   $('#mesResumo').textContent = treinosNoMes
@@ -1340,6 +1374,10 @@ function ligarEventos(){
   };
 
   // Progresso
+  $('#mes').onclick = e => {
+    const cel = e.target.closest('[data-dia-mes]');
+    if (cel) abrirDia(cel.dataset.diaMes, +cel.dataset.diaSemana);
+  };
   $('#mesAnterior').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() - 1); renderMes(); };
   $('#mesSeguinte').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() + 1); renderMes(); };
   $('#selEx').onchange = e => renderGraficoEx(e.target.value);

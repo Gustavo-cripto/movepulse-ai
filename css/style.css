@@ -249,8 +249,14 @@ h3{font-size:16px}
 .mes{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .mes__rotulo{text-align:center;font-size:10px;color:var(--txt-dim);padding-bottom:2px}
 .mes__dia{
-  aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  position:relative;aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;
   font-size:11px;background:var(--bg-elev-2);color:var(--txt-dim);font-variant-numeric:tabular-nums;
+  border:0;font-family:inherit;cursor:pointer;padding:0;
+}
+.mes__dia:not(.vazio):active{transform:scale(.94)}
+.mes__ponto{
+  position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--accent-med);
 }
 .mes__dia.vazio{background:transparent}
 .mes__dia.treinou{background:var(--accent);color:var(--accent-ink);font-weight:700}
