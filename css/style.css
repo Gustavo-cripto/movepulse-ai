@@ -271,3 +271,15 @@ h3{font-size:16px}
   border:1px solid var(--line);display:block;margin-top:10px;
 }
 .ex-mini{width:46px;height:46px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:none}
+
+/* ---------- Início ---------- */
+.ola{margin-bottom:4px}
+.ola__data{color:var(--txt-dim);font-size:13px}
+.ola__nome{font-size:24px;letter-spacing:-.3px;margin-top:2px}
+.card--hoje{position:relative;padding:18px}
+.card--hoje h3{font-size:19px;margin-top:8px}
+.card--hoje.planeado{background:linear-gradient(140deg,#1d2a12,#171a21 65%);border-color:#38471f}
+.card--hoje.feito{border-color:#2f4a2c;background:linear-gradient(140deg,#16251a,#171a21 65%)}
+.hoje__etiqueta{
+  font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+}

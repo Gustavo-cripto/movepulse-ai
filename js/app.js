@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-let viewAtual = 'hoje';
+let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
 let restInterval = null;
@@ -18,7 +18,8 @@ function mostrar(view){
 }
 
 function render(){
-  if (viewAtual === 'hoje')       renderHoje();
+  if (viewAtual === 'inicio')     renderHoje();
+  if (viewAtual === 'perfil')     renderPerfil();
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
   if (viewAtual === 'ia')         renderIA();
@@ -39,6 +40,61 @@ function renderHoje(){
   $('#hojeVazio').hidden = !!s;
   $('#hojeSessao').hidden = !s;
   if (s) renderSessao(s); else { pararCrono(); renderInicio(); }
+}
+
+function renderSaudacao(){
+  const nome = Store.estado.perfil.nome.trim();
+  const hoje = new Date();
+  // só a primeira letra em maiúscula: "Quarta-feira, 2 de setembro"
+  const data = hoje.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
+  $('#olaData').textContent = data.charAt(0).toUpperCase() + data.slice(1);
+  $('#olaNome').textContent = nome ? `Olá, ${nome}` : 'Olá';
+}
+
+/** O cartão grande do topo: o que há para fazer hoje. */
+function renderCartaoHoje(){
+  const hoje = new Date();
+  const chave = chaveDia(hoje);
+  const ficha = Store.treinoDoDia(hoje.getDay());
+  const feitasHoje = Store.sessoesDoDia(chave);
+
+  if (feitasHoje.length){
+    const volume = feitasHoje.reduce((t, s) => t + volumeSessao(s), 0);
+    const series = feitasHoje.reduce((t, s) => t + totalSeries(s), 0);
+    $('#cartaoHoje').innerHTML = `
+      <div class="card card--hoje feito">
+        <span class="hoje__etiqueta">Hoje</span>
+        <h3>Treino feito ✓</h3>
+        <p class="item__meta">${feitasHoje.map(s => esc(s.nome)).join(' · ')}</p>
+        <div class="session-stats" style="margin-top:12px">
+          <div><strong>${series}</strong><span>séries</span></div>
+          <div><strong>${fmtNum(volume)}</strong><span>kg volume</span></div>
+          <div><strong>${fmtDuracao(feitasHoje.reduce((t,s)=>t+(s.fim-s.inicio),0))}</strong><span>tempo</span></div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (!ficha){
+    $('#cartaoHoje').innerHTML = `
+      <div class="card card--hoje">
+        <span class="hoje__etiqueta">Hoje</span>
+        <h3>Dia de descanso</h3>
+        <p class="item__meta">Não há treino planeado para hoje. Podes treinar à mesma.</p>
+        <button class="btn btn--ghost btn--block" id="btnDescansoLivre" style="margin-top:12px">Treinar mesmo assim</button>
+      </div>`;
+    $('#btnDescansoLivre').onclick = () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); };
+    return;
+  }
+
+  $('#cartaoHoje').innerHTML = `
+    <div class="card card--hoje planeado">
+      <span class="hoje__etiqueta">Hoje</span>
+      <h3>${esc(ficha.nome)}</h3>
+      <p class="item__meta">${ficha.itens.length} exercícios${ficha.notas ? ' · ' + esc(ficha.notas) : ''}</p>
+      <p class="item__meta" style="margin-top:6px">${ficha.itens.slice(0,4).map(i => esc(Store.exercicio(i.exId).nome)).join(' · ')}${ficha.itens.length > 4 ? ' …' : ''}</p>
+      <button class="btn btn--primary btn--block" data-iniciar="${ficha.id}" style="margin-top:14px">Começar treino</button>
+    </div>`;
 }
 
 const LETRAS_DIA = ['D','S','T','Q','Q','S','S'];
@@ -102,7 +158,10 @@ function editorPrograma(){
 
 function renderInicio(){
   const { treinos, sessoes } = Store.estado;
+  renderSaudacao();
+  renderCartaoHoje();
   renderSemana();
+  renderMes();
 
   $('#listaInicio').innerHTML = treinos.length
     ? treinos.map(t => `
@@ -434,7 +493,7 @@ async function detalheExercicio(id){
     acoes.push({ texto:'Adicionar ao treino', classe:'btn--primary', onClick(){
       adicionarExercicioSessao(ex.id);
       Modal.fechar();
-      mostrar('hoje');
+      mostrar('inicio');
     }});
   }
   if (Store.ehCustomizado(id)){
@@ -559,8 +618,6 @@ function renderProgresso(){
     statBox(fmtTempoTotal(tempoTotal), 'tempo total'),
   ].join('');
 
-  renderMes();
-
   const comHist = Store.exerciciosComHistorico();
   const sel = $('#selEx');
   const anterior = sel.value;
@@ -683,10 +740,39 @@ function detalheSessao(id){
           }));
           Store.salvar();
           Modal.fechar();
-          mostrar('hoje');
+          mostrar('inicio');
         } },
     ],
   });
+}
+
+/* ============================================================
+   TELA: PERFIL
+   ============================================================ */
+function renderPerfil(){
+  const perfil = Store.estado.perfil;
+  $$('[data-perfil]').forEach(campo => { campo.value = perfil[campo.dataset.perfil] ?? ''; });
+  renderImc();
+}
+
+function renderImc(){
+  const { altura, peso } = Store.estado.perfil;
+  const a = num(altura) / 100, p = num(peso);
+  if (!a || !p) return void ($('#perfilImc').textContent = '');
+  const imc = p / (a * a);
+  const faixa = imc < 18.5 ? 'abaixo do peso'
+              : imc < 25   ? 'peso normal'
+              : imc < 30   ? 'excesso de peso' : 'obesidade';
+  $('#perfilImc').textContent = `IMC ${imc.toFixed(1)} — ${faixa}. É um indicador grosseiro: não distingue músculo de gordura.`;
+}
+
+/** Resumo do perfil mostrado no ecrã do Plano IA. */
+function renderResumoPerfil(){
+  const p = Store.estado.perfil;
+  $('#iaResumoPerfil').innerHTML = [
+    p.objetivo, p.experiencia, `${p.dias} dias/semana`, `${p.minutos} min`,
+    p.limitacoes ? `⚠ ${p.limitacoes}` : null,
+  ].filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join('');
 }
 
 /* ============================================================
@@ -697,6 +783,7 @@ let aGerarPlano = false;
 
 function renderIA(){
   renderFotos();
+  renderResumoPerfil();
   const ultimo = Store.estado.planoIA;
   if (ultimo && !$('#iaResultado').dataset.fresco) mostrarPlano(ultimo, true);
 }
@@ -730,14 +817,7 @@ async function gerarPlano(){
   if (aGerarPlano) return;
   if (!fotosGinasio.length) return toast('Adiciona pelo menos uma foto do equipamento.');
 
-  const perfil = {
-    objetivo:    $('#iaObjetivo').value,
-    experiencia: $('#iaExperiencia').value,
-    dias:        $('#iaDias').value,
-    minutos:     $('#iaMinutos').value,
-    limitacoes:  $('#iaLimitacoes').value.trim(),
-    notas:       $('#iaNotas').value.trim(),
-  };
+  const perfil = { ...Store.estado.perfil };
 
   aGerarPlano = true;
   $('#btnGerarPlano').disabled = true;
@@ -982,7 +1062,20 @@ function ligarEventos(){
     renderExercicios();
   };
 
+  // Perfil: guarda-se sozinho, a cada alteração
+  $('#view-perfil').addEventListener('input', e => {
+    const campo = e.target.dataset.perfil;
+    if (!campo) return;
+    Store.guardarPerfil(campo, e.target.value);
+    if (campo === 'altura' || campo === 'peso') renderImc();
+    if (campo === 'nome') renderSaudacao();
+  });
+  $('#perfilIrIA').onclick = () => mostrar('ia');
+  $('#perfilDefinicoes').onclick = abrirConfig;
+
   // Plano IA
+  $('#iaVoltar').onclick = () => mostrar('perfil');
+  $('#iaEditarPerfil').onclick = () => mostrar('perfil');
   $('#btnTirarFoto').onclick    = () => $('#fotoCamera').click();
   $('#btnEscolherFoto').onclick = () => $('#fotoGaleria').click();
   $('#fotoCamera').onchange  = e => { adicionarFotos(e.target.files); e.target.value = ''; };
@@ -1004,7 +1097,7 @@ function ligarEventos(){
     if (!ficha) return editorPrograma();
     if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
     Store.iniciarSessao(ficha.id);
-    mostrar('hoje');
+    mostrar('inicio');
   };
 
   // Progresso
@@ -1023,7 +1116,7 @@ function ligarEventos(){
     if (iniciar){
       if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
       Store.iniciarSessao(iniciar.dataset.iniciar);
-      mostrar('hoje');
+      mostrar('inicio');
       return;
     }
     const verSessao = alvo.closest('[data-sessao]');
@@ -1090,7 +1183,7 @@ function ligarEventos(){
 
 /* ---------------- Início ---------------- */
 ligarEventos();
-mostrar('hoje');
+mostrar('inicio');
 
 /* ============================================================
    PWA: instalação na tela de início e uso offline

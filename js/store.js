@@ -15,6 +15,11 @@ const ESTADO_PADRAO = {
   },
   planoIA: null,                        // último plano gerado pela IA
   programa: { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null },  // domingo a sábado
+  perfil: {
+    nome:'', idade:'', altura:'', peso:'',
+    objetivo:'Hipertrofia (ganho de massa)', experiencia:'Iniciante',
+    dias:'3', minutos:'60', limitacoes:'', notas:'',
+  },
 };
 
 let estado = carregar();
@@ -28,6 +33,7 @@ function carregar(){
     const base = JSON.parse(JSON.stringify(ESTADO_PADRAO));
     return { ...base, ...salvo,
       programa: { ...base.programa, ...salvo.programa },
+      perfil: { ...base.perfil, ...salvo.perfil },
       config: { ...base.config, ...salvo.config,
         ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia) } } };
   } catch (e) {
@@ -148,6 +154,11 @@ const Store = {
     }
     return saida;
   },
+  guardarPerfil(campo, valor){
+    estado.perfil[campo] = valor;
+    salvar();
+  },
+
   /** Chaves 'aaaa-mm-dd' dos dias em que houve treino. */
   diasTreinados(){
     return new Set(estado.sessoes.map(s => chaveDia(new Date(s.fim))));

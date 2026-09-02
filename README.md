@@ -7,12 +7,13 @@ Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**
 
 ## O que faz
 
-- **Plano IA** — fotografas as máquinas disponíveis no ginásio, indicas objetivo, experiência, dias
-  por semana, tempo por sessão e lesões; a IA identifica o equipamento visível e devolve um plano
-  que só usa esse equipamento. Um toque adiciona os treinos às tuas fichas.
-- **Semana e mês** — planeia que ficha se faz em cada dia da semana; a tira no ecrã inicial mostra
-  a letra do treino do dia e um visto nos já feitos, e o calendário mensal no Progresso acende os
-  dias treinados.
+- **Plano IA** (no Perfil) — fotografas as máquinas disponíveis no ginásio e a IA identifica o
+  equipamento visível, devolvendo um plano que só usa esse equipamento e respeita o teu perfil. Um toque adiciona os treinos às tuas fichas.
+- **Início** — abre no treino de hoje: saudação, cartão do treino planeado com um toque para
+  começar, tira da semana (letra da ficha em cada dia, visto nos feitos) e calendário do mês com os
+  dias treinados acesos. Se já treinaste hoje, mostra o resumo em vez do botão.
+- **Perfil** — nome, idade, altura, peso (com IMC), objetivo, experiência, dias por semana, tempo
+  por sessão e limitações. É este perfil que a IA usa para montar os planos, e guarda-se sozinho.
 - **Foto da máquina** — cada exercício pode ter a fotografia da máquina real do teu ginásio, tirada
   na hora. Aparece no detalhe do exercício e em miniatura durante o treino.
 - **Hoje** — inicia o treino a partir de uma ficha (ou livre), cronómetro, registo de séries
