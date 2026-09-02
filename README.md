@@ -24,8 +24,11 @@ Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**
 - **Fichas** — cria e edita fichas com exercícios, séries e repetições alvo.
 - **Exercícios** — catálogo com 52 exercícios (procura + filtro por grupo muscular), exercícios
   próprios e histórico de cada um (melhor carga, 1RM estimado, últimos registos).
-- **Progresso** — total de treinos, volume, tempo, gráfico de evolução por exercício (1RM estimado
-  pela fórmula de Epley) e histórico completo, com opção de repetir um treino.
+- **Progresso** (no Início) — total de treinos, volume, tempo e gráfico de evolução por exercício
+  (1RM estimado pela fórmula de Epley). O histórico completo abre em "Ver tudo".
+- **Treinador** — perguntas ao modelo sobre treino, técnica e progressão, com o teu perfil e plano
+  como contexto. Não dá conselhos médicos.
+- **Nutrição** — por construir.
 - **Backup** — exportar/importar tudo em `.json` (⚙️).
 
 ## Instalar nos dispositivos

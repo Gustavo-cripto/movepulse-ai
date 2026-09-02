@@ -561,3 +561,12 @@ h3{font-size:16px}
 .barra-envio{display:flex;gap:8px;position:sticky;bottom:0;padding:8px 0 2px;background:var(--bg)}
 .barra-envio .input{flex:1}
 .barra-envio .btn{flex:none;padding:12px 16px;font-size:16px}
+
+/* ---------- Nutrição (por construir) ---------- */
+.lista-planeada{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lista-planeada li{display:flex;flex-direction:column;gap:2px;padding-left:16px;position:relative;font-size:14px}
+.lista-planeada li::before{
+  content:'';position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:50%;
+  border:1.5px solid var(--accent-med);
+}
+.lista-planeada span{color:var(--txt-dim);font-size:12.5px}

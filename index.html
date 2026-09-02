@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=39">
+<link rel="stylesheet" href="css/style.css?v=40">
 </head>
 <body>
 
@@ -72,8 +72,21 @@
       <div id="listaInicio" class="grid"></div>
       <button class="btn btn--ghost btn--block" id="btnTreinoLivre">+ Treino livre (sem ficha)</button>
 
-      <div class="section-head"><h2>Últimas sessões</h2></div>
+      <div class="section-head">
+        <h2>Últimas sessões</h2>
+        <button class="btn btn--sm btn--ghost" id="btnHistorico">Ver tudo</button>
+      </div>
       <div id="ultimasSessoes" class="stack"></div>
+
+      <div class="section-head"><h2>Progresso</h2></div>
+      <div class="grid grid--stats grid--par" id="resumoStats"></div>
+
+      <div class="card">
+        <label class="label" for="selEx">Evolução por exercício</label>
+        <select class="input" id="selEx"></select>
+        <div id="grafico"></div>
+        <div class="grid grid--stats" id="recordesEx"></div>
+      </div>
   </section>
 
   <!-- ============ TREINO A DECORRER ============ -->
@@ -128,20 +141,6 @@
   </section>
 
   <!-- ============ PROGRESSO ============ -->
-  <section class="view" id="view-progresso" hidden>
-    <div class="section-head"><h2>Progresso</h2></div>
-    <div class="grid grid--stats grid--par" id="resumoStats"></div>
-
-    <div class="card">
-      <label class="label" for="selEx">Evolução por exercício</label>
-      <select class="input" id="selEx"></select>
-      <div id="grafico"></div>
-      <div class="grid grid--stats" id="recordesEx"></div>
-    </div>
-
-    <div class="section-head"><h2>Histórico</h2></div>
-    <div id="historico" class="stack"></div>
-  </section>
   <!-- ============ MEU PLANO IA ============ -->
   <section class="view" id="view-ia" hidden>
     <div class="section-head"><h2>O meu plano IA</h2></div>
@@ -241,6 +240,29 @@
     </div>
   </section>
 
+
+  <!-- ============ NUTRIÇÃO ============ -->
+  <section class="view" id="view-nutricao" hidden>
+    <div class="section-head"><h2>Nutrição</h2></div>
+    <p class="muted">Esta parte ainda está por construir. A ideia é acompanhar a alimentação ao lado
+      do treino — e não vale a pena fingir que já faz algo.</p>
+
+    <div class="card">
+      <label class="label">O que está pensado</label>
+      <ul class="lista-planeada">
+        <li><b>Registo de refeições</b><span>o que comeste, sem contar cada grama</span></li>
+        <li><b>Objetivo calórico e proteína</b><span>calculado a partir do teu perfil e treino</span></li>
+        <li><b>Sugestões do treinador</b><span>perguntas sobre alimentação no separador Treinador</span></li>
+        <li><b>Peso ao longo do tempo</b><span>gráfico junto ao progresso do treino</span></li>
+      </ul>
+      <p class="item__meta" style="margin-top:12px">Diz-me por onde queres começar e construo essa
+        parte primeiro.</p>
+    </div>
+
+    <div class="aviso">Nutrição toca em saúde: o que for feito aqui serão orientações gerais, não
+      dietas clínicas. Para alimentação em contexto de doença, gravidez ou distúrbio alimentar, o
+      caminho é um nutricionista.</div>
+  </section>
 
   <!-- ============ BOT ============ -->
   <section class="view" id="view-bot" hidden>
@@ -351,7 +373,7 @@
   <button class="tab" data-view="ia"><span>✨</span>Plano IA</button>
   <button class="tab" data-view="treinos"><span>📋</span>Fichas</button>
   <button class="tab" data-view="bot"><span>💬</span>Treinador</button>
-  <button class="tab" data-view="progresso"><span>📈</span>Progresso</button>
+  <button class="tab" data-view="nutricao"><span>🥗</span>Nutrição</button>
   <button class="tab" data-view="perfil"><span>👤</span>Perfil</button>
   <button class="tab tab--treino" data-view="treino" id="tabTreino" hidden>
     <span>⏱</span><b id="tabTreinoTempo">00:00</b>
@@ -378,14 +400,14 @@
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=39"></script>
-<script src="js/store.js?v=39"></script>
-<script src="js/db.js?v=39"></script>
-<script src="js/ia.js?v=39"></script>
-<script src="js/ui.js?v=39"></script>
-<script src="js/musculos.js?v=39"></script>
-<script src="js/animacao.js?v=39"></script>
-<script src="js/icones.js?v=39"></script>
-<script src="js/app.js?v=39"></script>
+<script src="js/data.js?v=40"></script>
+<script src="js/store.js?v=40"></script>
+<script src="js/db.js?v=40"></script>
+<script src="js/ia.js?v=40"></script>
+<script src="js/ui.js?v=40"></script>
+<script src="js/musculos.js?v=40"></script>
+<script src="js/animacao.js?v=40"></script>
+<script src="js/icones.js?v=40"></script>
+<script src="js/app.js?v=40"></script>
 </body>
 </html>

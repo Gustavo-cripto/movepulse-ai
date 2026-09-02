@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 39;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 40;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -27,7 +27,6 @@ function render(){
   if (viewAtual === 'exercicios') renderExercicios();
   if (viewAtual === 'ia')         renderIA();
   if (viewAtual === 'fotos')      renderFotos();
-  if (viewAtual === 'progresso')  renderProgresso();
   atualizarSubtitulo();
 }
 
@@ -250,6 +249,7 @@ function renderInicio(){
   renderSemana();
   renderPlanoSemana();
   renderMes();
+  renderProgresso();
 
   $('#listaInicio').innerHTML = treinos.length
     ? treinos.map(t => `
@@ -899,9 +899,7 @@ function renderProgresso(){
   else if (comHist.length) sel.value = maisRegistrado(comHist).id;
   renderGraficoEx(sel.value);
 
-  $('#historico').innerHTML = sessoes.length
-    ? sessoes.map(cardSessao).join('')
-    : '<p class="empty">Conclui um treino para começar o teu histórico.</p>';
+
 }
 
 /** Exercício com mais sessões registradas — melhor padrão para o gráfico. */
@@ -913,6 +911,18 @@ function maisRegistrado(lista){
 function fmtTempoTotal(ms){
   const min = Math.round(ms / 6e4);
   return min < 60 ? min + ' min' : (ms / 36e5).toFixed(1).replace('.', ',') + ' h';
+}
+
+/** Todo o histórico de treinos, que na página inicial só mostra os últimos. */
+function historicoCompleto(){
+  const sessoes = Store.estado.sessoes;
+  Modal.abrir({
+    titulo: `Histórico · ${sessoes.length} ${sessoes.length === 1 ? 'treino' : 'treinos'}`,
+    corpo: sessoes.length
+      ? `<div class="stack">${sessoes.map(cardSessao).join('')}</div>`
+      : '<p class="empty">Conclui um treino para começar o teu histórico.</p>',
+    acoes: [{ texto:'Fechar', onClick: Modal.fechar }],
+  });
 }
 
 /** Calendário do mês, com os dias treinados acesos. */
@@ -1790,6 +1800,7 @@ function ligarEventos(){
   };
 
   // Semana
+  $('#btnHistorico').onclick = historicoCompleto;
   $('#btnPrograma').onclick = editorPrograma;
   $('#semana').onclick = e => {
     const dia = e.target.closest('[data-dia]');
