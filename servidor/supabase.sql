@@ -14,18 +14,18 @@ create table if not exists public.perfis (
 
 alter table public.perfis enable row level security;
 
-drop policy if exists "ler o próprio perfil" on public.perfis;
-create policy "ler o próprio perfil"
+drop policy if exists "ler o proprio perfil" on public.perfis;
+create policy "ler o proprio perfil"
   on public.perfis for select
   using (auth.uid() = id);
 
-drop policy if exists "criar o próprio perfil" on public.perfis;
-create policy "criar o próprio perfil"
+drop policy if exists "criar o proprio perfil" on public.perfis;
+create policy "criar o proprio perfil"
   on public.perfis for insert
   with check (auth.uid() = id);
 
-drop policy if exists "atualizar o próprio perfil" on public.perfis;
-create policy "atualizar o próprio perfil"
+drop policy if exists "atualizar o proprio perfil" on public.perfis;
+create policy "atualizar o proprio perfil"
   on public.perfis for update
   using (auth.uid() = id)
   with check (auth.uid() = id);

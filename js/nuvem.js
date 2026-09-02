@@ -10,8 +10,8 @@
    ============================================================ */
 
 const NUVEM = {
-  url: '',            // https://xxxx.supabase.co
-  chaveAnon: '',      // chave "anon public" do projeto
+  url: 'https://zieekpjgkkrxnzuhbwhp.supabase.co',
+  chaveAnon: 'sb_publishable_Dj78CUwuBOKwjTv7OheApw_0MEgznVb',
   tabela: 'perfis',
 };
 

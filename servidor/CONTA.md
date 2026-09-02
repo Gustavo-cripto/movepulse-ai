@@ -1,49 +1,51 @@
-# Ligar a conta (Supabase)
+# Conta (Supabase) — já ligada
 
-A app já tem tudo escrito — registo, início de sessão, recuperação de palavra-passe e
-sincronização. Falta só criar o projeto, porque isso exige uma conta tua.
+A conta está a funcionar. Este ficheiro fica como registo do que foi feito e de onde
+mexer se for preciso.
 
-## 1. Criar o projeto (5 minutos)
+## O que existe
 
-1. Vai a <https://supabase.com> e cria conta (gratuita).
-2. **New project** — dá-lhe um nome (por exemplo `movepulse`), escolhe uma região próxima
-   (Frankfurt ou Londres) e guarda a palavra-passe da base de dados que ele gera.
-3. Espera que o projeto acabe de arrancar.
+- **Organização:** MovePulse (plano gratuito)
+- **Projeto:** `movepulse` — West Europe (London), `eu-west-2`
+- **URL:** <https://zieekpjgkkrxnzuhbwhp.supabase.co>
+- **Chave usada na app:** a *publishable* (`sb_publishable_...`), em `js/nuvem.js`
 
-## 2. Criar a tabela
+A chave publishable é pública por natureza — quem protege os dados são as regras de
+segurança por linha (RLS). **A chave `secret` / `service_role` nunca entra na app nem
+se partilha**: essa ignora todas as regras.
 
-No projeto: **SQL Editor → New query**, cola o conteúdo de [`supabase.sql`](supabase.sql)
-e carrega em **Run**.
+## Base de dados
 
-## 3. Copiar as duas chaves
+O [`supabase.sql`](supabase.sql) já foi corrido no **SQL Editor**. Criou:
 
-Em **Project Settings → API**:
+- a tabela `public.perfis` — uma linha por utilizador (`id`, `dados` em JSON, `atualizado`)
+- RLS ligado, com três regras: cada pessoa só lê, cria e atualiza a **sua** linha
 
-- **Project URL** — algo como `https://abcdefgh.supabase.co`
-- **anon public** — uma chave longa que começa por `eyJ...`
+Verificado por teste real: com sessão iniciada lê-se e grava-se a própria linha; sem
+sessão a resposta vem vazia.
 
-Estas duas podem ficar no código da app: a chave `anon` é pública por natureza e o acesso é
-travado pelas regras de segurança por linha que o SQL acima criou.
+## Autenticação
 
-**A chave `service_role` nunca sai daqui.** Essa dá acesso a tudo, ignorando as regras. Não a
-ponhas na app nem a partilhes.
+- **Site URL:** `https://gustavo-cripto.github.io/movepulse-ai/`
+  (Authentication → URL Configuration) — é para onde apontam os links de email.
+- **Confirm email:** **desligado** (Authentication → Sign In / Providers → User Signups).
+  O registo fica imediato, sem esperar por email. O serviço de email gratuito da Supabase
+  só deixa enviar meia dúzia de mensagens por hora, por isso a confirmação tornava o
+  registo pouco fiável. Se um dia isto for para outras pessoas, volta a ligar e configura
+  um SMTP próprio.
+- Utilizadores: **Authentication → Users**. Existe lá um `teste.movepulse+setup@gmail.com`,
+  criado só para validar a ligação — podes apagá-lo à vontade.
 
-## 4. Colar na app
+## Onde mexer no código
 
-Em `js/nuvem.js`, no topo:
+`js/nuvem.js`, no topo:
 
 ```js
 const NUVEM = {
-  url: 'https://abcdefgh.supabase.co',
-  chaveAnon: 'eyJ...',
+  url: 'https://zieekpjgkkrxnzuhbwhp.supabase.co',
+  chaveAnon: 'sb_publishable_...',
   tabela: 'perfis',
 };
 ```
 
-Depois `git push`, e a conta fica a funcionar em **Definições → A minha conta**.
-
-## Confirmação de email
-
-Por omissão, a Supabase envia um email de confirmação ao registar. Para testares mais depressa,
-podes desligar em **Authentication → Providers → Email → Confirm email**. Para uso a sério com
-clientes, deixa ligado.
+A app usa a conta em **Definições → A minha conta**.
