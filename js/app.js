@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 37;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 38;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1193,6 +1193,61 @@ function renderPlanoAtual(){
     const largura = carrossel.firstElementChild?.offsetWidth || 1;
     const n = Math.round(carrossel.scrollLeft / (largura + 12));
     $$('#pontosTreinos .ponto').forEach((p, i) => p.classList.toggle('is-ativo', i === n));
+  };
+}
+
+/** Troca o desenho pela fotografia, nos itens que já tenham uma. */
+async function mostrarFotosEquipamento(){
+  for (const grupo of EQUIPAMENTOS){
+    for (const item of grupo.itens){
+      const foto = await Fotos.ler('eq:' + item.id).catch(() => null);
+      if (!foto) continue;
+      const alvo = document.getElementById('eq-mini-' + item.id);
+      if (alvo) alvo.innerHTML = `<img class="equip-foto" src="${foto}" alt="">`;
+    }
+  }
+}
+
+/** Vista ampliada de uma peça de equipamento. */
+async function ampliarEquipamento(id){
+  const nome = nomeEquipamento(id);
+  const grupo = EQUIPAMENTOS.find(g => g.itens.some(i => i.id === id))?.cat || '';
+  const foto = await Fotos.ler('eq:' + id).catch(() => null);
+
+  Modal.abrir({
+    titulo: nome,
+    corpo: `
+      <div class="equip-grande">
+        ${foto ? `<img src="${foto}" alt="${esc(nome)}">` : iconeEquipamento(id)}
+      </div>
+      <p class="item__meta" style="margin-top:10px">${esc(grupo)}</p>
+      <p class="item__meta" style="margin-top:8px">${foto
+        ? 'Foto tirada por ti.'
+        : 'Este é o desenho da app. Tira uma foto à máquina do teu ginásio para a veres aqui em vez do desenho.'}</p>
+      <div class="row-actions" style="margin-top:12px">
+        <button class="btn btn--sm btn--ghost" id="eqTirarFoto">📷 ${foto ? 'Trocar foto' : 'Fotografar máquina'}</button>
+        ${foto ? '<button class="btn btn--sm btn--danger" id="eqApagarFoto">Remover</button>' : ''}
+      </div>
+      <input type="file" id="eqFicheiro" accept="image/*" capture="environment" hidden>`,
+    acoes: [{ texto:'Voltar', onClick(){ Modal.fechar(); seletorEquipamento(); } }],
+  });
+
+  $('#eqTirarFoto').onclick = () => $('#eqFicheiro').click();
+  $('#eqFicheiro').onchange = async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    try {
+      const { dataUrl } = await comprimirFoto(f);
+      await Fotos.guardar('eq:' + id, dataUrl);
+      toast('Foto guardada ✅');
+      ampliarEquipamento(id);
+    } catch (erro) { toast('Não consegui guardar a foto.'); }
+  };
+  const apagar = $('#eqApagarFoto');
+  if (apagar) apagar.onclick = async () => {
+    await Fotos.apagar('eq:' + id);
+    toast('Foto removida.');
+    ampliarEquipamento(id);
   };
 }
 
