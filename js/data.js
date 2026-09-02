@@ -145,6 +145,7 @@ const EQUIPAMENTOS = [
     { id:'m-gemeos',    nome:'Máquina de gémeos' },
     { id:'m-gluteos',   nome:'Máquina de glúteos' },
     { id:'m-abdominal', nome:'Máquina abdominal' },
+    { id:'m-multi',     nome:'Estação multifunções' },
   ]},
   { cat:'Bancos e suportes', itens:[
     { id:'banco',       nome:'Banco plano' },

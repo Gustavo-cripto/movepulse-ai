@@ -100,6 +100,26 @@ const DESENHOS = {
     <rect class="eq-esc" x="12" y="33" width="3" height="9" rx="1.5"/>
     <rect class="eq-esc" x="22" y="33" width="3" height="9" rx="1.5"/>`,
 
+  maqMulti: `
+    <rect class="eq-met" x="11" y="6.2" width="28" height="2.8" rx="1.4"/>
+    <path class="eq-met" d="M11.4 5.4 5.6 8.2l1.6 3 5.8-2.8z"/>
+    <path class="eq-met" d="M38.6 5.4l5.8 2.8-1.6 3-5.8-2.8z"/>
+    <rect class="eq-esc" x="4.5" y="15" width="10" height="25" rx="2"/>
+    <rect class="eq-met2" x="6.7" y="18" width="5.6" height="2.4" rx="1.2"/>
+    <rect class="eq-met2" x="6.7" y="21.6" width="5.6" height="2.4" rx="1.2"/>
+    <rect class="eq-met2" x="6.7" y="25.2" width="5.6" height="2.4" rx="1.2"/>
+    <rect class="eq-esc" x="16.5" y="6" width="4" height="34" rx="2"/>
+    <path class="eq-met" d="M19.5 11.4l10.4-2.2.7 3.1-10.4 2.2z"/>
+    <path class="eq-met" d="M19.5 16.2l10.4-2.2.7 3.1-10.4 2.2z"/>
+    <rect class="eq-pad" x="30" y="7.4" width="3.4" height="4.8" rx="1.7"/>
+    <rect class="eq-pad" x="30" y="12.4" width="3.4" height="4.8" rx="1.7"/>
+    <rect class="eq-pad" x="21.5" y="20.5" width="5.2" height="11" rx="2.4"/>
+    <rect class="eq-pad" x="21.5" y="31.5" width="11.5" height="4.6" rx="2.3"/>
+    <path class="eq-met" d="M31.6 33.4l4.8 2.6-1.5 2.6-4.8-2.6z"/>
+    <rect class="eq-pad" x="34.9" y="32.4" width="3.4" height="4.4" rx="1.7"/>
+    <rect class="eq-pad" x="34.9" y="36.8" width="3.4" height="4.4" rx="1.7"/>
+    <rect class="eq-esc" x="11" y="40" width="21" height="3" rx="1.5"/>`,
+
   maqPuxar: `
     <rect class="eq-esc" x="4" y="6" width="9" height="36" rx="2"/>
     <rect class="eq-met2" x="6" y="10" width="5" height="3" rx="1"/>
@@ -244,7 +264,7 @@ const ICONE_DE = {
   'm-hack':'legPress', 'm-smith':'rack', 'm-peck':'maqEmpurrar', 'm-supino':'maqEmpurrar',
   'm-ombros':'maqEmpurrar', 'm-puxada':'maqPuxar', 'm-remada':'maqPuxar',
   'm-abdutora':'maqSentado', 'm-gemeos':'maqSentado', 'm-gluteos':'maqSentado',
-  'm-abdominal':'maqSentado',
+  'm-abdominal':'maqSentado', 'm-multi':'maqMulti',
   banco:'banco', 'banco-incl':'banco', rack:'rack', 'barra-fixa':'barraFixa',
   paralelas:'paralelas', espaldar:'barraFixa',
   elasticos:'elastico', trx:'trx', corda:'corda', bola:'bola', roda:'roda',
