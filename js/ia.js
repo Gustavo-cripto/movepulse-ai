@@ -298,10 +298,15 @@ function resolverExercicio(ex){
 
 /** Converte o plano da IA em fichas da app. Devolve as fichas criadas. */
 function importarPlano(plano){
+  // Um plano novo substitui o anterior: sem isto, cada geração deixava
+  // mais um conjunto de fichas soltas na lista.
+  Store.removerFichasDaIA();
+
   const criadas = [];
   plano.treinos.forEach(treino => {
     const ficha = {
       id: uid('t'),
+      origem: 'ia',
       nome: treino.nome,
       notas: treino.foco || 'Plano IA',
       itens: treino.exercicios.map(ex => ({

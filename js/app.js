@@ -1164,9 +1164,15 @@ async function gerarPlano(){
     plano.perfil = perfil;
     Store.estado.planoIA = plano;
     Store.salvar();
+
+    // O plano entra logo nas fichas e no calendário, nos dias escolhidos.
+    const fichas = importarPlano(plano.plano);
+    espalharPelaSemana(fichas);
+
     $('#iaEstado').textContent = '';
     renderPlanoAtual();
     mostrarPlano(plano, false);
+    toast(`Plano criado e posto no calendário ✅`);
   } catch (e) {
     $('#iaEstado').textContent = '';
     $('#iaResultado').innerHTML = `<div class="aviso">Não foi possível gerar o plano.<br>${esc(e.message)}
@@ -1222,16 +1228,16 @@ function mostrarPlano(plano, antigo){
     <div class="aviso">Plano gerado por IA a partir das fotos. Confirma que consegues executar cada
       exercício em segurança — não substitui a avaliação de um profissional de saúde.</div>
 
-    <button class="btn btn--primary btn--block" id="btnImportarPlano" style="margin-top:12px">
-      Adicionar ${plano.plano.treinos.length} fichas às minhas fichas
+    <div class="aviso" style="border-color:#bfe0a4;background:#f1fae0;color:#3c6a10;margin-top:12px">
+      ${antigo
+        ? 'Este plano está nas tuas fichas e no calendário.'
+        : `Pronto: ${plano.plano.treinos.length} fichas criadas e colocadas nos dias que escolheste.`}
+    </div>
+    <button class="btn btn--primary btn--block" id="btnVerInicio" style="margin-top:10px">
+      Ver no Início
     </button>`;
 
-  $('#btnImportarPlano').onclick = () => {
-    const fichas = importarPlano(plano.plano);
-    espalharPelaSemana(fichas);
-    toast(`${fichas.length} fichas criadas e postas no calendário ✅`);
-    mostrar('inicio');
-  };
+  $('#btnVerInicio').onclick = () => mostrar('inicio');
 }
 
 /** Distribui as fichas do plano pelos dias da semana, deixando descanso pelo meio. */

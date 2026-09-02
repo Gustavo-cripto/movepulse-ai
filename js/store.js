@@ -103,6 +103,16 @@ const Store = {
     if (i >= 0) estado.treinos[i] = treino; else estado.treinos.push(treino);
     salvar();
   },
+  /** Apaga as fichas criadas por um plano da IA. */
+  removerFichasDaIA(){
+    const antigas = estado.treinos.filter(t => t.origem === 'ia').map(t => t.id);
+    estado.treinos = estado.treinos.filter(t => t.origem !== 'ia');
+    Object.keys(estado.programa).forEach(d => {
+      if (antigas.includes(estado.programa[d])) estado.programa[d] = null;
+    });
+    salvar();
+  },
+
   removerTreino(id){
     estado.treinos = estado.treinos.filter(t => t.id !== id);
     salvar();
