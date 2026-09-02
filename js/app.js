@@ -12,7 +12,9 @@ let restRestante = 0;
 function mostrar(view){
   viewAtual = view;
   $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + view; });
-  $$('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.view === view));
+  const emTreino = !!Store.estado.sessaoAtiva && view === 'inicio';
+  $$('.tab').forEach(t => t.classList.toggle('is-active',
+    t.id === 'tabTreino' ? emTreino : (t.dataset.view === view && !emTreino)));
   window.scrollTo({ top: 0 });
   render();
 }
@@ -31,6 +33,14 @@ function render(){
 function atualizarSubtitulo(){
   const s = Store.estado.sessaoAtiva;
   $('#topbarSub').textContent = s ? `Em treino: ${s.nome}` : 'O teu diário de treino';
+  atualizarTabTreino();
+}
+
+/** O separador do treino a decorrer aparece só quando há um, e leva de volta a ele. */
+function atualizarTabTreino(){
+  const s = Store.estado.sessaoAtiva;
+  $('#tabTreino').hidden = !s;
+  if (s) iniciarCrono();
 }
 
 /* ============================================================
@@ -144,7 +154,10 @@ function renderCartaoHoje(){
           <button class="hoje__ir" id="btnDescansoLivre" aria-label="Começar treino livre">→</button>
         </div>
       </div>`;
-    $('#btnDescansoLivre').onclick = () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); };
+    $('#btnDescansoLivre').onclick = () => confirmar(
+      'Começar um treino livre, sem ficha? O cronómetro arranca já.',
+      () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); },
+      'Começar');
     return;
   }
 
@@ -156,7 +169,7 @@ function renderCartaoHoje(){
       <p class="hoje__onde">${esc(ficha.nome)} • ${esc(grupos)}</p>
       <div class="hoje__fundo">
         <div class="hoje__miniaturas" id="hojeMiniaturas"></div>
-        <button class="hoje__ir" data-iniciar="${ficha.id}" aria-label="Começar ${esc(ficha.nome)}">→</button>
+        <button class="hoje__ir" data-ver-treino="${ficha.id}" aria-label="Ver ${esc(ficha.nome)}">→</button>
       </div>
     </div>`;
   preencherMiniaturas(ficha);
@@ -336,7 +349,10 @@ function iniciarCrono(){
   const tick = () => {
     const s = Store.estado.sessaoAtiva;
     if (!s) return pararCrono();
-    $('#cronometro').textContent = fmtDuracao(Date.now() - s.inicio);
+    const decorrido = fmtDuracao(Date.now() - s.inicio);
+    const relogio = $('#cronometro');
+    if (relogio) relogio.textContent = decorrido;
+    $('#tabTreinoTempo').textContent = decorrido;
   };
   tick();
   cronoInterval = setInterval(tick, 1000);
@@ -344,6 +360,7 @@ function iniciarCrono(){
 function pararCrono(){
   clearInterval(cronoInterval);
   cronoInterval = null;
+  if (!Store.estado.sessaoAtiva) $('#tabTreino').hidden = true;
 }
 
 /* ---------------- Descanso ---------------- */
@@ -387,7 +404,7 @@ function renderTreinos(){
         <p class="item__meta" style="margin:8px 0 12px">
           ${t.itens.slice(0, 4).map(i => esc(Store.exercicio(i.exId).nome)).join(' · ')}${t.itens.length > 4 ? ' …' : ''}
         </p>
-        <button class="btn btn--sm btn--primary btn--block" data-iniciar="${t.id}">Iniciar treino</button>
+        <button class="btn btn--sm btn--primary btn--block" data-ver-treino="${t.id}">Ver treino</button>
       </div>`).join('')
     : '<p class="empty">Cria a tua primeira ficha para começar.</p>';
 }
@@ -1432,7 +1449,10 @@ function ligarEventos(){
   document.addEventListener('keydown', e => { if (e.key === 'Escape') Modal.fechar(); });
 
   // Hoje
-  $('#btnTreinoLivre').onclick = () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); };
+  $('#btnTreinoLivre').onclick = () => confirmar(
+    'Começar um treino livre, sem ficha? O cronómetro arranca já.',
+    () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); },
+    'Começar');
   $('#btnAddExSessao').onclick = () => seletorExercicio(ex => adicionarExercicioSessao(ex.id));
   $('#btnFinalizarSessao').onclick = () =>
     confirmar('Terminar e guardar este treino?', finalizarSessao, 'Finalizar');

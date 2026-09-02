@@ -109,7 +109,7 @@ h3{font-size:16px}
 /* ---------- Tabbar ---------- */
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
-  display:grid;grid-template-columns:repeat(5,1fr);
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
   background:rgba(255,255,255,.96);backdrop-filter:blur(10px);
   border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom);
@@ -443,3 +443,11 @@ h3{font-size:16px}
 .musculo-op .corpo{width:26px}
 .musculo-op span{font-size:11px;font-weight:600;line-height:1.1;text-align:center}
 .musculo-op.is-ativa{border-color:var(--accent-med);background:#f2fae0;color:var(--txt)}
+
+/* separador que só existe enquanto há treino a decorrer */
+.tab--treino{color:var(--accent-forte);position:relative}
+.tab--treino b{font-size:11.5px;font-variant-numeric:tabular-nums;font-weight:700}
+.tab--treino::before{
+  content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  width:34px;height:2px;border-radius:2px;background:var(--accent-med);
+}
