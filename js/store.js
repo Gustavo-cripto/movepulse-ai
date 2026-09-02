@@ -1,6 +1,7 @@
 /* Persistência em localStorage + acesso ao estado da aplicação. */
 
 const CHAVE = 'movepulse.v1';
+const SERVIDOR_PADRAO = 'https://movepulse-ia.azulequatorial.workers.dev';
 const CHAVE_ANTIGA = 'forja.v1';   // nome anterior da app
 
 const ESTADO_PADRAO = {
@@ -11,7 +12,9 @@ const ESTADO_PADRAO = {
   config: {
     descanso: 90,
     unidade: 'kg',
-    ia: { modo: 'servidor', servidor: '', chave: '' },
+    // Servidor por omissão: assim qualquer dispositivo funciona sem configuração.
+    // (No iOS, a app instalada tem armazenamento separado do Safari e não herda definições.)
+    ia: { modo: 'servidor', servidor: SERVIDOR_PADRAO, chave: '' },
   },
   planoIA: null,                        // último plano gerado pela IA
   programa: { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null },  // domingo a sábado
@@ -42,7 +45,9 @@ function carregar(){
       perfil: { ...base.perfil, ...salvo.perfil },
       planoConfig: { ...base.planoConfig, ...salvo.planoConfig },
       config: { ...base.config, ...salvo.config,
-        ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia) } } };
+        ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia),
+          // um endereço em branco vindo de uma versão antiga volta ao padrão
+          servidor: (salvo.config?.ia?.servidor || SERVIDOR_PADRAO) } } };
   } catch (e) {
     console.warn('Estado corrompido, recomeçando do zero.', e);
     return JSON.parse(JSON.stringify(ESTADO_PADRAO));
