@@ -14,6 +14,7 @@ const ESTADO_PADRAO = {
     unidade: 'kg',
     // Servidor por omissão: assim qualquer dispositivo funciona sem configuração.
     // (No iOS, a app instalada tem armazenamento separado do Safari e não herda definições.)
+    tema: 'auto',                       // auto | claro | escuro
     ia: { modo: 'servidor', servidor: SERVIDOR_PADRAO, chave: '' },
   },
   conversa: [],                         // perguntas ao treinador

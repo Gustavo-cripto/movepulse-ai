@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=43">
+<link rel="stylesheet" href="css/style.css?v=45">
 </head>
 <body>
 
@@ -272,6 +272,41 @@
       caminho é um nutricionista.</div>
   </section>
 
+  <!-- ============ DEFINIÇÕES ============ -->
+  <section class="view" id="view-definicoes" hidden>
+    <button class="btn btn--sm btn--ghost" id="defVoltar" style="align-self:flex-start">‹ Voltar</button>
+    <div class="section-head"><h2>Definições</h2></div>
+
+    <p class="def-grupo">Conta</p>
+    <div class="lista-def">
+      <button id="defConta"><span class="def-icone">👤</span>A minha conta<span class="def-valor" id="defContaEstado">só neste dispositivo</span></button>
+    </div>
+
+    <p class="def-grupo">Aplicação</p>
+    <div class="lista-def">
+      <button id="defTema"><span class="def-icone">🌓</span>Aspeto<span class="def-valor" id="defTemaValor">—</span></button>
+      <button id="defIdioma"><span class="def-icone">🌐</span>Idioma<span class="def-valor">Português</span></button>
+      <button id="defUnidades"><span class="def-icone">📏</span>Unidades<span class="def-valor">kg · cm</span></button>
+      <button id="defIA"><span class="def-icone">✨</span>Servidor de IA<span class="def-valor" id="defIAValor">—</span></button>
+    </div>
+
+    <p class="def-grupo">Os meus dados</p>
+    <div class="lista-def">
+      <button id="defExportar"><span class="def-icone">⬇️</span>Exportar backup</button>
+      <button id="defImportar"><span class="def-icone">⬆️</span>Importar backup</button>
+      <button id="defCache"><span class="def-icone">🗄</span>Limpar cache e recarregar</button>
+      <button id="defApagar"><span class="def-icone">🗑</span>Apagar tudo</button>
+    </div>
+    <input type="file" id="defArquivo" accept="application/json" hidden>
+
+    <p class="def-grupo">Sobre</p>
+    <div class="lista-def">
+      <button id="defPrivacidade"><span class="def-icone">🛡</span>Privacidade</button>
+      <button id="defTermos"><span class="def-icone">📄</span>Termos de utilização</button>
+      <button id="defVersao"><span class="def-icone">ℹ️</span>Versão<span class="def-valor" id="defVersaoValor">—</span></button>
+    </div>
+  </section>
+
   <!-- ============ BOT ============ -->
   <section class="view" id="view-bot" hidden>
     <div class="section-head">
@@ -446,14 +481,14 @@
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=43"></script>
-<script src="js/store.js?v=43"></script>
-<script src="js/db.js?v=43"></script>
-<script src="js/ia.js?v=43"></script>
-<script src="js/ui.js?v=43"></script>
-<script src="js/musculos.js?v=43"></script>
-<script src="js/animacao.js?v=43"></script>
-<script src="js/icones.js?v=43"></script>
-<script src="js/app.js?v=43"></script>
+<script src="js/data.js?v=45"></script>
+<script src="js/store.js?v=45"></script>
+<script src="js/db.js?v=45"></script>
+<script src="js/ia.js?v=45"></script>
+<script src="js/ui.js?v=45"></script>
+<script src="js/musculos.js?v=45"></script>
+<script src="js/animacao.js?v=45"></script>
+<script src="js/icones.js?v=45"></script>
+<script src="js/app.js?v=45"></script>
 </body>
 </html>

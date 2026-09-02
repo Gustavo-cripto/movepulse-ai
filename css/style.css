@@ -13,10 +13,49 @@
   --accent-med:#8ec01f;  /* verde para gráficos e desenhos */
   --danger:#c0392b;
   --ok:#3f8f4a;
+  --barra:rgba(255,255,255,.9);   /* barras de cima e de baixo */
   --radius:14px;
   --pad:16px;
   --tabbar-h:64px;
 }
+/* ---------- Tema escuro ----------
+   Aplica-se quando o utilizador o escolhe, ou quando escolhe
+   "automático" e o sistema está em escuro.                    */
+:root[data-tema="escuro"], :root[data-tema="auto"].sistema-escuro{
+  color-scheme:dark;
+  --bg:#0f1115;
+  --bg-elev:#171a21;
+  --bg-elev-2:#1f232c;
+  --line:#2a2f3a;
+  --txt:#e8eaf0;
+  --txt-dim:#98a0b3;
+  --accent:#c6f24e;
+  --accent-ink:#141a05;
+  --accent-forte:#c6f24e;
+  --accent-med:#a8d02f;
+  --danger:#ff6b6b;
+  --ok:#4ade80;
+  --barra:rgba(15,17,21,.92);
+}
+:root[data-tema="escuro"] .card,
+:root[data-tema="auto"].sistema-escuro .card{box-shadow:none}
+:root[data-tema="escuro"] .heroi,
+:root[data-tema="auto"].sistema-escuro .heroi{
+  background:
+    radial-gradient(130% 80% at 15% 0%, rgba(198,242,78,.16) 0%, rgba(198,242,78,0) 55%),
+    linear-gradient(180deg,#1b2016 0%, var(--bg) 92%);
+}
+:root[data-tema="escuro"] .m-base,
+:root[data-tema="auto"].sistema-escuro .m-base{fill:#242a33;stroke:#2f3742}
+:root[data-tema="escuro"] .an-osso, :root[data-tema="auto"].sistema-escuro .an-osso,
+:root[data-tema="escuro"] .an-tronco, :root[data-tema="auto"].sistema-escuro .an-tronco{stroke:#c3cbd6}
+:root[data-tema="escuro"] .an-cabeca,
+:root[data-tema="auto"].sistema-escuro .an-cabeca{fill:#c3cbd6}
+:root[data-tema="escuro"] .eq-esc,
+:root[data-tema="auto"].sistema-escuro .eq-esc{fill:#8e99a5}
+:root[data-tema="escuro"] .aviso,
+:root[data-tema="auto"].sistema-escuro .aviso{border-color:#4a3d1f;background:#211c10;color:#e6d9b0}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
@@ -37,7 +76,7 @@ h3{font-size:16px}
   position:sticky;top:0;z-index:20;
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:calc(env(safe-area-inset-top) + 12px) var(--pad) 12px;
-  background:rgba(255,255,255,.88);backdrop-filter:blur(10px);
+  background:var(--barra);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
 }
 .topbar__brand{display:flex;align-items:center;gap:10px}
@@ -110,7 +149,7 @@ h3{font-size:16px}
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
   display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
-  background:rgba(255,255,255,.96);backdrop-filter:blur(10px);
+  background:var(--barra);backdrop-filter:blur(10px);
   border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom);
 }
@@ -587,3 +626,18 @@ line.an-osso.an-ativo{stroke-width:8}
 }
 .avatar:active{transform:scale(.96)}
 .atalho--largo{width:100%;margin-top:14px}
+
+/* ---------- Definições ---------- */
+.lista-def{display:flex;flex-direction:column;background:var(--bg-elev);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden}
+.lista-def button{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 15px;
+  background:none;border:0;border-bottom:1px solid var(--line);font:inherit;color:inherit;cursor:pointer;
+}
+.lista-def button:last-child{border-bottom:0}
+.lista-def button::after{content:'›';margin-left:auto;color:var(--txt-dim);font-size:18px}
+.lista-def .def-icone{width:30px;text-align:center;font-size:17px;flex:none}
+.def-valor{margin-left:auto;color:var(--txt-dim);font-size:13px}
+.lista-def button:has(.def-valor)::after{margin-left:8px}
+.def-grupo{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-dim);
+  font-weight:700;margin:20px 0 8px 4px}

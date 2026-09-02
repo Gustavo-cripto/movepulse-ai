@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 43;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 45;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -23,6 +23,7 @@ function render(){
   if (viewAtual === 'treino')     renderTreino();
   if (viewAtual === 'bot')        renderBot();
   if (viewAtual === 'perfil')     renderPerfil();
+  if (viewAtual === 'definicoes') renderDefinicoes();
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
   if (viewAtual === 'ia')         renderIA();
@@ -1734,6 +1735,61 @@ function finalizarSessao(){
 /* ============================================================
    Definições / dados
    ============================================================ */
+/* ============================================================
+   TELA: DEFINIÇÕES
+   ============================================================ */
+const NOMES_TEMA = { auto:'Automático', claro:'Claro', escuro:'Escuro' };
+
+/** Aplica o tema escolhido, seguindo o sistema quando está em automático. */
+function aplicarTema(){
+  const tema = Store.estado.config.tema || 'auto';
+  document.documentElement.dataset.tema = tema;
+  const sistemaEscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.classList.toggle('sistema-escuro', sistemaEscuro);
+
+  const escuro = tema === 'escuro' || (tema === 'auto' && sistemaEscuro);
+  document.querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', escuro ? '#0f1115' : '#f7faf2');
+}
+
+function renderDefinicoes(){
+  const c = Store.estado.config;
+  $('#defTemaValor').textContent = NOMES_TEMA[c.tema || 'auto'];
+  $('#defIAValor').textContent = c.ia.modo === 'direto' ? 'chave própria' : 'servidor próprio';
+  $('#defVersaoValor').textContent = VERSAO_APP;
+  $('#defContaEstado').textContent = 'só neste dispositivo';
+}
+
+function escolherTema(){
+  Modal.abrir({
+    titulo:'Aspeto',
+    corpo: ['auto','claro','escuro'].map(t => `
+      <button class="equip-item ${Store.estado.config.tema === t ? 'is-ativa' : ''}" data-tema="${t}"
+              style="width:100%">
+        <span class="equip-item__nome">${NOMES_TEMA[t]}${t === 'auto' ? ' <small style="color:var(--txt-dim)">— segue o telemóvel</small>' : ''}</span>
+        <span class="equip-item__caixa">✓</span>
+      </button>`).join(''),
+    acoes: [{ texto:'Fechar', onClick: Modal.fechar }],
+  });
+  $('#modalCorpo').onclick = e => {
+    const b = e.target.closest('[data-tema]');
+    if (!b) return;
+    Store.estado.config.tema = b.dataset.tema;
+    Store.salvar();
+    aplicarTema();
+    Modal.fechar();
+    renderDefinicoes();
+  };
+}
+
+function textoLegal(titulo, paragrafos){
+  Modal.abrir({
+    titulo,
+    corpo: paragrafos.map(t => `<p style="margin-bottom:10px;font-size:14.5px">${t}</p>`).join(''),
+    acoes: [{ texto:'Fechar', onClick: Modal.fechar }],
+  });
+}
+
 function abrirConfig(){
   const c = Store.estado.config;
   Modal.abrir({
@@ -1897,6 +1953,52 @@ function ligarEventos(){
     renderDiasTreino();
   };
   $('#btnPerfil').onclick = () => mostrar('perfil');
+  $('#btnConfig').onclick = () => mostrar('definicoes');
+  $('#defVoltar').onclick = () => mostrar('inicio');
+  $('#defTema').onclick = escolherTema;
+  $('#defIA').onclick = abrirConfig;
+  $('#defConta').onclick = () => textoLegal('A minha conta', [
+    'Ainda não há contas: tudo o que registas fica <b>só neste dispositivo</b>.',
+    'Para levares os dados para outro telemóvel, usa <b>Exportar backup</b> aqui e <b>Importar backup</b> no outro.',
+    'Contas com início de sessão e sincronização automática são o passo seguinte — falta decidir como.',
+  ]);
+  $('#defIdioma').onclick = () => textoLegal('Idioma', [
+    'A app está em português de Portugal.',
+    'Outros idiomas ainda não estão feitos. Se precisares de inglês ou espanhol, é trabalho de tradução dos textos — diz e trato disso.',
+  ]);
+  $('#defUnidades').onclick = () => textoLegal('Unidades', [
+    'Os pesos estão em quilogramas e as medidas em centímetros.',
+    'Libras e polegadas ainda não estão feitas: implica converter em todos os ecrãs e no histórico já registado, para os números antigos não mudarem de significado.',
+  ]);
+  $('#defExportar').onclick = exportarDados;
+  $('#defImportar').onclick = () => $('#defArquivo').click();
+  $('#defArquivo').onchange = e => importarDados(e.target.files[0]);
+  $('#defCache').onclick = () => confirmar(
+    'Limpar a cópia guardada e recarregar a app? Os teus dados não são afetados.',
+    async () => {
+      for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+      for (const k of await caches.keys()) await caches.delete(k);
+      location.reload();
+    }, 'Limpar');
+  $('#defApagar').onclick = () => confirmar(
+    'Isto apaga fichas, histórico, plano e perfil deste dispositivo.',
+    () => { Store.reset(); mostrar('inicio'); toast('Dados apagados.'); }, 'Apagar tudo');
+  $('#defVersao').onclick = () => textoLegal('Versão', [
+    `Estás na versão <b>${VERSAO_APP}</b>.`,
+    'A app atualiza-se sozinha quando a abres com ligação à internet.',
+  ]);
+  $('#defPrivacidade').onclick = () => textoLegal('Privacidade', [
+    'Os teus treinos, fichas, perfil, peso e fotografias ficam <b>guardados neste dispositivo</b>. Não há servidor de dados nem conta.',
+    'Quando geras um plano, as <b>fotos do ginásio e o teu perfil</b> (objetivo, experiência, dias, limitações) são enviados ao fornecedor de IA para produzir a resposta. As fotos não ficam guardadas em lado nenhum depois disso.',
+    'Quando falas com o Treinador, a pergunta e um resumo do perfil seguem pelo mesmo caminho.',
+    'Não há publicidade, análise de utilização nem partilha com terceiros.',
+  ]);
+  $('#defTermos').onclick = () => textoLegal('Termos de utilização', [
+    'A MovePulse AI é uma ferramenta de registo e organização de treino.',
+    'Os planos e as respostas do Treinador são <b>gerados por inteligência artificial</b> e podem conter erros. São orientação geral de treino e <b>não substituem</b> avaliação médica, fisioterapia ou acompanhamento de um profissional.',
+    'Antes de começar um programa de exercício, sobretudo se tens lesões, dores ou doença, fala com um profissional de saúde.',
+    'Usas a app por tua conta e risco. Confirma que consegues executar cada exercício em segurança.',
+  ]);
   $('#perfilVoltar').onclick = () => mostrar('inicio');
   $('#btnRegistarPeso').onclick = registarPesoHoje;
   $('#perfilIrIA').onclick = () => mostrar('ia');
@@ -2050,6 +2152,8 @@ function ligarEventos(){
 
 /* ---------------- Início ---------------- */
 ligarEventos();
+aplicarTema();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema);
 mostrar('inicio');
 
 /* ============================================================
