@@ -487,3 +487,20 @@ h3{font-size:16px}
 .navegar{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
 .navegar .btn{padding:14px}
 .navegar .btn[disabled]{opacity:.4;cursor:default}
+
+/* ---------- Boneco de execução ---------- */
+.palco{
+  background:var(--bg-elev-2);border:1px solid var(--line);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;padding:6px;
+}
+.boneco{width:100%;max-width:260px;height:auto;display:block}
+.an-osso{stroke:#39424e;stroke-width:6;stroke-linecap:round}
+.an-tronco{stroke:#39424e;stroke-width:9;stroke-linecap:round}
+.an-cabeca{fill:#39424e}
+.an-barra{stroke:#8b96a3;stroke-width:4;stroke-linecap:round}
+.an-carga{fill:var(--accent-med)}
+.an-cabo{stroke:#b9c3cd;stroke-width:1.5}
+.an-chao{stroke:var(--line);stroke-width:2}
+.an-banco{fill:#c9d3bd}
+.dicas{margin:0;padding-left:1.2em;font-size:14.5px;display:flex;flex-direction:column;gap:6px}
+.dicas li{padding-left:2px}

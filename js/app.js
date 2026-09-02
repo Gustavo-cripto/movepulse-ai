@@ -314,7 +314,7 @@ function renderSessao(s){
       </div>
 
       <div class="acoes-ex">
-        ${linkDemonstracao(ex.nome)}
+        <button class="btn btn--sm btn--primary" id="exComoFazer">▶ Como fazer</button>
         <button class="btn btn--sm btn--ghost" id="exSubstituir">⇄ Substituir</button>
         <button class="btn btn--sm btn--ghost" id="exHistorico">📈 Histórico</button>
       </div>
@@ -345,6 +345,7 @@ function renderSessao(s){
         : '<button class="btn btn--primary" id="exTerminar">Terminar treino</button>'}
     </div>`;
 
+  $('#exComoFazer').onclick = () => comoFazer(item.exId);
   $('#exSubstituir').onclick = () => seletorExercicio(novo => {
     // troca o exercício mas mantém as séries já registadas
     item.exId = novo.id;
@@ -740,7 +741,7 @@ async function detalheExercicio(id){
         ${diagramaMusculos(ex.grupo)}
         <div>
           <p><span class="tag">${esc(ex.grupo)}</span><span class="tag">${esc(ex.equip)}</span></p>
-          <p>${linkDemonstracao(ex.nome)}</p>
+          <p style="margin-top:6px"><button class="btn btn--sm btn--primary" id="exDetComoFazer">▶ Como fazer</button></p>
         </div>
       </div>
       ${foto ? `<img class="foto-maquina" src="${foto}" alt="Máquina de ${esc(ex.nome)}">` : ''}
@@ -766,6 +767,7 @@ async function detalheExercicio(id){
     acoes,
   });
 
+  $('#exDetComoFazer').onclick = () => comoFazer(id);
   $('#btnFotoMaquina').onclick = () => $('#ficheiroMaquina').click();
   $('#ficheiroMaquina').onchange = async e => {
     const f = e.target.files[0];
@@ -787,6 +789,36 @@ async function detalheExercicio(id){
     detalheExercicio(id);
     renderHoje();
   };
+}
+
+/** Mostra o boneco a executar o exercício, com as dicas de técnica. */
+let pararAnimacao = null;
+function comoFazer(exId){
+  const ex = Store.exercicio(exId);
+  const mov = movimentoDoExercicio(ex);
+
+  Modal.abrir({
+    titulo: ex.nome,
+    corpo: `
+      <div class="palco" id="palcoBoneco"></div>
+      <p class="item__meta" style="margin-top:8px">${esc(mov.nome)} · ${esc(ex.grupo)} · ${esc(ex.equip)}</p>
+      <label class="label" style="margin-top:14px">Como fazer</label>
+      <ol class="dicas">${mov.dicas.map(d => `<li>${esc(d)}</li>`).join('')}</ol>
+      <div class="ex-cabeca" style="margin-top:14px">
+        ${diagramaMusculos(ex.grupo)}
+        <div>
+          <p class="item__meta">Músculos trabalhados</p>
+          <p style="font-size:14px;font-weight:600">${esc(ex.grupo)}</p>
+          <p style="margin-top:6px">${linkDemonstracao(ex.nome)}</p>
+        </div>
+      </div>
+      <p class="item__meta" style="margin-top:12px">O boneco mostra o padrão do movimento, não a tua
+        técnica. Em caso de dúvida, procura o vídeo ou pergunta a um profissional.</p>`,
+    acoes: [{ texto:'Fechar', onClick(){ pararAnimacao?.(); Modal.fechar(); } }],
+  });
+
+  pararAnimacao?.();
+  pararAnimacao = animarExercicio($('#palcoBoneco'), ex);
 }
 
 function statBox(valor, rotulo){
