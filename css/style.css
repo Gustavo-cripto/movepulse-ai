@@ -372,10 +372,17 @@ h3{font-size:16px}
   padding:9px 12px;margin-bottom:7px;font:inherit;color:inherit;cursor:pointer;font-size:14px;
 }
 .equip-item__icone{
-  width:42px;height:42px;border-radius:10px;background:var(--bg-elev-2);flex:none;
+  width:48px;height:48px;border-radius:10px;background:var(--bg-elev-2);flex:none;
   display:flex;align-items:center;justify-content:center;color:var(--accent-forte);
 }
-.icone-eq{width:26px;height:26px;display:block}
+.icone-eq{width:34px;height:34px;display:block}
+.eq-esc{fill:#39424e}        /* estrutura e borracha */
+.eq-met{fill:#b9c3cd}        /* metal claro */
+.eq-met2{fill:#8b96a3}       /* metal sombreado */
+.eq-pad{fill:#a8d02f}        /* estofo, na cor da app */
+.eq-luz{fill:#ffffff;opacity:.22}
+.eq-sombra{fill:#2f3742;opacity:.10}
+.icone-eq{color:#8b96a3}     /* traços que herdam currentColor */
 .equip-item__nome{flex:1;min-width:0}
 .equip-item.is-ativa{border-color:var(--accent-med);background:#f2fae0}
 .equip-item__caixa{
