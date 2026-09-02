@@ -181,7 +181,7 @@ h3{font-size:16px}
 }
 .rest{
   position:fixed;left:50%;transform:translateX(-50%);
-  bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);z-index:55;
+  top:calc(env(safe-area-inset-top) + 74px);z-index:55;   /* no topo: em baixo tapava a navegação */
   display:flex;align-items:center;gap:12px;
   background:var(--accent);color:var(--accent-ink);font-weight:700;
   padding:9px 9px 9px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(30,40,20,.16);
@@ -451,3 +451,21 @@ h3{font-size:16px}
   content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);
   width:34px;height:2px;border-radius:2px;background:var(--accent-med);
 }
+
+/* ---------- Treino: um exercício de cada vez ---------- */
+.passos{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.passo{
+  width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+  background:var(--bg-elev);color:var(--txt-dim);font:inherit;font-size:12px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
+}
+.passo.is-feito{background:var(--ok);border-color:var(--ok);color:#fff}
+.passo.is-atual{border-color:var(--accent-med);box-shadow:0 0 0 3px rgba(142,192,31,.22);color:var(--txt)}
+.passo.is-atual.is-feito{color:#fff}
+.passo-conta{
+  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accent-forte);margin-bottom:10px;
+}
+.navegar{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
+.navegar .btn{padding:14px}
+.navegar .btn[disabled]{opacity:.4;cursor:default}

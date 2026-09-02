@@ -126,6 +126,8 @@ const Store = {
       treinoId: treinoId || null,
       nome: treino ? treino.nome : 'Treino livre',
       inicio: Date.now(),
+      atual: 0,                          // exercício em que se está
+
       exercicios: (treino ? treino.itens : []).map(it => ({
         exId: it.exId,
         series: Array.from({ length: it.series }, () => ({
@@ -138,6 +140,14 @@ const Store = {
     salvar();
     return estado.sessaoAtiva;
   },
+  /** Muda o exercício em que se está, dentro dos limites da sessão. */
+  irParaExercicio(indice){
+    const s = estado.sessaoAtiva;
+    if (!s) return;
+    s.atual = Math.max(0, Math.min(indice, s.exercicios.length - 1));
+    salvar();
+  },
+
   cancelarSessao(){
     estado.sessaoAtiva = null;
     salvar();

@@ -273,44 +273,76 @@ function renderSessao(s){
   $('#sessaoInfo').textContent = 'Iniciado às ' +
     new Date(s.inicio).toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
 
-  // as miniaturas chegam depois: o IndexedDB é assíncrono
+  const total = s.exercicios.length;
+  if (!total){
+    $('#sessaoExercicios').innerHTML = '<p class="empty">Adiciona o primeiro exercício deste treino.</p>';
+    atualizarStats();
+    iniciarCrono();
+    return;
+  }
+
+  const i = Math.max(0, Math.min(s.atual ?? 0, total - 1));
+  const item = s.exercicios[i];
+  const ex = Store.exercicio(item.exId);
+  const cardio = ex.tipo === 'cardio';
+  const feitasAqui = item.series.filter(se => se.feito).length;
+
+  $('#sessaoExercicios').innerHTML = `
+    <div class="passos">
+      ${s.exercicios.map((it, n) => {
+        const completo = it.series.every(se => se.feito);
+        return `<button class="passo ${n === i ? 'is-atual' : ''} ${completo ? 'is-feito' : ''}"
+                  data-ir-ex="${n}" aria-label="Exercício ${n + 1}">${completo ? '✓' : n + 1}</button>`;
+      }).join('')}
+    </div>
+
+    <div class="card" data-ex-idx="${i}">
+      <p class="passo-conta">Exercício ${i + 1} de ${total} · ${feitasAqui}/${item.series.length} séries</p>
+      <div class="card__title">
+        <div class="ex-cabeca">
+          ${diagramaMusculos(ex.grupo)}
+          <div>
+            <h3>${esc(ex.nome)}</h3>
+            <p class="item__meta">${esc(ex.grupo)} · ${esc(ex.equip)}</p>
+            <div>${linkDemonstracao(ex.nome)}</div>
+          </div>
+        </div>
+        <button class="icon-btn" data-rm-ex="${i}" aria-label="Remover exercício">🗑</button>
+      </div>
+
+      <div class="set-head">
+        <span>#</span><span>${cardio ? 'Minutos' : 'Reps'}</span><span>${cardio ? 'Nível/km' : 'Carga (kg)'}</span><span>OK</span>
+      </div>
+      ${item.series.map((se, j) => `
+        <div class="set-row ${se.feito ? 'is-done' : ''}">
+          <span class="set-row__n">${j + 1}</span>
+          <input type="number" inputmode="decimal" step="any" min="0" value="${se.reps ?? ''}"
+                 data-campo="reps" data-i="${i}" data-j="${j}" placeholder="—">
+          <input type="number" inputmode="decimal" step="any" min="0" value="${se.carga ?? ''}"
+                 data-campo="carga" data-i="${i}" data-j="${j}" placeholder="—">
+          <button class="set-check" data-check="${i}:${j}" aria-label="Concluir série">✓</button>
+        </div>`).join('')}
+
+      <div class="row-actions" style="margin-top:10px">
+        <button class="btn btn--sm btn--ghost" data-add-serie="${i}">+ Série</button>
+        <button class="btn btn--sm btn--ghost" data-rm-serie="${i}">− Série</button>
+      </div>
+    </div>
+
+    <div class="navegar">
+      <button class="btn btn--ghost" id="exAnterior" ${i === 0 ? 'disabled' : ''}>‹ Anterior</button>
+      ${i < total - 1
+        ? '<button class="btn btn--primary" id="exSeguinte">Seguinte ›</button>'
+        : '<button class="btn btn--primary" id="exTerminar">Terminar treino</button>'}
+    </div>`;
+
+  $('#exAnterior').onclick = () => { Store.irParaExercicio(i - 1); renderSessao(Store.estado.sessaoAtiva); window.scrollTo({ top:0, behavior:'smooth' }); };
+  const seguinte = $('#exSeguinte');
+  if (seguinte) seguinte.onclick = () => { Store.irParaExercicio(i + 1); renderSessao(Store.estado.sessaoAtiva); window.scrollTo({ top:0, behavior:'smooth' }); };
+  const terminar = $('#exTerminar');
+  if (terminar) terminar.onclick = () => confirmar('Terminar e guardar este treino?', finalizarSessao, 'Terminar');
+
   setTimeout(carregarMiniaturas, 0);
-
-  $('#sessaoExercicios').innerHTML = s.exercicios.length
-    ? s.exercicios.map((item, i) => {
-        const ex = Store.exercicio(item.exId);
-        const cardio = ex.tipo === 'cardio';
-        return `<div class="card" data-ex-idx="${i}">
-          <div class="card__title">
-            <div class="ex-cabeca">
-              ${diagramaMusculos(ex.grupo)}
-              <div>
-                <h3>${esc(ex.nome)}</h3>
-                <p class="item__meta">${esc(ex.grupo)} · ${esc(ex.equip)}</p>
-              </div>
-            </div>
-            <button class="icon-btn" data-rm-ex="${i}" aria-label="Remover exercício">🗑</button>
-          </div>
-          <div class="set-head">
-            <span>#</span><span>${cardio ? 'Minutos' : 'Reps'}</span><span>${cardio ? 'Nível/km' : 'Carga (kg)'}</span><span>OK</span>
-          </div>
-          ${item.series.map((se, j) => `
-            <div class="set-row ${se.feito ? 'is-done' : ''}">
-              <span class="set-row__n">${j + 1}</span>
-              <input type="number" inputmode="decimal" step="any" min="0" value="${se.reps ?? ''}"
-                     data-campo="reps" data-i="${i}" data-j="${j}" placeholder="—">
-              <input type="number" inputmode="decimal" step="any" min="0" value="${se.carga ?? ''}"
-                     data-campo="carga" data-i="${i}" data-j="${j}" placeholder="—">
-              <button class="set-check" data-check="${i}:${j}" aria-label="Concluir série">✓</button>
-            </div>`).join('')}
-          <div class="row-actions" style="margin-top:10px">
-            <button class="btn btn--sm btn--ghost" data-add-serie="${i}">+ Série</button>
-            <button class="btn btn--sm btn--ghost" data-rm-serie="${i}">− Série</button>
-          </div>
-        </div>`;
-      }).join('')
-    : '<p class="empty">Adiciona o primeiro exercício deste treino.</p>';
-
   atualizarStats();
   iniciarCrono();
 }
@@ -318,18 +350,17 @@ function renderSessao(s){
 /** Põe a foto da máquina no cartão de cada exercício, se existir. */
 async function carregarMiniaturas(){
   const s = Store.estado.sessaoAtiva;
-  if (!s) return;
-  for (const [i, item] of s.exercicios.entries()){
-    const foto = await Fotos.ler(item.exId).catch(() => null);
-    if (!foto) continue;
-    const cabeca = $(`[data-ex-idx="${i}"] .ex-cabeca`);
-    if (cabeca && !cabeca.querySelector('.ex-mini')){
-      const img = document.createElement('img');
-      img.className = 'ex-mini';
-      img.src = foto;
-      img.alt = '';
-      cabeca.prepend(img);
-    }
+  if (!s || !s.exercicios.length) return;
+  const i = Math.max(0, Math.min(s.atual ?? 0, s.exercicios.length - 1));
+  const foto = await Fotos.ler(s.exercicios[i].exId).catch(() => null);
+  if (!foto) return;
+  const cabeca = $(`[data-ex-idx="${i}"] .ex-cabeca`);
+  if (cabeca && !cabeca.querySelector('.ex-mini')){
+    const img = document.createElement('img');
+    img.className = 'ex-mini';
+    img.src = foto;
+    img.alt = '';
+    cabeca.prepend(img);
   }
 }
 
@@ -1316,6 +1347,7 @@ function adicionarExercicioSessao(exId){
     exId,
     series: Array.from({ length: 3 }, () => ({ reps:'', carga: carga || '', feito:false })),
   });
+  s.atual = s.exercicios.length - 1;
   Store.salvar();
   renderHoje();
 }
@@ -1578,6 +1610,12 @@ function ligarEventos(){
     }
 
     // --- dentro da sessão ---
+    const passo = alvo.closest('[data-ir-ex]');
+    if (passo){
+      Store.irParaExercicio(+passo.dataset.irEx);
+      return renderSessao(Store.estado.sessaoAtiva);
+    }
+
     const check = alvo.closest('[data-check]');
     if (check){
       const [i, j] = check.dataset.check.split(':').map(Number);
