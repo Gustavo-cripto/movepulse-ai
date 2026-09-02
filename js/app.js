@@ -12,15 +12,14 @@ let restRestante = 0;
 function mostrar(view){
   viewAtual = view;
   $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + view; });
-  const emTreino = !!Store.estado.sessaoAtiva && view === 'inicio';
-  $$('.tab').forEach(t => t.classList.toggle('is-active',
-    t.id === 'tabTreino' ? emTreino : (t.dataset.view === view && !emTreino)));
+  $$('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.view === view));
   window.scrollTo({ top: 0 });
   render();
 }
 
 function render(){
-  if (viewAtual === 'inicio')     renderHoje();
+  if (viewAtual === 'inicio')     renderInicio();
+  if (viewAtual === 'treino')     renderTreino();
   if (viewAtual === 'perfil')     renderPerfil();
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
@@ -46,11 +45,18 @@ function atualizarTabTreino(){
 /* ============================================================
    TELA: HOJE
    ============================================================ */
-function renderHoje(){
+/** O ecrã do treino a decorrer; sem sessão, volta ao Início. */
+function renderTreino(){
   const s = Store.estado.sessaoAtiva;
-  $('#hojeVazio').hidden = !!s;
-  $('#hojeSessao').hidden = !s;
-  if (s) renderSessao(s); else { pararCrono(); renderInicio(); }
+  if (!s){ pararCrono(); return mostrar('inicio'); }
+  renderSessao(s);
+}
+
+/** Compatibilidade: quem chamava renderHoje quer o ecrã certo para o estado atual. */
+function renderHoje(){
+  if (Store.estado.sessaoAtiva) return mostrar('treino');
+  pararCrono();
+  mostrar('inicio');
 }
 
 /** Quantos treinos planeados para esta semana já foram feitos. */
@@ -156,7 +162,7 @@ function renderCartaoHoje(){
       </div>`;
     $('#btnDescansoLivre').onclick = () => confirmar(
       'Começar um treino livre, sem ficha? O cronómetro arranca já.',
-      () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); },
+      () => { Store.iniciarSessao(null); mostrar('treino'); atualizarSubtitulo(); },
       'Começar');
     return;
   }
@@ -539,7 +545,7 @@ async function detalheTreino(id){
           if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
           Modal.fechar();
           Store.iniciarSessao(ficha.id);
-          mostrar('inicio');
+          mostrar('treino');
         } },
     ],
   });
@@ -777,7 +783,7 @@ async function detalheExercicio(id){
       await Fotos.guardar(id, dataUrl);
       toast('Foto guardada ✅');
       detalheExercicio(id);
-      renderHoje();
+      if (Store.estado.sessaoAtiva) renderSessao(Store.estado.sessaoAtiva);
     } catch (erro) {
       toast('Não consegui guardar a foto.');
     }
@@ -787,7 +793,7 @@ async function detalheExercicio(id){
     await Fotos.apagar(id);
     toast('Foto removida.');
     detalheExercicio(id);
-    renderHoje();
+    if (Store.estado.sessaoAtiva) renderSessao(Store.estado.sessaoAtiva);
   };
 }
 
@@ -1003,7 +1009,7 @@ function detalheSessao(id){
           }));
           Store.salvar();
           Modal.fechar();
-          mostrar('inicio');
+          mostrar('treino');
         } },
     ],
   });
@@ -1425,14 +1431,14 @@ function adicionarExercicioSessao(exId){
   });
   s.atual = s.exercicios.length - 1;
   Store.salvar();
-  renderHoje();
+  renderTreino();
 }
 
 function finalizarSessao(){
   const concluida = Store.finalizarSessao();
   pararDescanso();
   pararCrono();
-  render();
+  mostrar('inicio');
   if (!concluida) return toast('Nenhuma série marcada — treino descartado.');
   toast(`Treino guardado: ${fmtNum(volumeSessao(concluida))} kg de volume 🔥`);
 }
@@ -1559,14 +1565,14 @@ function ligarEventos(){
   // Hoje
   $('#btnTreinoLivre').onclick = () => confirmar(
     'Começar um treino livre, sem ficha? O cronómetro arranca já.',
-    () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); },
+    () => { Store.iniciarSessao(null); mostrar('treino'); atualizarSubtitulo(); },
     'Começar');
   $('#btnAddExSessao').onclick = () => seletorExercicio(ex => adicionarExercicioSessao(ex.id));
   $('#btnFinalizarSessao').onclick = () =>
     confirmar('Terminar e guardar este treino?', finalizarSessao, 'Finalizar');
   $('#btnCancelarSessao').onclick = () =>
     confirmar('Descartar o treino atual? Não fica nada guardado.', () => {
-      Store.cancelarSessao(); pararDescanso(); pararCrono(); render();
+      Store.cancelarSessao(); pararDescanso(); pararCrono(); mostrar('inicio');
     }, 'Descartar');
 
   // Fichas / exercícios
@@ -1665,7 +1671,7 @@ function ligarEventos(){
     if (iniciar){
       if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
       Store.iniciarSessao(iniciar.dataset.iniciar);
-      mostrar('inicio');
+      mostrar('treino');
       return;
     }
     const verSessao = alvo.closest('[data-sessao]');

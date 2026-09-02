@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=35">
+<link rel="stylesheet" href="css/style.css?v=36">
 </head>
 <body>
 
@@ -35,7 +35,6 @@
 
   <!-- ============ INÍCIO ============ -->
   <section class="view" id="view-inicio">
-    <div id="hojeVazio">
       <header class="heroi">
         <div class="semana" id="semana"></div>
         <p class="ola__data" id="olaData">—</p>
@@ -75,9 +74,10 @@
 
       <div class="section-head"><h2>Últimas sessões</h2></div>
       <div id="ultimasSessoes" class="stack"></div>
-    </div>
+  </section>
 
-    <div id="hojeSessao" hidden>
+  <!-- ============ TREINO A DECORRER ============ -->
+  <section class="view" id="view-treino" hidden>
       <div class="card card--session">
         <div class="session-head">
           <div>
@@ -100,8 +100,8 @@
         <button class="btn btn--sm btn--danger" id="btnCancelarSessao">Descartar</button>
         <button class="btn btn--sm btn--ghost" id="btnFinalizarSessao">Terminar agora</button>
       </div>
-    </div>
   </section>
+
 
   <!-- ============ TREINOS ============ -->
   <section class="view" id="view-treinos" hidden>
@@ -338,7 +338,7 @@
   <button class="tab" data-view="treinos"><span>📋</span>Fichas</button>
   <button class="tab" data-view="progresso"><span>📈</span>Progresso</button>
   <button class="tab" data-view="perfil"><span>👤</span>Perfil</button>
-  <button class="tab tab--treino" data-view="inicio" id="tabTreino" hidden>
+  <button class="tab tab--treino" data-view="treino" id="tabTreino" hidden>
     <span>⏱</span><b id="tabTreinoTempo">00:00</b>
   </button>
 </nav>
@@ -363,14 +363,14 @@
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=35"></script>
-<script src="js/store.js?v=35"></script>
-<script src="js/db.js?v=35"></script>
-<script src="js/ia.js?v=35"></script>
-<script src="js/ui.js?v=35"></script>
-<script src="js/musculos.js?v=35"></script>
-<script src="js/animacao.js?v=35"></script>
-<script src="js/icones.js?v=35"></script>
-<script src="js/app.js?v=35"></script>
+<script src="js/data.js?v=36"></script>
+<script src="js/store.js?v=36"></script>
+<script src="js/db.js?v=36"></script>
+<script src="js/ia.js?v=36"></script>
+<script src="js/ui.js?v=36"></script>
+<script src="js/musculos.js?v=36"></script>
+<script src="js/animacao.js?v=36"></script>
+<script src="js/icones.js?v=36"></script>
+<script src="js/app.js?v=36"></script>
 </body>
 </html>
