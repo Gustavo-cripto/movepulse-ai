@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=15">
+<link rel="stylesheet" href="css/style.css?v=16">
 </head>
 <body>
 
@@ -33,7 +33,7 @@
 
 <main id="app">
 
-  <!-- ============ HOJE ============ -->
+  <!-- ============ INÍCIO ============ -->
   <section class="view" id="view-inicio">
     <div id="hojeVazio">
       <header class="heroi">
@@ -237,134 +237,6 @@
     </div>
   </section>
 
-  <!-- ============ PROGRESSO ============ -->
-  <section class="view" id="view-progresso" hidden>
-    <div class="section-head"><h2>Progresso</h2></div>
-    <div class="grid grid--stats grid--par" id="resumoStats"></div>
-
-    <div class="card">
-      <label class="label" for="selEx">Evolução por exercício</label>
-      <select class="input" id="selEx"></select>
-      <div id="grafico"></div>
-      <div class="grid grid--stats" id="recordesEx"></div>
-    </div>
-
-    <div class="section-head"><h2>Histórico</h2></div>
-    <div id="historico" class="stack"></div>
-  </section>
-  <!-- ============ PLANO IA ============ -->
-  <section class="view" id="view-ia" hidden>
-    <button class="btn btn--sm btn--ghost" id="iaVoltar" style="align-self:flex-start">‹ Voltar</button>
-    <div class="section-head"><h2>Plano com IA</h2></div>
-    <p class="muted">Fotografa as máquinas disponíveis no ginásio. A IA identifica o equipamento e
-      monta um plano de treino que só usa o que existe lá.</p>
-
-    <div class="card">
-      <label class="label">1. Fotos do equipamento</label>
-      <div class="row-actions">
-        <button class="btn btn--sm btn--ghost" id="btnTirarFoto">📷 Tirar foto</button>
-        <button class="btn btn--sm btn--ghost" id="btnEscolherFoto">🖼 Galeria</button>
-      </div>
-      <input type="file" id="fotoCamera" accept="image/*" capture="environment" multiple hidden>
-      <input type="file" id="fotoGaleria" accept="image/*" multiple hidden>
-      <div class="fotos" id="fotos"></div>
-      <p class="item__meta" id="fotosInfo">Até 8 fotos. Ficam no dispositivo e só são enviadas quando geras o plano.</p>
-    </div>
-
-    <div class="card">
-      <div class="card__title">
-        <label class="label" style="margin:0">2. O teu perfil</label>
-        <button class="btn btn--sm btn--ghost" id="iaEditarPerfil">Editar</button>
-      </div>
-      <div id="iaResumoPerfil" class="ia-lista"></div>
-    </div>
-
-    <button class="btn btn--primary btn--block" id="btnGerarPlano">✨ Gerar plano de treino</button>
-    <p class="item__meta" id="iaEstado"></p>
-
-    <div id="iaResultado"></div>
-  </section>
-
-  <!-- ============ PROGRESSO ============ -->
-  <section class="view" id="view-progresso" hidden>
-    <div class="section-head"><h2>Progresso</h2></div>
-    <div class="grid grid--stats grid--par" id="resumoStats"></div>
-
-    <div class="card">
-      <label class="label" for="selEx">Evolução por exercício</label>
-      <select class="input" id="selEx"></select>
-      <div id="grafico"></div>
-      <div class="grid grid--stats" id="recordesEx"></div>
-    </div>
-
-    <div class="section-head"><h2>Histórico</h2></div>
-    <div id="historico" class="stack"></div>
-  </section>
-  <!-- ============ PLANO IA ============ -->
-  <section class="view" id="view-ia" hidden>
-    <div class="section-head"><h2>Plano com IA</h2></div>
-    <p class="muted">Fotografa as máquinas disponíveis no ginásio. A IA identifica o equipamento e
-      monta um plano de treino que só usa o que existe lá.</p>
-
-    <div class="card">
-      <label class="label">1. Fotos do equipamento</label>
-      <div class="row-actions">
-        <button class="btn btn--sm btn--ghost" id="btnTirarFoto">📷 Tirar foto</button>
-        <button class="btn btn--sm btn--ghost" id="btnEscolherFoto">🖼 Galeria</button>
-      </div>
-      <input type="file" id="fotoCamera" accept="image/*" capture="environment" multiple hidden>
-      <input type="file" id="fotoGaleria" accept="image/*" multiple hidden>
-      <div class="fotos" id="fotos"></div>
-      <p class="item__meta" id="fotosInfo">Até 8 fotos. Ficam no dispositivo e só são enviadas quando geras o plano.</p>
-    </div>
-
-    <div class="card">
-      <label class="label">2. Perfil do cliente</label>
-      <div class="field">
-        <label class="label" for="iaObjetivo">Objetivo</label>
-        <select class="input" id="iaObjetivo">
-          <option>Hipertrofia (ganho de massa)</option>
-          <option>Perda de gordura</option>
-          <option>Força</option>
-          <option>Condição física geral</option>
-          <option>Saúde e mobilidade</option>
-        </select>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label class="label" for="iaExperiencia">Experiência</label>
-          <select class="input" id="iaExperiencia">
-            <option>Iniciante</option><option>Intermédio</option><option>Avançado</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="label" for="iaDias">Dias/semana</label>
-          <select class="input" id="iaDias">
-            <option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label class="label" for="iaMinutos">Tempo por sessão</label>
-        <select class="input" id="iaMinutos">
-          <option>30</option><option>45</option><option selected>60</option><option>75</option><option>90</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="label" for="iaLimitacoes">Limitações ou lesões</label>
-        <input class="input" id="iaLimitacoes" placeholder="Ex.: dor no ombro direito, joelho operado">
-      </div>
-      <div class="field">
-        <label class="label" for="iaNotas">Outras notas (opcional)</label>
-        <input class="input" id="iaNotas" placeholder="Ex.: prefiro treinos curtos e intensos">
-      </div>
-    </div>
-
-    <button class="btn btn--primary btn--block" id="btnGerarPlano">✨ Gerar plano de treino</button>
-    <p class="item__meta" id="iaEstado"></p>
-
-    <div id="iaResultado"></div>
-  </section>
 
   <!-- ============ PERFIL ============ -->
   <section class="view" id="view-perfil" hidden>
@@ -485,13 +357,13 @@
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=15"></script>
-<script src="js/store.js?v=15"></script>
-<script src="js/db.js?v=15"></script>
-<script src="js/ia.js?v=15"></script>
-<script src="js/ui.js?v=15"></script>
-<script src="js/musculos.js?v=15"></script>
-<script src="js/icones.js?v=15"></script>
-<script src="js/app.js?v=15"></script>
+<script src="js/data.js?v=16"></script>
+<script src="js/store.js?v=16"></script>
+<script src="js/db.js?v=16"></script>
+<script src="js/ia.js?v=16"></script>
+<script src="js/ui.js?v=16"></script>
+<script src="js/musculos.js?v=16"></script>
+<script src="js/icones.js?v=16"></script>
+<script src="js/app.js?v=16"></script>
 </body>
 </html>
