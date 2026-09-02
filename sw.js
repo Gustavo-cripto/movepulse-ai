@@ -1,5 +1,5 @@
 /* Service worker: guarda a app inteira em cache para funcionar offline. */
-const CACHE = 'movepulse-v12';
+const CACHE = 'movepulse-v14';
 const ARQUIVOS = [
   './', './index.html', './css/style.css',
   './js/data.js', './js/store.js', './js/db.js', './js/ia.js', './js/ui.js', './js/musculos.js', './js/app.js',
@@ -41,14 +41,18 @@ self.addEventListener('fetch', e => {
     return;
   }
 
+  // Procura pelo endereço exato, com o ?v=N incluído: assim uma versão nova
+  // não é servida a partir da cópia antiga. Se falhar e não houver rede,
+  // aceita-se qualquer versão guardada do mesmo ficheiro.
   e.respondWith(
-    // ignoreSearch: os ficheiros são pedidos com ?v=N para forçar atualizações
-    caches.match(e.request, { ignoreSearch: true }).then(hit => {
-      const rede = fetch(e.request).then(resp => {
-        if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
-        return resp;
-      }).catch(() => hit);
-      return hit || rede;
+    caches.match(e.request).then(hit => {
+      if (hit) return hit;
+      return fetch(e.request)
+        .then(resp => {
+          if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+          return resp;
+        })
+        .catch(() => caches.match(e.request, { ignoreSearch: true }));
     })
   );
 });
