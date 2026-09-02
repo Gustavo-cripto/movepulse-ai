@@ -17,6 +17,7 @@ const ESTADO_PADRAO = {
     ia: { modo: 'servidor', servidor: SERVIDOR_PADRAO, chave: '' },
   },
   conversa: [],                         // perguntas ao treinador
+  pesos: [],                            // {data, kg} ao longo do tempo
   planoIA: null,                        // último plano gerado pela IA
   programa: { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null },  // domingo a sábado
   planoConfig: {
@@ -26,7 +27,7 @@ const ESTADO_PADRAO = {
     equipamento:[],                      // ids do catálogo; vazio = tudo
   },
   perfil: {
-    nome:'', idade:'', altura:'', peso:'',
+    nome:'', idade:'', altura:'', peso:'', sexo:'', pesoObjetivo:'',
     objetivo:'Hipertrofia (ganho de massa)', experiencia:'Iniciante',
     diasSemana:[1, 3, 5],           // 0=domingo … 6=sábado
     minutos:'60', limitacoes:'', notas:'',
@@ -46,6 +47,7 @@ function carregar(){
       programa: { ...base.programa, ...salvo.programa },
       perfil: { ...base.perfil, ...salvo.perfil },
       conversa: salvo.conversa || [],
+      pesos: salvo.pesos || [],
       planoConfig: { ...base.planoConfig, ...salvo.planoConfig },
       config: { ...base.config, ...salvo.config,
         ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia),
@@ -199,6 +201,16 @@ const Store = {
     const escolhidos = new Set(estado.planoConfig.musculos);
     escolhidos.has(grupo) ? escolhidos.delete(grupo) : escolhidos.add(grupo);
     estado.planoConfig.musculos = [...escolhidos];
+    salvar();
+  },
+
+  /** Regista o peso de hoje, substituindo o registo do próprio dia. */
+  registarPeso(kg){
+    const hoje = chaveDia(new Date());
+    estado.pesos = estado.pesos.filter(p => p.data !== hoje);
+    estado.pesos.push({ data: hoje, kg: num(kg) });
+    estado.pesos.sort((a, b) => a.data.localeCompare(b.data));
+    estado.perfil.peso = String(kg);
     salvar();
   },
 

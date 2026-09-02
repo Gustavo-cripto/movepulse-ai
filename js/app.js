@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 42;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 43;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -96,6 +96,9 @@ function renderSaudacao(){
   const data = hoje.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
   $('#olaData').textContent = data.charAt(0).toUpperCase() + data.slice(1);
   $('#olaNome').textContent = nome ? `${parte}, ${nome}!` : `${parte}!`;
+  $('#avatarIniciais').textContent = nome
+    ? nome.split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase()
+    : '👤';
 }
 
 /** Quanto tempo leva a ficha: cada série é o trabalho mais o descanso. */
@@ -1116,7 +1119,33 @@ function renderPerfil(){
   const perfil = Store.estado.perfil;
   $$('[data-perfil]').forEach(campo => { campo.value = perfil[campo.dataset.perfil] ?? ''; });
   renderDiasTreino();
+  renderPeso();
+  renderComposicao();
   renderImc();
+}
+
+function registarPesoHoje(){
+  Modal.abrir({
+    titulo:'Registar peso',
+    corpo: `
+      <div class="field">
+        <label class="label" for="pesoHoje">Peso de hoje (kg)</label>
+        <input class="input" type="number" step="0.1" min="30" max="250" id="pesoHoje"
+               value="${esc(Store.estado.perfil.peso)}" inputmode="decimal">
+      </div>
+      <p class="item__meta">Fica registado com a data de hoje. Um registo por dia — o mais recente substitui.</p>`,
+    acoes: [
+      { texto:'Cancelar', onClick: Modal.fechar },
+      { texto:'Guardar', classe:'btn--primary', onClick(){
+          const kg = num($('#pesoHoje').value);
+          if (!kg) return toast('Indica um peso válido.');
+          Store.registarPeso(kg);
+          Modal.fechar();
+          renderPerfil();
+          toast('Peso registado ✅');
+        } },
+    ],
+  });
 }
 
 /** Sete círculos, de segunda a domingo, para escolher quando se treina. */
@@ -1131,6 +1160,110 @@ function renderDiasTreino(){
   $('#diasResumo').textContent = n
     ? `${n} ${n === 1 ? 'treino' : 'treinos'} por semana: ${escolhidos.map(d => NOMES_DIA[d]).join(', ')}.`
     : 'Escolhe pelo menos um dia.';
+}
+
+/* ---------- Composição corporal e energia ----------
+   Fórmulas assumidas, todas estimativas:
+   - gordura corporal: Deurenberg (a partir do IMC, idade e sexo)
+   - metabolismo basal: Mifflin-St Jeor
+   Uma balança de bioimpedância ou uma medição com adipómetro dão
+   números melhores; estes servem para acompanhar a tendência.        */
+
+function fatorAtividade(dias){
+  if (dias <= 1) return 1.375;
+  if (dias <= 3) return 1.55;
+  if (dias <= 5) return 1.725;
+  return 1.8;
+}
+
+function metricasCorpo(){
+  const p = Store.estado.perfil;
+  const peso = num(p.peso), altura = num(p.altura) / 100, idade = num(p.idade);
+  if (!peso || !altura) return null;
+
+  const imc = peso / (altura * altura);
+  const sexoM = p.sexo === 'M' ? 1 : 0;
+  const temSexoEIdade = !!p.sexo && idade > 0;
+
+  const gorduraPct = temSexoEIdade
+    ? Math.max(3, Math.min(60, 1.2 * imc + 0.23 * idade - 10.8 * sexoM - 5.4))
+    : null;
+  const massaGorda = gorduraPct !== null ? peso * gorduraPct / 100 : null;
+  const massaMagra = massaGorda !== null ? peso - massaGorda : null;
+  const ffmi = massaMagra !== null ? massaMagra / (altura * altura) : null;
+
+  const tmb = temSexoEIdade
+    ? 10 * peso + 6.25 * num(p.altura) - 5 * idade + (sexoM ? 5 : -161)
+    : null;
+  const fator = fatorAtividade(p.diasSemana.length);
+  const manutencao = tmb !== null ? tmb * fator : null;
+
+  // objetivo calórico: défice para perder, excedente moderado para ganhar
+  const objetivo = /gordura/i.test(p.objetivo) ? -0.18
+                 : /hipertrofia|massa/i.test(p.objetivo) ? 0.10 : 0;
+  const alvoCalorico = manutencao !== null ? manutencao * (1 + objetivo) : null;
+  const proteina = Math.round(peso * (objetivo < 0 ? 2.0 : 1.8));
+
+  return { imc, gorduraPct, massaGorda, massaMagra, ffmi, tmb, fator, manutencao, alvoCalorico, proteina };
+}
+
+function renderComposicao(){
+  const m = metricasCorpo();
+  const p = Store.estado.perfil;
+
+  if (!m){
+    $('#composicao').innerHTML = '<p class="empty">Preenche altura e peso para veres estes números.</p>';
+    $('#energia').innerHTML = '';
+    $('#notaComposicao').textContent = '';
+    $('#notaEnergia').textContent = '';
+    return;
+  }
+
+  const faixa = m.imc < 18.5 ? 'abaixo do peso' : m.imc < 25 ? 'normal'
+              : m.imc < 30 ? 'excesso de peso' : 'obesidade';
+
+  $('#composicao').innerHTML = [
+    statBox(m.imc.toFixed(1), `IMC · ${faixa}`),
+    statBox(m.gorduraPct !== null ? m.gorduraPct.toFixed(1) + ' %' : '—', 'gordura estimada'),
+    statBox(m.massaGorda !== null ? fmtPeso(m.massaGorda) + ' kg' : '—', 'massa gorda'),
+    statBox(m.massaMagra !== null ? fmtPeso(m.massaMagra) + ' kg' : '—', 'massa magra'),
+    statBox(m.ffmi !== null ? m.ffmi.toFixed(1) : '—', 'FFMI'),
+    statBox(p.pesoObjetivo ? fmtPeso(num(p.pesoObjetivo)) + ' kg' : '—', 'peso objetivo'),
+  ].join('');
+
+  $('#notaComposicao').textContent = m.gorduraPct === null
+    ? 'Indica o sexo e a idade para estimar a gordura corporal.'
+    : 'A gordura é estimada a partir do IMC, idade e sexo — serve para ver a tendência, não é uma medição.';
+
+  $('#energia').innerHTML = [
+    statBox(m.tmb !== null ? fmtNum(m.tmb) + ' kcal' : '—', 'metabolismo basal'),
+    statBox(m.manutencao !== null ? fmtNum(m.manutencao) + ' kcal' : '—', 'manutenção'),
+    statBox(m.alvoCalorico !== null ? fmtNum(m.alvoCalorico) + ' kcal' : '—', 'alvo diário'),
+    statBox(m.proteina + ' g', 'proteína/dia'),
+  ].join('');
+
+  const direcao = /gordura/i.test(p.objetivo) ? 'défice de 18% para perder gordura'
+                : /hipertrofia|massa/i.test(p.objetivo) ? 'excedente de 10% para ganhar massa'
+                : 'igual à manutenção';
+  $('#notaEnergia').textContent = m.tmb === null
+    ? 'Indica o sexo e a idade para calcular as calorias.'
+    : `Alvo calculado com ${direcao}, e fator de atividade ${m.fator} (${p.diasSemana.length} treinos/semana). São estimativas para orientar, não uma dieta.`;
+}
+
+/** Peso ao longo do tempo. */
+function renderPeso(){
+  const pesos = Store.estado.pesos;
+  const atual = num(Store.estado.perfil.peso);
+  const objetivo = num(Store.estado.perfil.pesoObjetivo);
+
+  $('#pesoResumo').textContent = atual
+    ? `${fmtPeso(atual)} kg${objetivo ? ` · objetivo ${fmtPeso(objetivo)} kg (${
+        (atual - objetivo) > 0 ? '−' : '+'}${fmtPeso(Math.abs(atual - objetivo))} kg)` : ''}`
+    : 'Ainda sem peso registado.';
+
+  $('#graficoPeso').innerHTML = pesos.length >= 2
+    ? grafico(pesos.map(x => ({ x: fmtData(new Date(x.data + 'T12:00')), y: x.kg })), ' kg')
+    : '<p class="empty">Regista o peso em dois dias diferentes para veres a evolução.</p>';
 }
 
 function renderImc(){
@@ -1165,8 +1298,9 @@ function renderIA(){
   // pastilhas: marca a opção guardada
   $$('[data-plano]').forEach(grupo => {
     const campo = grupo.dataset.plano;
+    const valor = campo === 'descanso' ? Store.estado.config.descanso : cfg[campo];
     $$('.pastilha', grupo).forEach(b =>
-      b.classList.toggle('is-ativa', b.dataset.valor === String(cfg[campo])));
+      b.classList.toggle('is-ativa', b.dataset.valor === String(valor)));
   });
   $('#planoSuperseries').checked = !!cfg.superseries;
   renderMusculosPlano();
@@ -1605,11 +1739,6 @@ function abrirConfig(){
   Modal.abrir({
     titulo:'Definições',
     corpo: `
-      <div class="field">
-        <label class="label" for="cDescanso">Descanso entre séries (segundos)</label>
-        <input class="input" type="number" id="cDescanso" min="0" max="600" step="15" value="${c.descanso}">
-        <p class="item__meta" style="margin-top:6px">Põe 0 para desligar o cronómetro automático.</p>
-      </div>
       <label class="label">Plano com IA</label>
       <div class="field">
         <label class="label" for="cModoIa">Como falar com a IA</label>
@@ -1644,7 +1773,6 @@ function abrirConfig(){
     acoes: [
       { texto:'Fechar', onClick: Modal.fechar },
       { texto:'Guardar', classe:'btn--primary', onClick(){
-          Store.estado.config.descanso = Math.max(0, parseInt($('#cDescanso').value, 10) || 0);
           Store.estado.config.ia = {
             modo:     $('#cModoIa').value,
             servidor: $('#cServidor').value.trim(),
@@ -1768,6 +1896,9 @@ function ligarEventos(){
     Store.alternarDiaTreino(+b.dataset.diaTreino);
     renderDiasTreino();
   };
+  $('#btnPerfil').onclick = () => mostrar('perfil');
+  $('#perfilVoltar').onclick = () => mostrar('inicio');
+  $('#btnRegistarPeso').onclick = registarPesoHoje;
   $('#perfilIrIA').onclick = () => mostrar('ia');
   $('#atalhoIA').onclick = () => mostrar('ia');
   $('#perfilDefinicoes').onclick = abrirConfig;
@@ -1782,7 +1913,13 @@ function ligarEventos(){
     const pastilha = e.target.closest('.pastilha');
     if (!pastilha) return;
     const campo = pastilha.parentElement.dataset.plano;
-    Store.guardarPlanoConfig(campo, pastilha.dataset.valor);
+    if (campo === 'descanso'){
+      // o descanso é usado pelo cronómetro, por isso vive nas definições do treino
+      Store.estado.config.descanso = +pastilha.dataset.valor;
+      Store.salvar();
+    } else {
+      Store.guardarPlanoConfig(campo, pastilha.dataset.valor);
+    }
     renderIA();
   });
   $('#planoSuperseries').onchange = e => Store.guardarPlanoConfig('superseries', e.target.checked);
