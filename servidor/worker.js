@@ -30,7 +30,7 @@ const NVIDIA = {
   url: 'https://integrate.api.nvidia.com/v1/chat/completions',
   listaModelos: 'https://integrate.api.nvidia.com/v1/models',
   modeloPadrao: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',   // etapa 1: ler fotos
-  modeloTexto: 'nvidia/nemotron-3-super-120b-a12b',                // etapa 2: escrever o plano
+  modeloTexto: 'openai/gpt-oss-120b',                // etapa 2: escrever o plano
   maxImagens: 5,                      // limite por omissão dos NIM de visão
 };
 
@@ -103,54 +103,91 @@ async function viaNvidia(corpo, env, origem, diagnostico = false){
   const perfil = blocos.filter(b => b.type === 'text').map(b => b.text).join('\n');
   const esquema = corpo.output_config?.format?.schema;
 
-  if (!fotos.length) return erro(400, 'Nenhuma fotografia recebida.', origem);
+  // --- etapa 1: ler as fotos, quando existirem ---
+  // Sem fotos o plano faz-se na mesma: a lista de equipamento vem no texto do pedido.
+  let equipamentos = [];
+  if (fotos.length){
+    // Os modelos pequenos falham fotos ao acaso: se uma não der nada, tenta outra vez.
+    const leituras = await Promise.all(fotos.map(async (f, i) => {
+      const primeira = await lerFoto(f, i, env);
+      if (primeira.equipamentos.length) return primeira;
+      return lerFoto(f, i, env);
+    }));
+    equipamentos = juntarEquipamentos(leituras);
 
-  // --- etapa 1: ler as fotos (em paralelo) ---
-  // Os modelos pequenos falham fotos ao acaso: se uma não der nada, tenta outra vez.
-  const leituras = await Promise.all(fotos.map(async (f, i) => {
-    const primeira = await lerFoto(f, i, env);
-    if (primeira.equipamentos.length) return primeira;
-    return lerFoto(f, i, env);
-  }));
-  const equipamentos = juntarEquipamentos(leituras);
+    if (diagnostico) return json({ fotos: fotos.length, leituras, equipamentos }, 200, origem);
 
-  if (diagnostico) return json({ fotos: fotos.length, leituras, equipamentos }, 200, origem);
-
-  if (!equipamentos.length){
-    return erro(502, 'Não consegui identificar equipamento nas fotos. Tenta fotos mais próximas e com a chapa do nome visível.', origem);
+    if (!equipamentos.length){
+      return erro(502, 'Não consegui identificar equipamento nas fotos. Tenta fotos mais próximas e com a chapa do nome visível.', origem);
+    }
   }
 
   // --- etapa 2: escrever o plano ---
-  const sistema = `${corpo.system || ''}
-
-As fotografias do ginásio JÁ FORAM analisadas por ti noutra etapa. Este é o resultado dessa
+  const contexto = equipamentos.length
+    ? `As fotografias do ginásio JÁ FORAM analisadas por ti noutra etapa. Este é o resultado dessa
 análise — é com esta lista que trabalhas. Não peças imagens nem digas que não as recebeste:
 
-${equipamentos.map(e => `- ${e.nome} (${e.grupo}, confiança ${e.confianca})`).join('\n')}
+${equipamentos.map(e => `- ${e.nome} (${e.grupo}, confiança ${e.confianca})`).join('\n')}`
+    : `Não há fotografias neste pedido. O equipamento disponível vem indicado na mensagem do
+utilizador. Trabalha com essa lista e não peças imagens.`;
+
+  const sistema = `${corpo.system || ''}
+
+${contexto}
 
 Usa apenas este equipamento e peso corporal. Repete a lista no campo "equipamentos" da resposta.
 
-Escreve em português de Portugal. Nunca uses espanhol nem português do Brasil: diz "gémeos" (não
-"panturrilha"), "elevação da anca" (não "elevação de pélvis"), "chão" (não "suelo"), "prancha"
-(não "pranca"), "agachamento" e "flexões".
+Escreve TUDO em português de Portugal, incluindo os nomes dos treinos e dos exercícios.
+Nunca uses inglês: diz "corpo inteiro" (não "full body"), "levantamento terra" (não "deadlift"),
+"peso morto romeno" (não "romanian deadlift"), "puxada na polia" (não "pulldown"), "supino"
+(não "bench press"), "afundo" (não "lunge"), "prancha" (não "plank").
+Nunca uses espanhol nem português do Brasil: diz "gémeos" (não "panturrilha"), "elevação da anca"
+(não "elevação de pélvis"), "chão" (não "suelo"), "abdómen" (não "abdômen").
 Responde APENAS com um objeto JSON válido, sem texto à volta e sem blocos de código, que obedeça
 exatamente a este JSON Schema:
 ${JSON.stringify(esquema)}`;
 
-  const resposta = await chamarNvidia(env, {
+  const pedidoTexto = {
     model: env.MODELO_TEXTO || NVIDIA.modeloTexto,
-    max_tokens: 4000,
+    max_tokens: 8000,
     temperature: 0.3,
+    // Extensão da NVIDIA: obriga a saída a seguir o esquema. Onde não for
+    // suportada é ignorada, e fica a instrução no texto como rede.
+    ...(esquema ? { nvext: { guided_json: esquema } } : {}),
     messages: [
       { role:'system', content: sistema },
       { role:'user', content: perfil },
     ],
-  });
+  };
 
+  let resposta = await chamarNvidia(env, pedidoTexto);
   if (resposta.erro) return erro(resposta.estado || 502, resposta.erro, origem);
 
-  const limpo = extrairJson(resposta.texto);
-  if (!limpo) return erro(502, 'O modelo não devolveu JSON utilizável. Tenta outra vez ou muda MODELO_TEXTO.', origem);
+  let limpo = extrairJson(resposta.texto);
+
+  // Uma segunda tentativa, mais insistente, antes de desistir.
+  if (!limpo){
+    resposta = await chamarNvidia(env, {
+      ...pedidoTexto,
+      temperature: 0,
+      messages: [
+        { role:'system', content: sistema },
+        { role:'user', content: perfil },
+        { role:'assistant', content: resposta.texto?.slice(0, 200) || '' },
+        { role:'user', content: 'A resposta anterior não era JSON válido. Responde outra vez com ' +
+          'APENAS o objeto JSON completo, sem raciocínio, sem comentários e sem blocos de código.' },
+      ],
+    });
+    if (resposta.erro) return erro(resposta.estado || 502, resposta.erro, origem);
+    limpo = extrairJson(resposta.texto);
+  }
+
+  if (diagnostico) return json({ bruto: String(resposta.texto).slice(0, 1500), conseguiuJson: !!limpo }, 200, origem);
+
+  if (!limpo){
+    return erro(502, `O modelo não devolveu JSON utilizável. Início da resposta: ${
+      String(resposta.texto).slice(0, 160)}`, origem);
+  }
 
   return json({ content:[{ type:'text', text: limpo }], stop_reason:'end_turn' }, 200, origem);
 }
@@ -230,12 +267,29 @@ async function chamarNvidia(env, pedido){
 
 /** Tira cercas de código e texto à volta, devolvendo só o objeto JSON. */
 function extrairJson(texto){
-  const semCercas = String(texto).replace(/```(?:json)?/gi, '').trim();
-  const inicio = semCercas.indexOf('{');
-  const fim = semCercas.lastIndexOf('}');
-  if (inicio < 0 || fim <= inicio) return null;
-  const candidato = semCercas.slice(inicio, fim + 1);
-  try { JSON.parse(candidato); return candidato; } catch { return null; }
+  let t = String(texto || '')
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')   // raciocínio de alguns modelos
+    .replace(/```(?:json)?/gi, '')
+    .trim();
+
+  // Percorre à procura de um objeto com as chavetas equilibradas, ignorando
+  // as que aparecem dentro de texto entre aspas.
+  for (let i = t.indexOf('{'); i >= 0; i = t.indexOf('{', i + 1)){
+    let nivel = 0, emTexto = false, escapado = false;
+    for (let j = i; j < t.length; j++){
+      const c = t[j];
+      if (escapado){ escapado = false; continue; }
+      if (c === '\\'){ escapado = true; continue; }
+      if (c === '"'){ emTexto = !emTexto; continue; }
+      if (emTexto) continue;
+      if (c === '{') nivel++;
+      else if (c === '}' && --nivel === 0){
+        const candidato = t.slice(i, j + 1);
+        try { JSON.parse(candidato); return candidato; } catch { break; }
+      }
+    }
+  }
+  return null;
 }
 
 async function listarModelos(env, origem){
