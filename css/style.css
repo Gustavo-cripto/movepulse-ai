@@ -504,3 +504,38 @@ h3{font-size:16px}
 .an-banco{fill:#c9d3bd}
 .dicas{margin:0;padding-left:1.2em;font-size:14.5px;display:flex;flex-direction:column;gap:6px}
 .dicas li{padding-left:2px}
+
+/* ---------- Carrossel dos treinos do plano ---------- */
+.carrossel{
+  display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:12px 0 4px;margin:0 calc(var(--pad) * -1);padding-left:var(--pad);padding-right:var(--pad);
+  scrollbar-width:none;
+}
+.carrossel::-webkit-scrollbar{display:none}
+.treino-cartao{
+  flex:0 0 84%;scroll-snap-align:center;
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;box-shadow:0 1px 2px rgba(30,40,20,.04);
+}
+.treino-cartao.is-hoje{border-color:#cfe6a0;background:linear-gradient(150deg,#f4fbe4,#fff 60%)}
+.treino-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.selo{
+  font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--bg-elev-2);color:var(--txt-dim);border-radius:999px;padding:4px 10px;
+}
+.selo--hoje{background:var(--accent);color:var(--accent-ink)}
+.selo--feito{background:var(--ok);color:#fff}
+.treino-cartao h3{font-size:17px;letter-spacing:-.2px}
+.treino-corpo{display:flex;align-items:center;gap:12px;margin-top:12px}
+.treino-numeros{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1}
+.treino-lista{list-style:none;margin:14px 0 14px;padding:0;display:flex;flex-direction:column;gap:7px}
+.treino-lista li{
+  display:flex;justify-content:space-between;gap:10px;font-size:13.5px;
+  padding-bottom:7px;border-bottom:1px solid var(--line);
+}
+.treino-lista li:last-child{border-bottom:0;padding-bottom:0}
+.treino-lista span{color:var(--accent-forte);font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+.treino-lista .mais{color:var(--txt-dim);font-size:12.5px;border-bottom:0}
+.pontos{display:flex;justify-content:center;gap:6px;margin:4px 0 8px}
+.ponto{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
+.ponto.is-ativo{background:var(--accent-med);width:18px;border-radius:3px}

@@ -1098,82 +1098,94 @@ function renderMusculosPlano(){
     </button>`).join('');
 }
 
-/** Cartão do plano em vigor, no topo do ecrã. */
+/** Cartão do plano em vigor, com os treinos em carrossel. */
 function renderPlanoAtual(){
   const plano = Store.estado.planoIA;
   if (!plano){
     $('#planoAtual').innerHTML = `<p class="empty">Ainda não tens um plano. Define abaixo como treinas e cria o primeiro.</p>`;
     return;
   }
+
   const cfg = Store.estado.planoConfig;
-  const p = Store.estado.perfil;
+  const perfil = Store.estado.perfil;
+  const treinados = Store.diasTreinados();
+  const hoje = new Date();
+  const chaveHoje = chaveDia(hoje);
+
+  // cada treino do plano tem uma ficha correspondente, criada ao aceitar o plano
+  const fichas = Store.estado.treinos.filter(t => t.origem === 'ia');
+
+  const cartoes = plano.plano.treinos.map((treino, n) => {
+    const ficha = fichas[n];
+    // o dia verdadeiro é o do calendário, não o que a IA escreveu:
+    // se dois treinos calharem no mesmo dia, um deles foi para outro sítio
+    const dia = ficha
+      ? [0,1,2,3,4,5,6].find(d => Store.estado.programa[d] === ficha.id) ?? null
+      : null;
+    const feitoHoje = dia === hoje.getDay() && treinados.has(chaveHoje);
+    const eHoje = dia === hoje.getDay();
+    const grupos = ficha ? gruposDaFicha(ficha) : [...new Set(treino.exercicios.map(e => e.grupo))];
+    const series = treino.exercicios.reduce((t, e) => t + e.series, 0);
+    const minutos = ficha ? duracaoEstimada(ficha) : Math.round(series * 3);
+
+    return `<article class="treino-cartao ${eHoje ? 'is-hoje' : ''}">
+      <div class="treino-topo">
+        <span class="selo ${feitoHoje ? 'selo--feito' : eHoje ? 'selo--hoje' : ''}">
+          ${feitoHoje ? 'Concluído' : eHoje ? 'Hoje' : 'Planeado'}
+        </span>
+        <span class="item__meta">${dia !== null ? esc(NOMES_DIA[dia]) : 'sem dia'}</span>
+      </div>
+
+      <h3>${esc(treino.nome)}</h3>
+
+      <div class="treino-corpo">
+        <div class="treino-numeros">
+          <div class="plano-caixa"><strong>${minutos} min</strong><span>duração</span></div>
+          <div class="plano-caixa"><strong>${series}</strong><span>séries</span></div>
+        </div>
+        <div class="previa-corpo">${diagramaMusculos(grupos)}</div>
+      </div>
+
+      <ul class="treino-lista">
+        ${treino.exercicios.slice(0, 3).map(e =>
+          `<li><b>${esc(e.nome)}</b><span>${e.series}×${e.reps}</span></li>`).join('')}
+        ${treino.exercicios.length > 3
+          ? `<li class="mais">+ ${treino.exercicios.length - 3} ${
+              treino.exercicios.length - 3 === 1 ? 'exercício' : 'exercícios'}</li>` : ''}
+      </ul>
+
+      ${ficha
+        ? `<button class="btn btn--primary btn--block" data-ver-treino="${ficha.id}">
+             ${feitoHoje ? 'Repetir treino' : 'Ver treino'}
+           </button>`
+        : '<p class="item__meta">Ficha não encontrada.</p>'}
+    </article>`;
+  }).join('');
+
   $('#planoAtual').innerHTML = `
     <div class="card">
       <span class="hoje__etiqueta">Plano em vigor</span>
       <h3 style="margin-top:6px">${esc(plano.plano.nome)}</h3>
       <p class="item__meta" style="margin-top:4px">${esc(plano.plano.resumo)}</p>
-      <div class="plano-grelha">
-        <div class="plano-caixa"><strong>${plano.plano.treinos.length} treinos</strong><span>por semana</span></div>
-        <div class="plano-caixa"><strong>${esc(cfg.local)}</strong><span>local</span></div>
-        <div class="plano-caixa"><strong>${esc(cfg.duracao)} min</strong><span>duração</span></div>
-        <div class="plano-caixa"><strong>${esc(p.experiencia)}</strong><span>nível</span></div>
+      <div class="ia-lista" style="margin-top:10px">
+        <span class="tag">${plano.plano.treinos.length} treinos/semana</span>
+        <span class="tag">${esc(cfg.local)}</span>
+        <span class="tag">${esc(cfg.duracao)} min</span>
+        <span class="tag">${esc(perfil.experiencia)}</span>
       </div>
-      <p class="item__meta" style="margin-top:12px">Criado em ${fmtDataHora(plano.criadoEm)}</p>
+    </div>
+
+    <div class="carrossel" id="carrosselTreinos">${cartoes}</div>
+    <div class="pontos" id="pontosTreinos">
+      ${plano.plano.treinos.map((_, n) => `<span class="ponto ${n === 0 ? 'is-ativo' : ''}"></span>`).join('')}
     </div>`;
-}
 
-/** Troca o desenho pela fotografia, nos itens que já tenham uma. */
-async function mostrarFotosEquipamento(){
-  for (const grupo of EQUIPAMENTOS){
-    for (const item of grupo.itens){
-      const foto = await Fotos.ler('eq:' + item.id).catch(() => null);
-      if (!foto) continue;
-      const alvo = document.getElementById('eq-mini-' + item.id);
-      if (alvo) alvo.innerHTML = `<img class="equip-foto" src="${foto}" alt="">`;
-    }
-  }
-}
-
-/** Vista ampliada de uma peça de equipamento. */
-async function ampliarEquipamento(id){
-  const nome = nomeEquipamento(id);
-  const grupo = EQUIPAMENTOS.find(g => g.itens.some(i => i.id === id))?.cat || '';
-  const foto = await Fotos.ler('eq:' + id).catch(() => null);
-
-  Modal.abrir({
-    titulo: nome,
-    corpo: `
-      <div class="equip-grande">
-        ${foto ? `<img src="${foto}" alt="${esc(nome)}">` : iconeEquipamento(id)}
-      </div>
-      <p class="item__meta" style="margin-top:10px">${esc(grupo)}</p>
-      <p class="item__meta" style="margin-top:8px">${foto
-        ? 'Foto tirada por ti.'
-        : 'Este é o desenho da app. Tira uma foto à máquina do teu ginásio para a veres aqui em vez do desenho.'}</p>
-      <div class="row-actions" style="margin-top:12px">
-        <button class="btn btn--sm btn--ghost" id="eqTirarFoto">📷 ${foto ? 'Trocar foto' : 'Fotografar máquina'}</button>
-        ${foto ? '<button class="btn btn--sm btn--danger" id="eqApagarFoto">Remover</button>' : ''}
-      </div>
-      <input type="file" id="eqFicheiro" accept="image/*" capture="environment" hidden>`,
-    acoes: [{ texto:'Voltar', onClick(){ Modal.fechar(); seletorEquipamento(); } }],
-  });
-
-  $('#eqTirarFoto').onclick = () => $('#eqFicheiro').click();
-  $('#eqFicheiro').onchange = async e => {
-    const f = e.target.files[0];
-    if (!f) return;
-    try {
-      const { dataUrl } = await comprimirFoto(f);
-      await Fotos.guardar('eq:' + id, dataUrl);
-      toast('Foto guardada ✅');
-      ampliarEquipamento(id);
-    } catch (erro) { toast('Não consegui guardar a foto.'); }
-  };
-  const apagar = $('#eqApagarFoto');
-  if (apagar) apagar.onclick = async () => {
-    await Fotos.apagar('eq:' + id);
-    toast('Foto removida.');
-    ampliarEquipamento(id);
+  // os pontos acompanham o deslizar
+  const carrossel = $('#carrosselTreinos');
+  carrossel.onscroll = () => {
+    const largura = carrossel.firstElementChild?.offsetWidth || 1;
+    const n = Math.round(carrossel.scrollLeft / (largura + 12));
+    $$('#pontosTreinos .ponto').forEach((p, i) => p.classList.toggle('is-ativo', i === n));
   };
 }
 
