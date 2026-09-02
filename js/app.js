@@ -2,6 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
+const VERSAO_APP = 37;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1483,6 +1484,7 @@ function abrirConfig(){
         <button class="btn btn--danger" id="cReset">Apagar tudo e recomeçar</button>
       </div>
       <input type="file" id="cArquivo" accept="application/json" hidden>
+      <p class="item__meta" id="cVersao" style="margin-top:12px"></p>
       <p class="item__meta" style="margin-top:14px">
         Fica tudo guardado só neste navegador (localStorage). Faz backup antes de limpares os dados do site.
       </p>`,
@@ -1511,6 +1513,7 @@ function abrirConfig(){
   $('#cModoIa').onchange = alternarModo;
   alternarModo();
 
+  $('#cVersao').textContent = `Versão ${VERSAO_APP}`;
   $('#cExportar').onclick = exportarDados;
   $('#cImportar').onclick = () => $('#cArquivo').click();
   $('#cArquivo').onchange = e => importarDados(e.target.files[0]);
@@ -1751,7 +1754,9 @@ mostrar('inicio');
    ============================================================ */
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load', () =>
-    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW não registrado:', e)));
+    // updateViaCache:'none' — o próprio service worker nunca vem da cache
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+      .catch(e => console.warn('SW não registado:', e)));
 }
 
 let promptInstalar = null;
