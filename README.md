@@ -7,8 +7,10 @@ Funciona offline e instala-se como aplicação no **Android, iPhone/iPad e Mac**
 
 ## O que faz
 
-- **Plano IA** (no Perfil) — fotografas as máquinas disponíveis no ginásio e a IA identifica o
-  equipamento visível, devolvendo um plano que só usa esse equipamento e respeita o teu perfil. Um toque adiciona os treinos às tuas fichas.
+- **Plano IA** — separador próprio onde defines local, tipo de treino, duração, foco, intensidade,
+  superséries e o equipamento disponível (lista de 43 itens, fotos do ginásio, ou ambos). A IA
+  devolve um plano que só usa esse equipamento e respeita o teu perfil; um toque cria as fichas e
+  distribui-as pelos dias da semana. Um toque adiciona os treinos às tuas fichas.
 - **Início** — abre no treino de hoje: saudação, cartão do treino planeado com um toque para
   começar, tira da semana (letra da ficha em cada dia, visto nos feitos) e calendário do mês com os
   dias treinados acesos. Se já treinaste hoje, mostra o resumo em vez do botão.

@@ -23,6 +23,7 @@ function render(){
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
   if (viewAtual === 'ia')         renderIA();
+  if (viewAtual === 'fotos')      renderFotos();
   if (viewAtual === 'progresso')  renderProgresso();
   atualizarSubtitulo();
 }
@@ -846,10 +847,99 @@ let fotosGinasio = [];      // só em memória — as fotos não são guardadas
 let aGerarPlano = false;
 
 function renderIA(){
-  renderFotos();
-  renderResumoPerfil();
+  const cfg = Store.estado.planoConfig;
+
+  // pastilhas: marca a opção guardada
+  $$('[data-plano]').forEach(grupo => {
+    const campo = grupo.dataset.plano;
+    $$('.pastilha', grupo).forEach(b =>
+      b.classList.toggle('is-ativa', b.dataset.valor === String(cfg[campo])));
+  });
+  $('#planoSuperseries').checked = !!cfg.superseries;
+
+  $('#equipResumo').textContent = cfg.equipamento.length
+    ? `${cfg.equipamento.length} de ${TOTAL_EQUIPAMENTOS}`
+    : 'todos';
+  $('#fotosResumo').textContent = fotosGinasio.length
+    ? `${fotosGinasio.length} ${fotosGinasio.length === 1 ? 'foto' : 'fotos'}`
+    : 'nenhuma';
+
+  const p = Store.estado.perfil;
+  $('#perfilResumo').textContent = [p.objetivo.split(' ')[0], p.experiencia,
+    p.limitacoes ? '⚠' : null].filter(Boolean).join(' · ');
+
+  renderPlanoAtual();
+
   const ultimo = Store.estado.planoIA;
   if (ultimo && !$('#iaResultado').dataset.fresco) mostrarPlano(ultimo, true);
+}
+
+/** Cartão do plano em vigor, no topo do ecrã. */
+function renderPlanoAtual(){
+  const plano = Store.estado.planoIA;
+  if (!plano){
+    $('#planoAtual').innerHTML = `<p class="empty">Ainda não tens um plano. Define abaixo como treinas e cria o primeiro.</p>`;
+    return;
+  }
+  const cfg = Store.estado.planoConfig;
+  const p = Store.estado.perfil;
+  $('#planoAtual').innerHTML = `
+    <div class="card">
+      <span class="hoje__etiqueta">Plano em vigor</span>
+      <h3 style="margin-top:6px">${esc(plano.plano.nome)}</h3>
+      <p class="item__meta" style="margin-top:4px">${esc(plano.plano.resumo)}</p>
+      <div class="plano-grelha">
+        <div class="plano-caixa"><strong>${plano.plano.treinos.length} treinos</strong><span>por semana</span></div>
+        <div class="plano-caixa"><strong>${esc(cfg.local)}</strong><span>local</span></div>
+        <div class="plano-caixa"><strong>${esc(cfg.duracao)} min</strong><span>duração</span></div>
+        <div class="plano-caixa"><strong>${esc(p.experiencia)}</strong><span>nível</span></div>
+      </div>
+      <p class="item__meta" style="margin-top:12px">Criado em ${fmtDataHora(plano.criadoEm)}</p>
+    </div>`;
+}
+
+/** Escolher o equipamento à mão. */
+function seletorEquipamento(){
+  const escolhidos = new Set(Store.estado.planoConfig.equipamento);
+
+  const desenhar = () => {
+    $('#modalCorpo').innerHTML = EQUIPAMENTOS.map(g => `
+      <div class="equip-grupo">
+        <p class="equip-cat">${esc(g.cat)}</p>
+        ${g.itens.map(i => `
+          <button class="equip-item ${escolhidos.has(i.id) ? 'is-ativa' : ''}" data-equip="${i.id}">
+            <span class="equip-item__caixa">✓</span>${esc(i.nome)}
+          </button>`).join('')}
+      </div>`).join('');
+    $('#modalTitulo').textContent = escolhidos.size
+      ? `Equipamento · ${escolhidos.size} de ${TOTAL_EQUIPAMENTOS}`
+      : 'Equipamento · todos';
+  };
+
+  Modal.abrir({
+    titulo:'Equipamento',
+    corpo:'',
+    acoes:[
+      { texto:'Marcar tudo', onClick(){
+          EQUIPAMENTOS.forEach(g => g.itens.forEach(i => escolhidos.add(i.id)));
+          desenhar();
+        } },
+      { texto:'Guardar', classe:'btn--primary', onClick(){
+          Store.guardarPlanoConfig('equipamento', [...escolhidos]);
+          Modal.fechar();
+          renderIA();
+        } },
+    ],
+  });
+  desenhar();
+
+  $('#modalCorpo').onclick = e => {
+    const btn = e.target.closest('[data-equip]');
+    if (!btn) return;
+    const id = btn.dataset.equip;
+    escolhidos.has(id) ? escolhidos.delete(id) : escolhidos.add(id);
+    desenhar();
+  };
 }
 
 function renderFotos(){
@@ -879,13 +969,17 @@ async function adicionarFotos(ficheiros){
 
 async function gerarPlano(){
   if (aGerarPlano) return;
-  if (!fotosGinasio.length) return toast('Adiciona pelo menos uma foto do equipamento.');
+  const cfg = Store.estado.planoConfig;
+  if (!fotosGinasio.length && !cfg.equipamento.length){
+    return toast('Escolhe o equipamento ou junta fotos do ginásio.');
+  }
 
   const perfil = { ...Store.estado.perfil };
 
   aGerarPlano = true;
   $('#btnGerarPlano').disabled = true;
-  $('#iaEstado').innerHTML = '<span class="a-carregar"></span>A analisar as fotos e a montar o plano… pode demorar um minuto.';
+  $('#iaEstado').innerHTML = `<span class="a-carregar"></span>${fotosGinasio.length
+    ? 'A analisar as fotos e a montar o plano…' : 'A montar o plano…'} pode demorar um minuto.`;
   $('#iaResultado').innerHTML = '';
 
   try {
@@ -895,6 +989,7 @@ async function gerarPlano(){
     Store.estado.planoIA = plano;
     Store.salvar();
     $('#iaEstado').textContent = '';
+    renderPlanoAtual();
     mostrarPlano(plano, false);
   } catch (e) {
     $('#iaEstado').textContent = '';
@@ -956,10 +1051,23 @@ function mostrarPlano(plano, antigo){
     </button>`;
 
   $('#btnImportarPlano').onclick = () => {
-    const criadas = importarPlano(plano.plano);
-    toast(`${criadas.length} fichas adicionadas ✅`);
-    mostrar('treinos');
+    const fichas = importarPlano(plano.plano);
+    espalharPelaSemana(fichas);
+    toast(`${fichas.length} fichas criadas e postas no calendário ✅`);
+    mostrar('inicio');
   };
+}
+
+/** Distribui as fichas do plano pelos dias da semana, deixando descanso pelo meio. */
+function espalharPelaSemana(fichas){
+  if (!fichas.length) return;
+  // 2 fichas -> seg e qui; 3 -> seg, qua, sex; 4 -> seg, ter, qui, sex; 5 -> seg a sex; 6 -> seg a sáb
+  const mapas = {
+    1:[1], 2:[1,4], 3:[1,3,5], 4:[1,2,4,5], 5:[1,2,3,4,5], 6:[1,2,3,4,5,6],
+  };
+  const dias = mapas[Math.min(fichas.length, 6)] || [1,3,5];
+  [0,1,2,3,4,5,6].forEach(d => Store.definirDia(d, null));
+  dias.forEach((dia, i) => Store.definirDia(dia, fichas[i].id));
 }
 
 /* ============================================================
@@ -1139,8 +1247,20 @@ function ligarEventos(){
   $('#perfilDefinicoes').onclick = abrirConfig;
 
   // Plano IA
-  $('#iaVoltar').onclick = () => mostrar('perfil');
-  $('#iaEditarPerfil').onclick = () => mostrar('perfil');
+  $('#view-ia').addEventListener('click', e => {
+    const pastilha = e.target.closest('.pastilha');
+    if (!pastilha) return;
+    const campo = pastilha.parentElement.dataset.plano;
+    Store.guardarPlanoConfig(campo, pastilha.dataset.valor);
+    renderIA();
+  });
+  $('#planoSuperseries').onchange = e => Store.guardarPlanoConfig('superseries', e.target.checked);
+  $('#linhaEquipamento').onclick = seletorEquipamento;
+  $('#linhaFotos').onclick = () => mostrar('fotos');
+  $('#linhaPerfil').onclick = () => mostrar('perfil');
+  $('#fotosVoltar').onclick = () => mostrar('ia');
+  $('#btnIrExercicios').onclick = () => mostrar('exercicios');
+  $('#exVoltar').onclick = () => mostrar('treinos');
   $('#btnTirarFoto').onclick    = () => $('#fotoCamera').click();
   $('#btnEscolherFoto').onclick = () => $('#fotoGaleria').click();
   $('#fotoCamera').onchange  = e => { adicionarFotos(e.target.files); e.target.value = ''; };

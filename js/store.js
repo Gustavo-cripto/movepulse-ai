@@ -15,6 +15,11 @@ const ESTADO_PADRAO = {
   },
   planoIA: null,                        // último plano gerado pela IA
   programa: { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null },  // domingo a sábado
+  planoConfig: {
+    local:'Ginásio', tipo:'Força e hipertrofia', duracao:'60',
+    foco:'Corpo inteiro', intensidade:'Moderada', superseries:false,
+    equipamento:[],                      // ids do catálogo; vazio = tudo
+  },
   perfil: {
     nome:'', idade:'', altura:'', peso:'',
     objetivo:'Hipertrofia (ganho de massa)', experiencia:'Iniciante',
@@ -34,6 +39,7 @@ function carregar(){
     return { ...base, ...salvo,
       programa: { ...base.programa, ...salvo.programa },
       perfil: { ...base.perfil, ...salvo.perfil },
+      planoConfig: { ...base.planoConfig, ...salvo.planoConfig },
       config: { ...base.config, ...salvo.config,
         ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia) } } };
   } catch (e) {
@@ -154,6 +160,11 @@ const Store = {
     }
     return saida;
   },
+  guardarPlanoConfig(campo, valor){
+    estado.planoConfig[campo] = valor;
+    salvar();
+  },
+
   guardarPerfil(campo, valor){
     estado.perfil[campo] = valor;
     salvar();

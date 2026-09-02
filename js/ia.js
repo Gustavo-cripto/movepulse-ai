@@ -130,18 +130,32 @@ function construirPedido(perfil, fotos){
     conteudo.push({ type:'text', text:`Foto ${i + 1}:` });
     conteudo.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:f.b64 } });
   });
+  const cfg = Store.estado.planoConfig;
+  const listaEquip = cfg.equipamento.length
+    ? cfg.equipamento.map(nomeEquipamento).join(', ')
+    : 'não indicado — usa o que aparecer nas fotos';
+
   conteudo.push({ type:'text', text:
-`Estas são as fotos do equipamento disponível no ginásio.
+`${fotos.length ? 'As fotos acima são do equipamento disponível.' : 'Não há fotos: guia-te pela lista de equipamento.'}
+
+Equipamento disponível: ${listaEquip}
+
+Como treina:
+- Local: ${cfg.local}
+- Tipo de treino: ${cfg.tipo}
+- Duração por sessão: ${cfg.duracao} minutos
+- Foco: ${cfg.foco}
+- Intensidade: ${cfg.intensidade}
+- Superséries: ${cfg.superseries ? 'sim' : 'não'}
 
 Perfil do cliente:
 - Objetivo: ${perfil.objetivo}
 - Experiência: ${perfil.experiencia}
 - Dias por semana: ${perfil.dias}
-- Tempo por sessão: ${perfil.minutos} minutos
 - Limitações/lesões: ${perfil.limitacoes || 'nenhuma indicada'}
 - Notas: ${perfil.notas || '—'}
 
-Identifica o equipamento e monta o plano de treino.` });
+Monta o plano de treino com ${perfil.dias} treinos por semana.` });
 
   return {
     model: IA.MODELO,
@@ -278,7 +292,7 @@ function resolverExercicio(ex){
   });
 }
 
-/** Converte o plano da IA em fichas da app. Devolve os nomes criados. */
+/** Converte o plano da IA em fichas da app. Devolve as fichas criadas. */
 function importarPlano(plano){
   const criadas = [];
   plano.treinos.forEach(treino => {
@@ -294,7 +308,7 @@ function importarPlano(plano){
       })),
     };
     Store.salvarTreino(ficha);
-    criadas.push(ficha.nome);
+    criadas.push(ficha);
   });
   return criadas;
 }

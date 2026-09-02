@@ -106,3 +106,76 @@ const TREINOS_EXEMPLO = [
     ]
   },
 ];
+
+/* ============================================================
+   Catálogo de equipamento, para se escolher à mão o que existe
+   no ginásio, em alternativa (ou em complemento) às fotos.
+   ============================================================ */
+const EQUIPAMENTOS = [
+  { cat:'Pesos livres', itens:[
+    { id:'barra',       nome:'Barra olímpica' },
+    { id:'halteres',    nome:'Halteres' },
+    { id:'kettlebell',  nome:'Kettlebells' },
+    { id:'discos',      nome:'Discos / anilhas' },
+    { id:'barra-ez',    nome:'Barra EZ' },
+    { id:'landmine',    nome:'Landmine' },
+    { id:'barra-hex',   nome:'Barra hexagonal' },
+  ]},
+  { cat:'Cabos e polias', itens:[
+    { id:'crossover',   nome:'Crossover' },
+    { id:'polia-alta',  nome:'Polia alta' },
+    { id:'polia-baixa', nome:'Polia baixa' },
+  ]},
+  { cat:'Máquinas', itens:[
+    { id:'m-leg-press', nome:'Leg press' },
+    { id:'m-extensora', nome:'Cadeira extensora' },
+    { id:'m-flexora',   nome:'Mesa flexora' },
+    { id:'m-hack',      nome:'Hack squat' },
+    { id:'m-smith',     nome:'Multipower (Smith)' },
+    { id:'m-peck',      nome:'Peck deck' },
+    { id:'m-supino',    nome:'Máquina de supino' },
+    { id:'m-ombros',    nome:'Máquina de ombros' },
+    { id:'m-puxada',    nome:'Puxada frontal' },
+    { id:'m-remada',    nome:'Remada sentada' },
+    { id:'m-abdutora',  nome:'Abdutora / adutora' },
+    { id:'m-gemeos',    nome:'Máquina de gémeos' },
+    { id:'m-gluteos',   nome:'Máquina de glúteos' },
+    { id:'m-abdominal', nome:'Máquina abdominal' },
+  ]},
+  { cat:'Bancos e suportes', itens:[
+    { id:'banco',       nome:'Banco plano' },
+    { id:'banco-incl',  nome:'Banco inclinado' },
+    { id:'rack',        nome:'Rack de agachamento' },
+    { id:'barra-fixa',  nome:'Barra fixa' },
+    { id:'paralelas',   nome:'Paralelas' },
+    { id:'espaldar',    nome:'Espaldar / cadeira romana' },
+  ]},
+  { cat:'Acessórios', itens:[
+    { id:'elasticos',   nome:'Elásticos' },
+    { id:'trx',         nome:'TRX / fitas de suspensão' },
+    { id:'corda',       nome:'Corda de saltar' },
+    { id:'bola',        nome:'Bola suíça' },
+    { id:'roda',        nome:'Roda abdominal' },
+    { id:'colchao',     nome:'Colchão' },
+    { id:'caixa',       nome:'Caixa de saltos' },
+  ]},
+  { cat:'Cardio', itens:[
+    { id:'passadeira',  nome:'Passadeira' },
+    { id:'bicicleta',   nome:'Bicicleta' },
+    { id:'eliptica',    nome:'Elíptica' },
+    { id:'remo-erg',    nome:'Remo ergómetro' },
+    { id:'escada',      nome:'Escada / stepper' },
+    { id:'air-bike',    nome:'Air bike' },
+  ]},
+];
+
+const TOTAL_EQUIPAMENTOS = EQUIPAMENTOS.reduce((t, g) => t + g.itens.length, 0);
+
+/** Nome legível a partir do id. */
+function nomeEquipamento(id){
+  for (const g of EQUIPAMENTOS){
+    const i = g.itens.find(x => x.id === id);
+    if (i) return i.nome;
+  }
+  return id;
+}

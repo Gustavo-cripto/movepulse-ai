@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=11">
+<link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body>
 
@@ -107,13 +107,17 @@
   <section class="view" id="view-treinos" hidden>
     <div class="section-head">
       <h2>Minhas fichas</h2>
-      <button class="btn btn--sm btn--primary" id="btnNovoTreino">+ Nova ficha</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn--sm btn--ghost" id="btnIrExercicios">💪 Exercícios</button>
+        <button class="btn btn--sm btn--primary" id="btnNovoTreino">+ Nova ficha</button>
+      </div>
     </div>
     <div id="listaTreinos" class="stack"></div>
   </section>
 
   <!-- ============ EXERCÍCIOS ============ -->
   <section class="view" id="view-exercicios" hidden>
+    <button class="btn btn--sm btn--ghost" id="exVoltar" style="align-self:flex-start">‹ Fichas</button>
     <div class="section-head">
       <h2>Exercícios</h2>
       <button class="btn btn--sm btn--ghost" id="btnNovoEx">+ Criar</button>
@@ -121,6 +125,116 @@
     <input class="input" type="search" id="buscaEx" placeholder="Buscar exercício…" autocomplete="off">
     <div class="chips" id="filtrosGrupo"></div>
     <div id="listaExercicios" class="stack"></div>
+  </section>
+
+  <!-- ============ PROGRESSO ============ -->
+  <section class="view" id="view-progresso" hidden>
+    <div class="section-head"><h2>Progresso</h2></div>
+    <div class="grid grid--stats grid--par" id="resumoStats"></div>
+
+    <div class="card">
+      <label class="label" for="selEx">Evolução por exercício</label>
+      <select class="input" id="selEx"></select>
+      <div id="grafico"></div>
+      <div class="grid grid--stats" id="recordesEx"></div>
+    </div>
+
+    <div class="section-head"><h2>Histórico</h2></div>
+    <div id="historico" class="stack"></div>
+  </section>
+  <!-- ============ MEU PLANO IA ============ -->
+  <section class="view" id="view-ia" hidden>
+    <div class="section-head"><h2>O meu plano IA</h2></div>
+
+    <div id="planoAtual"></div>
+
+    <div class="card">
+      <label class="label">Onde treinas</label>
+      <div class="pastilhas" data-plano="local">
+        <button class="pastilha" data-valor="Ginásio">Ginásio</button>
+        <button class="pastilha" data-valor="Casa">Casa</button>
+        <button class="pastilha" data-valor="Ar livre">Ar livre</button>
+      </div>
+
+      <label class="label" style="margin-top:16px">Tipo de treino</label>
+      <div class="pastilhas" data-plano="tipo">
+        <button class="pastilha" data-valor="Força e hipertrofia">Força e hipertrofia</button>
+        <button class="pastilha" data-valor="HIIT">HIIT</button>
+        <button class="pastilha" data-valor="Calistenia">Calistenia</button>
+        <button class="pastilha" data-valor="Mobilidade">Mobilidade</button>
+      </div>
+
+      <label class="label" style="margin-top:16px">Duração da sessão</label>
+      <div class="pastilhas" data-plano="duracao">
+        <button class="pastilha" data-valor="20">20 min</button>
+        <button class="pastilha" data-valor="30">30 min</button>
+        <button class="pastilha" data-valor="45">45 min</button>
+        <button class="pastilha" data-valor="60">60 min</button>
+        <button class="pastilha" data-valor="80">80 min</button>
+      </div>
+
+      <label class="label" style="margin-top:16px">Foco muscular</label>
+      <div class="pastilhas" data-plano="foco">
+        <button class="pastilha" data-valor="Corpo inteiro">Corpo inteiro</button>
+        <button class="pastilha" data-valor="Superior / inferior">Superior / inferior</button>
+        <button class="pastilha" data-valor="Empurrar, puxar, pernas">Empurrar / puxar / pernas</button>
+        <button class="pastilha" data-valor="Costas e core">Costas e core</button>
+      </div>
+
+      <label class="label" style="margin-top:16px">Intensidade</label>
+      <div class="pastilhas" data-plano="intensidade">
+        <button class="pastilha" data-valor="Básica">Básica</button>
+        <button class="pastilha" data-valor="Moderada">Moderada</button>
+        <button class="pastilha" data-valor="Alta">Alta</button>
+      </div>
+
+      <label class="interruptor" style="margin-top:16px">
+        <input type="checkbox" id="planoSuperseries">
+        <span>
+          Superséries
+          <small>Exercícios seguidos sem descanso, em músculos diferentes.</small>
+        </span>
+      </label>
+    </div>
+
+    <button class="linha" id="linhaEquipamento">
+      <span>Equipamento disponível</span>
+      <span class="linha__valor" id="equipResumo">todos</span>
+    </button>
+
+    <button class="linha" id="linhaFotos">
+      <span>Detetar por fotos do ginásio</span>
+      <span class="linha__valor" id="fotosResumo">0 fotos</span>
+    </button>
+
+    <button class="linha" id="linhaPerfil">
+      <span>Perfil e limitações</span>
+      <span class="linha__valor" id="perfilResumo">—</span>
+    </button>
+
+    <button class="btn btn--primary btn--block" id="btnGerarPlano">✨ Criar plano com IA</button>
+    <p class="item__meta" id="iaEstado"></p>
+
+    <div id="iaResultado"></div>
+  </section>
+
+  <!-- ============ FOTOS DO GINÁSIO ============ -->
+  <section class="view" id="view-fotos" hidden>
+    <button class="btn btn--sm btn--ghost" id="fotosVoltar" style="align-self:flex-start">‹ Voltar</button>
+    <div class="section-head"><h2>Fotos do ginásio</h2></div>
+    <p class="muted">As fotos seguem com o pedido e a IA identifica nelas o equipamento — útil para
+      apanhar máquinas que não estão na lista. Podes usar só a lista, só fotos, ou as duas coisas.</p>
+
+    <div class="card">
+      <div class="row-actions">
+        <button class="btn btn--sm btn--ghost" id="btnTirarFoto">📷 Tirar foto</button>
+        <button class="btn btn--sm btn--ghost" id="btnEscolherFoto">🖼 Galeria</button>
+      </div>
+      <input type="file" id="fotoCamera" accept="image/*" capture="environment" multiple hidden>
+      <input type="file" id="fotoGaleria" accept="image/*" multiple hidden>
+      <div class="fotos" id="fotos"></div>
+      <p class="item__meta" id="fotosInfo">Até 8 fotos. Ficam no dispositivo e só são enviadas quando geras o plano.</p>
+    </div>
   </section>
 
   <!-- ============ PROGRESSO ============ -->
@@ -345,8 +459,8 @@
 
 <nav class="tabbar">
   <button class="tab is-active" data-view="inicio"><span>🏠</span>Início</button>
+  <button class="tab" data-view="ia"><span>✨</span>Plano IA</button>
   <button class="tab" data-view="treinos"><span>📋</span>Fichas</button>
-  <button class="tab" data-view="exercicios"><span>💪</span>Exercícios</button>
   <button class="tab" data-view="progresso"><span>📈</span>Progresso</button>
   <button class="tab" data-view="perfil"><span>👤</span>Perfil</button>
 </nav>
@@ -371,12 +485,12 @@
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=11"></script>
-<script src="js/store.js?v=11"></script>
-<script src="js/db.js?v=11"></script>
-<script src="js/ia.js?v=11"></script>
-<script src="js/ui.js?v=11"></script>
-<script src="js/musculos.js?v=11"></script>
-<script src="js/app.js?v=11"></script>
+<script src="js/data.js?v=12"></script>
+<script src="js/store.js?v=12"></script>
+<script src="js/db.js?v=12"></script>
+<script src="js/ia.js?v=12"></script>
+<script src="js/ui.js?v=12"></script>
+<script src="js/musculos.js?v=12"></script>
+<script src="js/app.js?v=12"></script>
 </body>
 </html>

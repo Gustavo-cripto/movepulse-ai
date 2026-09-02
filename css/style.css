@@ -327,3 +327,55 @@ h3{font-size:16px}
 /* barra de progresso da semana */
 .barra{height:8px;border-radius:99px;background:var(--bg-elev-2);overflow:hidden;margin-top:10px}
 .barra__cheio{height:100%;background:var(--accent);border-radius:99px;transition:width .3s ease}
+
+/* ---------- Plano IA: seletores ---------- */
+.pastilhas{display:flex;flex-wrap:wrap;gap:8px}
+.pastilha{
+  background:var(--bg-elev-2);border:1px solid var(--line);color:var(--txt-dim);
+  border-radius:11px;padding:10px 14px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
+}
+.pastilha.is-ativa{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.interruptor{display:flex;align-items:flex-start;gap:11px;cursor:pointer}
+.interruptor input{width:20px;height:20px;accent-color:var(--accent);flex:none;margin-top:2px}
+.interruptor span{font-size:14px;font-weight:600}
+.interruptor small{display:block;color:var(--txt-dim);font-weight:400;font-size:12.5px;margin-top:3px}
+
+.linha{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius);
+  padding:15px;font:inherit;color:inherit;cursor:pointer;font-weight:600;font-size:14.5px;
+}
+.linha::after{content:'›';color:var(--txt-dim);font-size:18px;line-height:1}
+.linha__valor{margin-left:auto;color:var(--accent);font-weight:600;font-size:13.5px}
+
+/* lista de equipamento */
+.equip-grupo{margin-top:18px}
+.equip-grupo:first-child{margin-top:0}
+.equip-cat{
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-dim);
+  font-weight:700;margin-bottom:8px;
+}
+.equip-item{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  background:var(--bg-elev-2);border:1px solid var(--line);border-radius:11px;
+  padding:12px 13px;margin-bottom:7px;font:inherit;color:inherit;cursor:pointer;font-size:14px;
+}
+.equip-item.is-ativa{border-color:var(--accent);background:#1d2416}
+.equip-item__caixa{
+  width:20px;height:20px;border-radius:6px;border:1px solid var(--line);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;
+}
+.equip-item.is-ativa .equip-item__caixa{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* resumo do plano ativo */
+.plano-grelha{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.plano-caixa{background:var(--bg-elev-2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.plano-caixa strong{display:block;font-size:16px}
+.plano-caixa span{font-size:11.5px;color:var(--txt-dim)}
+.sessao-linha{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.sessao-dia{
+  width:46px;height:46px;border-radius:50%;background:var(--bg-elev-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;flex:none;
+  font-size:11.5px;font-weight:700;color:var(--accent);
+}
