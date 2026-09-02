@@ -908,7 +908,9 @@ function seletorEquipamento(){
         <p class="equip-cat">${esc(g.cat)}</p>
         ${g.itens.map(i => `
           <button class="equip-item ${escolhidos.has(i.id) ? 'is-ativa' : ''}" data-equip="${i.id}">
-            <span class="equip-item__caixa">✓</span>${esc(i.nome)}
+            <span class="equip-item__icone">${iconeEquipamento(i.id)}</span>
+            <span class="equip-item__nome">${esc(i.nome)}</span>
+            <span class="equip-item__caixa">✓</span>
           </button>`).join('')}
       </div>`).join('');
     $('#modalTitulo').textContent = escolhidos.size
