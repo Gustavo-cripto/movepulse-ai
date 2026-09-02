@@ -61,7 +61,9 @@ function vista(nome, acesas){
  * Mostra só a vista onde o músculo se vê — as duas quando o trabalho é dos dois lados.
  */
 function diagramaMusculos(grupo){
-  const acesas = REGIOES_POR_GRUPO[grupo] || [];
+  // aceita um grupo ou uma lista, para mostrar o treino todo num só corpo
+  const grupos = Array.isArray(grupo) ? grupo : [grupo];
+  const acesas = [...new Set(grupos.flatMap(g => REGIOES_POR_GRUPO[g] || []))];
   if (!acesas.length) return '';
 
   const naFrente = FIGURA.frente.some(p => acesas.includes(p.r));
@@ -71,7 +73,7 @@ function diagramaMusculos(grupo){
   if (naFrente) vistas.push(vista('frente', acesas));
   if (atras)    vistas.push(vista('costas', acesas));
 
-  return `<div class="musculos" title="${esc(grupo)}">${vistas.join('')}</div>`;
+  return `<div class="musculos" title="${esc(grupos.join(', '))}">${vistas.join('')}</div>`;
 }
 
 /** Procura de demonstração em vídeo, para quem não conhece o exercício. */

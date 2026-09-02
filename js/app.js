@@ -288,11 +288,15 @@ function renderSessao(s){
   const feitasAqui = item.series.filter(se => se.feito).length;
 
   $('#sessaoExercicios').innerHTML = `
-    <div class="passos">
+    <div class="tira-ex">
       ${s.exercicios.map((it, n) => {
+        const e = Store.exercicio(it.exId);
         const completo = it.series.every(se => se.feito);
-        return `<button class="passo ${n === i ? 'is-atual' : ''} ${completo ? 'is-feito' : ''}"
-                  data-ir-ex="${n}" aria-label="Exercício ${n + 1}">${completo ? '✓' : n + 1}</button>`;
+        return `<button class="tira-item ${n === i ? 'is-atual' : ''} ${completo ? 'is-feito' : ''}"
+                  data-ir-ex="${n}" id="tira-${n}" title="${esc(e.nome)}">
+          ${diagramaMusculos(e.grupo)}
+          <span class="tira-num">${completo ? '✓' : n + 1}</span>
+        </button>`;
       }).join('')}
     </div>
 
@@ -304,10 +308,15 @@ function renderSessao(s){
           <div>
             <h3>${esc(ex.nome)}</h3>
             <p class="item__meta">${esc(ex.grupo)} · ${esc(ex.equip)}</p>
-            <div>${linkDemonstracao(ex.nome)}</div>
           </div>
         </div>
         <button class="icon-btn" data-rm-ex="${i}" aria-label="Remover exercício">🗑</button>
+      </div>
+
+      <div class="acoes-ex">
+        ${linkDemonstracao(ex.nome)}
+        <button class="btn btn--sm btn--ghost" id="exSubstituir">⇄ Substituir</button>
+        <button class="btn btn--sm btn--ghost" id="exHistorico">📈 Histórico</button>
       </div>
 
       <div class="set-head">
@@ -336,6 +345,15 @@ function renderSessao(s){
         : '<button class="btn btn--primary" id="exTerminar">Terminar treino</button>'}
     </div>`;
 
+  $('#exSubstituir').onclick = () => seletorExercicio(novo => {
+    // troca o exercício mas mantém as séries já registadas
+    item.exId = novo.id;
+    Store.salvar();
+    renderSessao(Store.estado.sessaoAtiva);
+    toast(`Trocado para ${novo.nome}`);
+  });
+  $('#exHistorico').onclick = () => detalheExercicio(item.exId);
+
   $('#exAnterior').onclick = () => { Store.irParaExercicio(i - 1); renderSessao(Store.estado.sessaoAtiva); window.scrollTo({ top:0, behavior:'smooth' }); };
   const seguinte = $('#exSeguinte');
   if (seguinte) seguinte.onclick = () => { Store.irParaExercicio(i + 1); renderSessao(Store.estado.sessaoAtiva); window.scrollTo({ top:0, behavior:'smooth' }); };
@@ -351,16 +369,27 @@ function renderSessao(s){
 async function carregarMiniaturas(){
   const s = Store.estado.sessaoAtiva;
   if (!s || !s.exercicios.length) return;
-  const i = Math.max(0, Math.min(s.atual ?? 0, s.exercicios.length - 1));
-  const foto = await Fotos.ler(s.exercicios[i].exId).catch(() => null);
-  if (!foto) return;
-  const cabeca = $(`[data-ex-idx="${i}"] .ex-cabeca`);
-  if (cabeca && !cabeca.querySelector('.ex-mini')){
-    const img = document.createElement('img');
-    img.className = 'ex-mini';
-    img.src = foto;
-    img.alt = '';
-    cabeca.prepend(img);
+  const atual = Math.max(0, Math.min(s.atual ?? 0, s.exercicios.length - 1));
+
+  for (const [n, item] of s.exercicios.entries()){
+    const foto = await Fotos.ler(item.exId).catch(() => null);
+    if (!foto) continue;
+
+    const naTira = $(`#tira-${n}`);
+    if (naTira && !naTira.querySelector('img')){
+      const mini = document.createElement('img');
+      mini.src = foto; mini.alt = '';
+      naTira.querySelector('.musculos')?.replaceWith(mini);
+    }
+    if (n !== atual) continue;
+
+    const cabeca = $(`[data-ex-idx="${atual}"] .ex-cabeca`);
+    if (cabeca && !cabeca.querySelector('.ex-mini')){
+      const img = document.createElement('img');
+      img.className = 'ex-mini';
+      img.src = foto; img.alt = '';
+      cabeca.prepend(img);
+    }
   }
 }
 
@@ -479,10 +508,13 @@ async function detalheTreino(id){
   Modal.abrir({
     titulo: ficha.nome,
     corpo: `
-      <div class="grid grid--stats">
-        ${statBox(duracaoEstimada(ficha) + ' min', 'duração')}
-        ${statBox(ficha.itens.length, 'exercícios')}
-        ${statBox(ficha.itens.reduce((t, i) => t + i.series, 0), 'séries')}
+      <div class="previa-topo">
+        <div class="grid grid--stats" style="flex:1">
+          ${statBox(duracaoEstimada(ficha) + ' min', 'duração')}
+          ${statBox(ficha.itens.length, 'exercícios')}
+          ${statBox(ficha.itens.reduce((t, i) => t + i.series, 0), 'séries')}
+        </div>
+        <div class="previa-corpo">${diagramaMusculos(gruposDaFicha(ficha))}</div>
       </div>
       <p class="item__meta" style="margin-top:10px">${esc(grupos)}</p>
       <div class="stack" style="margin-top:14px">
