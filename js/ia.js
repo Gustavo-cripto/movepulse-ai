@@ -243,7 +243,9 @@ function mensagemErro(status, corpo){
   if (status === 401) return 'Chave da API inválida ou em falta.';
   if (status === 429) return 'Limite de pedidos atingido. Tenta daqui a pouco.';
   if (status === 413) return 'As fotos são demasiado grandes. Usa menos fotos.';
-  if (status >= 500) return 'O serviço está indisponível de momento. Tenta novamente.';
+  if (status === 504) return 'O servidor da IA demorou demasiado. Tenta com menos fotos.';
+  if (status >= 500) return `O fornecedor de IA falhou (erro ${status})${
+    detalhe ? ': ' + detalhe.slice(0, 120) : ''}. Costuma ser passageiro — tenta outra vez.`;
   return `Erro ${status}${detalhe ? ': ' + detalhe : ''}`;
 }
 

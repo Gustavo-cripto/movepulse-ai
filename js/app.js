@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 40;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 41;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1454,12 +1454,17 @@ async function gerarPlano(){
     toast(`Plano criado e posto no calendário ✅`);
   } catch (e) {
     $('#iaEstado').textContent = '';
+    const problemaDeConfig = /servidor|chave|configura/i.test(e.message);
     $('#iaResultado').innerHTML = `<div class="aviso">Não foi possível gerar o plano.<br>${esc(e.message)}
-      <br><br>Confirma o modo e as credenciais em Plano com IA.
-      <button class="btn btn--sm btn--ghost btn--block" id="btnErroConfig" style="margin-top:12px">
-        ⚙️ Abrir definições
-      </button></div>`;
-    $('#btnErroConfig').onclick = abrirConfig;
+      <div class="row-actions" style="margin-top:12px">
+        <button class="btn btn--sm btn--primary" id="btnTentarDeNovo">Tentar de novo</button>
+        ${problemaDeConfig
+          ? '<button class="btn btn--sm btn--ghost" id="btnErroConfig">⚙️ Definições</button>'
+          : ''}
+      </div></div>`;
+    $('#btnTentarDeNovo').onclick = gerarPlano;
+    const btnCfg = $('#btnErroConfig');
+    if (btnCfg) btnCfg.onclick = abrirConfig;
   } finally {
     aGerarPlano = false;
     $('#btnGerarPlano').disabled = false;

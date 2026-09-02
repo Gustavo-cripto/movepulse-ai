@@ -243,8 +243,12 @@ function juntarEquipamentos(leituras){
   return [...vistos.values()];
 }
 
-/** Uma chamada ao catálogo da NVIDIA, com tempo-limite próprio. */
-async function chamarNvidia(env, pedido){
+/**
+ * Uma chamada ao catálogo da NVIDIA, com tempo-limite próprio.
+ * Erros passageiros (429 e 5xx) merecem nova tentativa: acontecem, e
+ * repassá-los ao utilizador como "serviço indisponível" é desistir cedo.
+ */
+async function chamarNvidia(env, pedido, tentativa = 0){
   let r;
   try {
     r = await fetch(NVIDIA.url, {
@@ -258,14 +262,22 @@ async function chamarNvidia(env, pedido){
       signal: AbortSignal.timeout(110000),
     });
   } catch {
+    if (tentativa < 2) return chamarNvidia(env, pedido, tentativa + 1);
     return { erro:'O fornecedor demorou demasiado a responder.', estado:504 };
   }
 
+  if ((r.status === 429 || r.status >= 500) && tentativa < 2){
+    await new Promise(ok => setTimeout(ok, 1200 * (tentativa + 1)));
+    return chamarNvidia(env, pedido, tentativa + 1);
+  }
+
   const bruto = await r.text();
-  if (!r.ok) return { erro:`NVIDIA: ${bruto.slice(0, 200)}`, estado: r.status };
+  if (!r.ok) return { erro:`NVIDIA ${r.status}: ${bruto.slice(0, 200)}`, estado: r.status };
   try {
     const texto = JSON.parse(bruto).choices?.[0]?.message?.content;
-    return texto ? { texto } : { erro:'O modelo respondeu vazio.', estado:502 };
+    if (texto) return { texto };
+    if (tentativa < 2) return chamarNvidia(env, pedido, tentativa + 1);
+    return { erro:'O modelo respondeu vazio.', estado:502 };
   } catch {
     return { erro:'Resposta ilegível do fornecedor.', estado:502 };
   }
