@@ -230,9 +230,9 @@ function renderInicio(){
 
   $('#listaInicio').innerHTML = treinos.length
     ? treinos.map(t => `
-        <button class="card card--tap" data-iniciar="${t.id}">
+        <button class="card card--tap" data-ver-treino="${t.id}">
           <h3>${esc(t.nome)}</h3>
-          <p class="item__meta">${t.itens.length} exercício${t.itens.length === 1 ? '' : 's'}${t.notas ? ' · ' + esc(t.notas) : ''}</p>
+          <p class="item__meta">${t.itens.length} exercício${t.itens.length === 1 ? '' : 's'} · ${duracaoEstimada(t)} min</p>
         </button>`).join('')
     : '<p class="empty">Ainda não tens fichas. Cria uma no separador Fichas.</p>';
 
@@ -375,11 +375,11 @@ function renderTreinos(){
   const { treinos } = Store.estado;
   $('#listaTreinos').innerHTML = treinos.length
     ? treinos.map(t => `
-      <div class="card">
+      <div class="card" data-ver-treino="${t.id}">
         <div class="card__title">
           <div>
             <h3>${esc(t.nome)}</h3>
-            <p class="item__meta">${t.itens.length} exercícios${t.notas ? ' · ' + esc(t.notas) : ''}</p>
+            <p class="item__meta">${t.itens.length} exercícios · ${duracaoEstimada(t)} min${t.notas ? ' · ' + esc(t.notas) : ''}</p>
           </div>
           <div style="display:flex;gap:2px">
             <button class="icon-btn" data-edit-treino="${t.id}" aria-label="Editar">✏️</button>
@@ -392,6 +392,60 @@ function renderTreinos(){
         <button class="btn btn--sm btn--primary btn--block" data-iniciar="${t.id}">Iniciar treino</button>
       </div>`).join('')
     : '<p class="empty">Cria a tua primeira ficha para começar.</p>';
+}
+
+/** Mostra o que a ficha tem antes de começar — nada arranca sem se carregar em Iniciar. */
+async function detalheTreino(id){
+  const ficha = Store.treino(id);
+  if (!ficha) return;
+  const grupos = gruposDaFicha(ficha).join(', ');
+
+  Modal.abrir({
+    titulo: ficha.nome,
+    corpo: `
+      <div class="grid grid--stats">
+        ${statBox(duracaoEstimada(ficha) + ' min', 'duração')}
+        ${statBox(ficha.itens.length, 'exercícios')}
+        ${statBox(ficha.itens.reduce((t, i) => t + i.series, 0), 'séries')}
+      </div>
+      <p class="item__meta" style="margin-top:10px">${esc(grupos)}</p>
+      <div class="stack" style="margin-top:14px">
+        ${ficha.itens.map(it => {
+          const ex = Store.exercicio(it.exId);
+          const carga = Store.ultimaCarga(it.exId);
+          return `<div class="ia-ex" data-prev-ex="${it.exId}">
+            <span class="ia-media">${diagramaMusculos(ex.grupo)}</span>
+            <div>
+              <b>${esc(ex.nome)}</b>
+              <span> · ${esc(ex.equip)}</span>
+              ${carga ? `<div><span>última carga ${fmtPeso(carga)} kg</span></div>` : ''}
+            </div>
+            <div class="prescricao">${it.series}×${it.reps}</div>
+          </div>`;
+        }).join('')}
+      </div>`,
+    acoes: [
+      { texto:'Fechar', onClick: Modal.fechar },
+      { texto:'Iniciar treino', classe:'btn--primary', onClick(){
+          if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
+          Modal.fechar();
+          Store.iniciarSessao(ficha.id);
+          mostrar('inicio');
+        } },
+    ],
+  });
+
+  // miniaturas das máquinas, quando existirem
+  for (const it of ficha.itens){
+    const foto = await Fotos.ler(it.exId).catch(() => null);
+    if (!foto) continue;
+    const media = $(`[data-prev-ex="${it.exId}"] .ia-media`);
+    if (media && !media.querySelector('.ex-mini')){
+      const img = document.createElement('img');
+      img.className = 'ex-mini'; img.src = foto; img.alt = '';
+      media.prepend(img);
+    }
+  }
 }
 
 function editorTreino(id){
@@ -1282,9 +1336,7 @@ function ligarEventos(){
     if (!dia) return;
     const ficha = Store.treinoDoDia(+dia.dataset.dia);
     if (!ficha) return editorPrograma();
-    if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
-    Store.iniciarSessao(ficha.id);
-    mostrar('inicio');
+    detalheTreino(ficha.id);
   };
 
   // Progresso
@@ -1298,6 +1350,11 @@ function ligarEventos(){
   // Delegação geral de cliques
   document.addEventListener('click', e => {
     const alvo = e.target;
+
+    const ver = alvo.closest('[data-ver-treino]');
+    if (ver && !alvo.closest('[data-iniciar],[data-edit-treino],[data-del-treino]')){
+      return detalheTreino(ver.dataset.verTreino);
+    }
 
     const iniciar = alvo.closest('[data-iniciar]');
     if (iniciar){

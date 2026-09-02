@@ -390,3 +390,7 @@ h3{font-size:16px}
   display:flex;align-items:center;justify-content:center;flex:none;
   font-size:11.5px;font-weight:700;color:var(--accent-forte);
 }
+
+/* foto da máquina e diagrama ocupam a mesma coluna na pré-visualização */
+.ia-media{display:flex;align-items:center;gap:6px}
+.ia-media .ex-mini{width:40px;height:40px}
