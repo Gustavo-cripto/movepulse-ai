@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 47;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 48;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -2041,30 +2041,30 @@ function importarDados(arquivo){
    ============================================================ */
 function ligarEventos(){
   $$('.tab').forEach(t => t.onclick = () => mostrar(t.dataset.view));
-  $('#btnConfig').onclick = abrirConfig;
+  $op('#btnConfig').onclick = abrirConfig;
 
   // Fechar modal
   $$('[data-close]').forEach(el => el.onclick = Modal.fechar);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') Modal.fechar(); });
 
   // Hoje
-  $('#btnTreinoLivre').onclick = () => confirmar(
+  $op('#btnTreinoLivre').onclick = () => confirmar(
     'Começar um treino livre, sem ficha? O cronómetro arranca já.',
     () => { Store.iniciarSessao(null); mostrar('treino'); atualizarSubtitulo(); },
     'Começar');
-  $('#btnAddExSessao').onclick = () => seletorExercicio(ex => adicionarExercicioSessao(ex.id));
-  $('#btnFinalizarSessao').onclick = () =>
+  $op('#btnAddExSessao').onclick = () => seletorExercicio(ex => adicionarExercicioSessao(ex.id));
+  $op('#btnFinalizarSessao').onclick = () =>
     confirmar('Terminar e guardar este treino?', finalizarSessao, 'Finalizar');
-  $('#btnCancelarSessao').onclick = () =>
+  $op('#btnCancelarSessao').onclick = () =>
     confirmar('Descartar o treino atual? Não fica nada guardado.', () => {
       Store.cancelarSessao(); pararDescanso(); pararCrono(); mostrar('inicio');
     }, 'Descartar');
 
   // Fichas / exercícios
-  $('#btnNovoTreino').onclick = () => editorTreino(null);
-  $('#btnNovoEx').onclick = novoExercicio;
-  $('#buscaEx').oninput = renderExercicios;
-  $('#filtrosGrupo').onclick = e => {
+  $op('#btnNovoTreino').onclick = () => editorTreino(null);
+  $op('#btnNovoEx').onclick = novoExercicio;
+  $op('#buscaEx').oninput = renderExercicios;
+  $op('#filtrosGrupo').onclick = e => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
     filtroGrupo = chip.dataset.grupo;
@@ -2072,82 +2072,81 @@ function ligarEventos(){
   };
 
   // Treinador IA
-  $('#botForm').onsubmit = e => { e.preventDefault(); enviarPergunta($('#botTexto').value); };
-  $('#botSugestoes').onclick = e => {
+  $op('#botForm').onsubmit = e => { e.preventDefault(); enviarPergunta($('#botTexto').value); };
+  $op('#botSugestoes').onclick = e => {
     const b = e.target.closest('[data-pergunta]');
     if (b) enviarPergunta(b.dataset.pergunta);
   };
-  $('#botLimpar').onclick = () => confirmar('Apagar esta conversa?', () => {
+  $op('#botLimpar').onclick = () => confirmar('Apagar esta conversa?', () => {
     Store.estado.conversa = [];
     Store.salvar();
     renderBot();
   }, 'Apagar');
 
   // Perfil: guarda-se sozinho, a cada alteração
-  $('#view-perfil').addEventListener('input', e => {
+  $op('#view-perfil').addEventListener('input', e => {
     const campo = e.target.dataset.perfil;
     if (!campo) return;
     Store.guardarPerfil(campo, e.target.value);
     if (campo === 'altura' || campo === 'peso') renderImc();
     if (campo === 'nome') renderSaudacao();
   });
-  $('#diasEscolha').onclick = e => {
+  $op('#diasEscolha').onclick = e => {
     const b = e.target.closest('[data-dia-treino]');
     if (!b) return;
     Store.alternarDiaTreino(+b.dataset.diaTreino);
     renderDiasTreino();
   };
-  $('#btnPerfil').onclick = () => mostrar('perfil');
-  $('#btnConfig').onclick = () => mostrar('definicoes');
-  $('#defVoltar').onclick = () => mostrar('inicio');
-  $('#defTema').onclick = escolherTema;
-  $('#defIA').onclick = abrirConfig;
-  $('#defConta').onclick = ecraConta;
-  $('#defIdioma').onclick = () => textoLegal('Idioma', [
+  $op('#btnPerfil').onclick = () => mostrar('perfil');
+  $op('#btnConfig').onclick = () => mostrar('definicoes');
+  $op('#defVoltar').onclick = () => mostrar('inicio');
+  $op('#defTema').onclick = escolherTema;
+  $op('#defIA').onclick = abrirConfig;
+  $op('#defConta').onclick = ecraConta;
+  $op('#defIdioma').onclick = () => textoLegal('Idioma', [
     'A app está em português de Portugal.',
     'Outros idiomas ainda não estão feitos. Se precisares de inglês ou espanhol, é trabalho de tradução dos textos — diz e trato disso.',
   ]);
-  $('#defUnidades').onclick = () => textoLegal('Unidades', [
+  $op('#defUnidades').onclick = () => textoLegal('Unidades', [
     'Os pesos estão em quilogramas e as medidas em centímetros.',
     'Libras e polegadas ainda não estão feitas: implica converter em todos os ecrãs e no histórico já registado, para os números antigos não mudarem de significado.',
   ]);
-  $('#defExportar').onclick = exportarDados;
-  $('#defImportar').onclick = () => $('#defArquivo').click();
-  $('#defArquivo').onchange = e => importarDados(e.target.files[0]);
-  $('#defCache').onclick = () => confirmar(
+  $op('#defExportar').onclick = exportarDados;
+  $op('#defImportar').onclick = () => $('#defArquivo').click();
+  $op('#defArquivo').onchange = e => importarDados(e.target.files[0]);
+  $op('#defCache').onclick = () => confirmar(
     'Limpar a cópia guardada e recarregar a app? Os teus dados não são afetados.',
     async () => {
       for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
       for (const k of await caches.keys()) await caches.delete(k);
       location.reload();
     }, 'Limpar');
-  $('#defApagar').onclick = () => confirmar(
+  $op('#defApagar').onclick = () => confirmar(
     'Isto apaga fichas, histórico, plano e perfil deste dispositivo.',
     () => { Store.reset(); mostrar('inicio'); toast('Dados apagados.'); }, 'Apagar tudo');
-  $('#defVersao').onclick = () => textoLegal('Versão', [
+  $op('#defVersao').onclick = () => textoLegal('Versão', [
     `Estás na versão <b>${VERSAO_APP}</b>.`,
     'A app atualiza-se sozinha quando a abres com ligação à internet.',
   ]);
-  $('#defPrivacidade').onclick = () => textoLegal('Privacidade', [
+  $op('#defPrivacidade').onclick = () => textoLegal('Privacidade', [
     'Os teus treinos, fichas, perfil, peso e fotografias ficam <b>guardados neste dispositivo</b>. Não há servidor de dados nem conta.',
     'Quando geras um plano, as <b>fotos do ginásio e o teu perfil</b> (objetivo, experiência, dias, limitações) são enviados ao fornecedor de IA para produzir a resposta. As fotos não ficam guardadas em lado nenhum depois disso.',
     'Quando falas com o Treinador, a pergunta e um resumo do perfil seguem pelo mesmo caminho.',
     'Não há publicidade, análise de utilização nem partilha com terceiros.',
   ]);
-  $('#defTermos').onclick = () => textoLegal('Termos de utilização', [
+  $op('#defTermos').onclick = () => textoLegal('Termos de utilização', [
     'A MovePulse AI é uma ferramenta de registo e organização de treino.',
     'Os planos e as respostas do Treinador são <b>gerados por inteligência artificial</b> e podem conter erros. São orientação geral de treino e <b>não substituem</b> avaliação médica, fisioterapia ou acompanhamento de um profissional.',
     'Antes de começar um programa de exercício, sobretudo se tens lesões, dores ou doença, fala com um profissional de saúde.',
     'Usas a app por tua conta e risco. Confirma que consegues executar cada exercício em segurança.',
   ]);
-  $('#perfilVoltar').onclick = () => mostrar('inicio');
-  $('#btnRegistarPeso').onclick = registarPesoHoje;
-  $('#perfilIrIA').onclick = () => mostrar('ia');
-  $('#atalhoIA').onclick = () => mostrar('ia');
-  $('#perfilDefinicoes').onclick = abrirConfig;
+  $op('#perfilVoltar').onclick = () => mostrar('inicio');
+  $op('#btnRegistarPeso').onclick = registarPesoHoje;
+  $op('#perfilIrIA').onclick = () => mostrar('ia');
+  $op('#perfilDefinicoes').onclick = abrirConfig;
 
   // Plano IA
-  $('#view-ia').addEventListener('click', e => {
+  $op('#view-ia').addEventListener('click', e => {
     const musculo = e.target.closest('[data-musculo]');
     if (musculo){
       Store.alternarMusculo(musculo.dataset.musculo);
@@ -2165,19 +2164,19 @@ function ligarEventos(){
     }
     renderIA();
   });
-  $('#planoSuperseries').onchange = e => Store.guardarPlanoConfig('superseries', e.target.checked);
-  $('#linhaEquipamento').onclick = seletorEquipamento;
-  $('#linhaFotos').onclick = () => mostrar('fotos');
-  $('#linhaPerfil').onclick = () => mostrar('perfil');
-  $('#fotosVoltar').onclick = () => mostrar('ia');
-  $('#btnIrExercicios').onclick = () => mostrar('exercicios');
-  $('#exVoltar').onclick = () => mostrar('treinos');
+  $op('#planoSuperseries').onchange = e => Store.guardarPlanoConfig('superseries', e.target.checked);
+  $op('#linhaEquipamento').onclick = seletorEquipamento;
+  $op('#linhaFotos').onclick = () => mostrar('fotos');
+  $op('#linhaPerfil').onclick = () => mostrar('perfil');
+  $op('#fotosVoltar').onclick = () => mostrar('ia');
+  $op('#btnIrExercicios').onclick = () => mostrar('exercicios');
+  $op('#exVoltar').onclick = () => mostrar('treinos');
   $('#btnTirarFoto').onclick    = () => $('#fotoCamera').click();
-  $('#btnEscolherFoto').onclick = () => $('#fotoGaleria').click();
+  $op('#btnEscolherFoto').onclick = () => $('#fotoGaleria').click();
   $('#fotoCamera').onchange  = e => { adicionarFotos(e.target.files); e.target.value = ''; };
-  $('#fotoGaleria').onchange = e => { adicionarFotos(e.target.files); e.target.value = ''; };
-  $('#btnGerarPlano').onclick = gerarPlano;
-  $('#fotos').onclick = e => {
+  $op('#fotoGaleria').onchange = e => { adicionarFotos(e.target.files); e.target.value = ''; };
+  $op('#btnGerarPlano').onclick = gerarPlano;
+  $op('#fotos').onclick = e => {
     const btn = e.target.closest('[data-rm-foto]');
     if (!btn) return;
     fotosGinasio.splice(+btn.dataset.rmFoto, 1);
@@ -2185,9 +2184,9 @@ function ligarEventos(){
   };
 
   // Semana
-  $('#btnHistorico').onclick = historicoCompleto;
-  $('#btnPrograma').onclick = editorPrograma;
-  $('#semana').onclick = e => {
+  $op('#btnHistorico').onclick = historicoCompleto;
+  $op('#btnPrograma').onclick = editorPrograma;
+  $op('#semana').onclick = e => {
     const dia = e.target.closest('[data-dia]');
     if (!dia) return;
     const ficha = Store.treinoDoDia(+dia.dataset.dia);
@@ -2196,16 +2195,16 @@ function ligarEventos(){
   };
 
   // Progresso
-  $('#mes').onclick = e => {
+  $op('#mes').onclick = e => {
     const cel = e.target.closest('[data-dia-mes]');
     if (cel) abrirDia(cel.dataset.diaMes, +cel.dataset.diaSemana);
   };
-  $('#mesAnterior').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() - 1); renderMes(); };
-  $('#mesSeguinte').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() + 1); renderMes(); };
-  $('#selEx').onchange = e => renderGraficoEx(e.target.value);
+  $op('#mesAnterior').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() - 1); renderMes(); };
+  $op('#mesSeguinte').onclick = () => { mesVisivel.setMonth(mesVisivel.getMonth() + 1); renderMes(); };
+  $op('#selEx').onchange = e => renderGraficoEx(e.target.value);
 
   // Descanso
-  $('#restPular').onclick = pararDescanso;
+  $op('#restPular').onclick = pararDescanso;
 
   // Delegação geral de cliques
   document.addEventListener('click', e => {
@@ -2281,7 +2280,7 @@ function ligarEventos(){
   });
 
   // Edição dos campos de série (sem re-render, para não perder o foco)
-  $('#sessaoExercicios').addEventListener('input', e => {
+  $op('#sessaoExercicios').addEventListener('input', e => {
     const inp = e.target;
     if (!inp.dataset.campo) return;
     const serie = Store.estado.sessaoAtiva.exercicios[+inp.dataset.i].series[+inp.dataset.j];

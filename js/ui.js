@@ -3,6 +3,23 @@
 const $  = (sel, raiz = document) => raiz.querySelector(sel);
 const $$ = (sel, raiz = document) => [...raiz.querySelectorAll(sel)];
 
+/* Objeto inofensivo devolvido por $op quando o elemento já não existe. */
+const SEM_ELEMENTO = {
+  addEventListener(){}, removeEventListener(){},
+  classList:{ add(){}, remove(){}, toggle(){}, contains(){ return false; } },
+  style:{}, dataset:{},
+};
+
+/** Como $, mas nunca devolve null: se o id tiver desaparecido do HTML,
+    avisa na consola e segue. Evita que uma ligação de evento antiga
+    parta todas as que vêm a seguir. */
+function $op(sel, raiz = document){
+  const el = $(sel, raiz);
+  if (el) return el;
+  console.warn('MovePulse: elemento em falta,', sel);
+  return SEM_ELEMENTO;
+}
+
 /** Escapa texto vindo do usuário antes de injetar em innerHTML. */
 function esc(txt){
   return String(txt ?? '').replace(/[&<>"']/g, c =>
