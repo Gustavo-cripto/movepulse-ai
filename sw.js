@@ -1,5 +1,5 @@
 /* Service worker: guarda a app inteira em cache para funcionar offline. */
-const CACHE = 'movepulse-v9';
+const CACHE = 'movepulse-v10';
 const ARQUIVOS = [
   './', './index.html', './css/style.css',
   './js/data.js', './js/store.js', './js/db.js', './js/ia.js', './js/ui.js', './js/musculos.js', './js/app.js',
@@ -24,7 +24,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then(hit => {
+    // ignoreSearch: os ficheiros são pedidos com ?v=N para forçar atualizações
+    caches.match(e.request, { ignoreSearch: true }).then(hit => {
       const rede = fetch(e.request).then(resp => {
         if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
         return resp;

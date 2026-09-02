@@ -42,13 +42,75 @@ function renderHoje(){
   if (s) renderSessao(s); else { pararCrono(); renderInicio(); }
 }
 
+/** Quantos treinos planeados para esta semana já foram feitos. */
+function renderPlanoSemana(){
+  const hoje = new Date();
+  const segunda = new Date(hoje);
+  segunda.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7));
+  const treinados = Store.diasTreinados();
+
+  let planeados = 0, feitos = 0;
+  for (let i = 0; i < 7; i++){
+    const d = new Date(segunda);
+    d.setDate(segunda.getDate() + i);
+    if (Store.treinoDoDia(d.getDay())) planeados++;
+    if (treinados.has(chaveDia(d))) feitos++;
+  }
+  const pct = planeados ? Math.min(100, Math.round((feitos / planeados) * 100)) : 0;
+
+  $('#planoSemana').innerHTML = `
+    <div class="item">
+      <div>
+        <h3 style="font-size:15px">Progresso semanal</h3>
+        <p class="item__meta">${planeados ? `${feitos} de ${planeados} treinos planeados` : 'Ainda não planeaste a semana'}</p>
+      </div>
+      <strong style="font-size:20px">${pct}%</strong>
+    </div>
+    <div class="barra"><div class="barra__cheio" style="width:${pct}%"></div></div>`;
+}
+
 function renderSaudacao(){
   const nome = Store.estado.perfil.nome.trim();
   const hoje = new Date();
+  const h = hoje.getHours();
+  const parte = h < 6 ? 'Boa madrugada' : h < 13 ? 'Bom dia' : h < 20 ? 'Boa tarde' : 'Boa noite';
   // só a primeira letra em maiúscula: "Quarta-feira, 2 de setembro"
   const data = hoje.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
   $('#olaData').textContent = data.charAt(0).toUpperCase() + data.slice(1);
-  $('#olaNome').textContent = nome ? `Olá, ${nome}` : 'Olá';
+  $('#olaNome').textContent = nome ? `${parte}, ${nome}!` : `${parte}!`;
+}
+
+/** Quanto tempo leva a ficha: cada série é o trabalho mais o descanso. */
+function duracaoEstimada(ficha){
+  const descanso = Store.estado.config.descanso || 90;
+  const segundos = ficha.itens.reduce((t, it) =>
+    t + it.series * (num(it.reps) * 3 + descanso), 0);
+  return Math.max(10, Math.round(segundos / 60));
+}
+
+/** Os grupos musculares que a ficha trabalha, sem repetir. */
+function gruposDaFicha(ficha){
+  const vistos = [];
+  ficha.itens.forEach(it => {
+    const g = Store.exercicio(it.exId).grupo;
+    if (!vistos.includes(g)) vistos.push(g);
+  });
+  return vistos;
+}
+
+/** Miniaturas: foto da máquina onde exista, senão o diagrama muscular. */
+async function preencherMiniaturas(ficha){
+  const alvo = $('#hojeMiniaturas');
+  if (!alvo) return;
+  const itens = ficha.itens.slice(0, 3);
+  const partes = await Promise.all(itens.map(async it => {
+    const ex = Store.exercicio(it.exId);
+    const foto = await Fotos.ler(it.exId).catch(() => null);
+    return foto
+      ? `<img src="${foto}" alt="${esc(ex.nome)}">`
+      : `<span class="mini-svg" title="${esc(ex.nome)}">${diagramaMusculos(ex.grupo).replace(/<\/?div[^>]*>/g, '')}</span>`;
+  }));
+  alvo.innerHTML = partes.join('');
 }
 
 /** O cartão grande do topo: o que há para fazer hoje. */
@@ -60,41 +122,43 @@ function renderCartaoHoje(){
 
   if (feitasHoje.length){
     const volume = feitasHoje.reduce((t, s) => t + volumeSessao(s), 0);
-    const series = feitasHoje.reduce((t, s) => t + totalSeries(s), 0);
+    const minutos = Math.round(feitasHoje.reduce((t, s) => t + (s.fim - s.inicio), 0) / 6e4);
     $('#cartaoHoje').innerHTML = `
-      <div class="card card--hoje feito">
-        <span class="hoje__etiqueta">Hoje</span>
-        <h3>Treino feito ✓</h3>
-        <p class="item__meta">${feitasHoje.map(s => esc(s.nome)).join(' · ')}</p>
-        <div class="session-stats" style="margin-top:12px">
-          <div><strong>${series}</strong><span>séries</span></div>
-          <div><strong>${fmtNum(volume)}</strong><span>kg volume</span></div>
-          <div><strong>${fmtDuracao(feitasHoje.reduce((t,s)=>t+(s.fim-s.inicio),0))}</strong><span>tempo</span></div>
-        </div>
+      <div class="hoje--feito">
+        <span class="hoje__etiqueta">Feito hoje ✓</span>
+        <p class="hoje__tempo">${minutos} <span>min</span></p>
+        <p class="hoje__onde">${feitasHoje.map(s => esc(s.nome)).join(' · ')} — ${fmtNum(volume)} kg de volume</p>
       </div>`;
     return;
   }
 
   if (!ficha){
     $('#cartaoHoje').innerHTML = `
-      <div class="card card--hoje">
+      <div>
         <span class="hoje__etiqueta">Hoje</span>
-        <h3>Dia de descanso</h3>
-        <p class="item__meta">Não há treino planeado para hoje. Podes treinar à mesma.</p>
-        <button class="btn btn--ghost btn--block" id="btnDescansoLivre" style="margin-top:12px">Treinar mesmo assim</button>
+        <p class="hoje__tempo">Descanso</p>
+        <p class="hoje__onde">Sem treino planeado. Podes treinar à mesma.</p>
+        <div class="hoje__fundo">
+          <span class="item__meta">Treino livre</span>
+          <button class="hoje__ir" id="btnDescansoLivre" aria-label="Começar treino livre">→</button>
+        </div>
       </div>`;
     $('#btnDescansoLivre').onclick = () => { Store.iniciarSessao(null); renderHoje(); atualizarSubtitulo(); };
     return;
   }
 
+  const grupos = gruposDaFicha(ficha).slice(0, 3).join(', ');
   $('#cartaoHoje').innerHTML = `
-    <div class="card card--hoje planeado">
-      <span class="hoje__etiqueta">Hoje</span>
-      <h3>${esc(ficha.nome)}</h3>
-      <p class="item__meta">${ficha.itens.length} exercícios${ficha.notas ? ' · ' + esc(ficha.notas) : ''}</p>
-      <p class="item__meta" style="margin-top:6px">${ficha.itens.slice(0,4).map(i => esc(Store.exercicio(i.exId).nome)).join(' · ')}${ficha.itens.length > 4 ? ' …' : ''}</p>
-      <button class="btn btn--primary btn--block" data-iniciar="${ficha.id}" style="margin-top:14px">Começar treino</button>
+    <div>
+      <span class="hoje__etiqueta">Especial para hoje</span>
+      <p class="hoje__tempo">${duracaoEstimada(ficha)} <span>min</span></p>
+      <p class="hoje__onde">${esc(ficha.nome)} • ${esc(grupos)}</p>
+      <div class="hoje__fundo">
+        <div class="hoje__miniaturas" id="hojeMiniaturas"></div>
+        <button class="hoje__ir" data-iniciar="${ficha.id}" aria-label="Começar ${esc(ficha.nome)}">→</button>
+      </div>
     </div>`;
+  preencherMiniaturas(ficha);
 }
 
 const LETRAS_DIA = ['D','S','T','Q','Q','S','S'];
@@ -123,9 +187,8 @@ function renderSemana(){
     const eHoje = chave === chaveDia(hoje);
     return `<button class="dia ${ficha ? 'tem-plano' : ''} ${feito ? 'feito' : ''} ${eHoje ? 'hoje' : ''}"
               data-dia="${d.getDay()}" title="${ficha ? esc(ficha.nome) : 'Sem treino planeado'}">
-      <span class="dia__letra">${LETRAS_DIA[d.getDay()]}</span>
-      <span class="dia__num">${d.getDate()}</span>
-      <span class="dia__marca">${feito ? '✓' : (ficha ? esc(abreviar(ficha.nome)) : '·')}</span>
+      <span class="dia__letra">${eHoje ? 'HOJE' : LETRAS_DIA[d.getDay()]}</span>
+      <span class="dia__bola">${feito ? '✓' : (ficha ? esc(abreviar(ficha.nome)) : d.getDate())}</span>
     </button>`;
   }).join('');
 }
@@ -161,6 +224,7 @@ function renderInicio(){
   renderSaudacao();
   renderCartaoHoje();
   renderSemana();
+  renderPlanoSemana();
   renderMes();
 
   $('#listaInicio').innerHTML = treinos.length
@@ -1071,6 +1135,7 @@ function ligarEventos(){
     if (campo === 'nome') renderSaudacao();
   });
   $('#perfilIrIA').onclick = () => mostrar('ia');
+  $('#atalhoIA').onclick = () => mostrar('ia');
   $('#perfilDefinicoes').onclick = abrirConfig;
 
   // Plano IA

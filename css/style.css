@@ -240,19 +240,6 @@ h3{font-size:16px}
 .ex-cabeca .musculos .corpo{width:46px}
 
 /* ---------- Semana e mês ---------- */
-.semana{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.dia{
-  background:var(--bg-elev);border:1px solid var(--line);border-radius:10px;
-  padding:8px 2px;text-align:center;cursor:pointer;font:inherit;color:inherit;
-  display:flex;flex-direction:column;align-items:center;gap:4px;min-height:64px;justify-content:center;
-}
-.dia__letra{font-size:11px;color:var(--txt-dim);font-weight:600}
-.dia__num{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
-.dia__marca{font-size:11px;font-weight:700;color:var(--line);line-height:1}
-.dia.tem-plano .dia__marca{color:var(--accent)}
-.dia.feito .dia__marca{color:var(--ok)}
-.dia.hoje{border-color:var(--accent)}
-.dia.hoje .dia__num{color:var(--accent)}
 
 .mes-cabeca{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .mes{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -272,14 +259,71 @@ h3{font-size:16px}
 }
 .ex-mini{width:46px;height:46px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:none}
 
-/* ---------- Início ---------- */
-.ola{margin-bottom:4px}
-.ola__data{color:var(--txt-dim);font-size:13px}
-.ola__nome{font-size:24px;letter-spacing:-.3px;margin-top:2px}
-.card--hoje{position:relative;padding:18px}
-.card--hoje h3{font-size:19px;margin-top:8px}
-.card--hoje.planeado{background:linear-gradient(140deg,#1d2a12,#171a21 65%);border-color:#38471f}
-.card--hoje.feito{border-color:#2f4a2c;background:linear-gradient(140deg,#16251a,#171a21 65%)}
+/* ---------- Início: herói ---------- */
+.heroi{
+  /* sai das margens do #app para encostar aos lados */
+  margin:calc(var(--pad) * -1) calc(var(--pad) * -1) 4px;
+  padding:18px var(--pad) 22px;
+  background:
+    radial-gradient(130% 80% at 15% 0%, rgba(198,242,78,.16) 0%, rgba(198,242,78,0) 55%),
+    linear-gradient(180deg,#1b2016 0%, var(--bg) 92%);
+  border-bottom:1px solid var(--line);
+  border-radius:0 0 22px 22px;
+}
+.ola__data{color:var(--txt-dim);font-size:12.5px;margin-top:18px}
+.ola__nome{font-size:26px;letter-spacing:-.4px;margin-top:2px;margin-bottom:16px}
+
+/* dias em círculo, dentro do herói */
+.semana{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dia{
+  background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.dia__letra{font-size:10.5px;color:var(--txt-dim);font-weight:700;letter-spacing:.06em}
+.dia.hoje .dia__letra{color:var(--accent)}
+.dia__bola{
+  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--txt-dim);
+  font-variant-numeric:tabular-nums;
+}
+.dia.tem-plano .dia__bola{border-color:var(--accent);color:var(--txt)}
+.dia.feito .dia__bola{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dia.hoje .dia__bola{box-shadow:0 0 0 3px rgba(198,242,78,.18)}
+
+/* cartão do treino de hoje */
 .hoje__etiqueta{
   font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
 }
+.hoje__tempo{font-size:40px;font-weight:800;letter-spacing:-1.5px;line-height:1.05;margin-top:6px}
+.hoje__tempo span{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.hoje__onde{color:var(--txt-dim);font-size:14px;margin-top:2px}
+.hoje__fundo{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:16px}
+.hoje__miniaturas{display:flex;gap:8px;min-width:0}
+.hoje__miniaturas img,.hoje__miniaturas .mini-svg{
+  width:56px;height:56px;border-radius:12px;object-fit:cover;
+  border:1px solid var(--line);background:var(--bg-elev);flex:none;
+}
+.hoje__miniaturas .mini-svg{display:flex;align-items:center;justify-content:center}
+.hoje__miniaturas .mini-svg .corpo{width:34px}
+.hoje__ir{
+  width:58px;height:58px;border-radius:50%;flex:none;border:0;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);font-size:22px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.hoje__ir:active{transform:scale(.96)}
+.hoje--feito .hoje__tempo{color:var(--ok)}
+
+/* atalhos */
+.atalhos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.atalho{
+  display:flex;align-items:center;gap:10px;text-align:left;
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:14px;
+  padding:12px;font:inherit;color:inherit;cursor:pointer;
+}
+.atalho__icone{font-size:20px;flex:none}
+.atalho span{font-size:13.5px;font-weight:600;line-height:1.25;min-width:0}
+.atalho small{display:block;color:var(--txt-dim);font-weight:400;font-size:11.5px;margin-top:2px}
+
+/* barra de progresso da semana */
+.barra{height:8px;border-radius:99px;background:var(--bg-elev-2);overflow:hidden;margin-top:10px}
+.barra__cheio{height:100%;background:var(--accent);border-radius:99px;transition:width .3s ease}
