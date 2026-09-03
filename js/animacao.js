@@ -189,6 +189,11 @@ const MOVIMENTO_POR_GRUPO = {
   'Bíceps':'rosca', 'Tríceps':'triceps', 'Abdómen':'abdominal', 'Cardio':'agachamento',
 };
 
+/** Este exercício tem um padrão de movimento só dele (com dicas próprias)? */
+function temMovimentoProprio(ex){
+  return !!MOVIMENTO_DE[ex.id];
+}
+
 function movimentoDoExercicio(ex){
   return MOVIMENTOS[MOVIMENTO_DE[ex.id]]
       || MOVIMENTOS[MOVIMENTO_POR_GRUPO[ex.grupo]]

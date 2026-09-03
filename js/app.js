@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 58;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 59;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -931,6 +931,10 @@ let pararAnimacao = null;
 async function comoFazer(exId, voltar){
   const ex = Store.exercicio(exId);
   const mov = movimentoDoExercicio(ex);
+  // As dicas são de um padrão de movimento. Nos exercícios do catálogo
+  // alargado não há padrão próprio, e mostrar as de outro exercício seria
+  // pior do que não mostrar nada.
+  const proprio = temMovimentoProprio(ex);
   const foto = await Fotos.ler(CHAVE_FOTO_EX + exId).catch(() => null);
   const temFigura = !!figuraDoExercicio(exId);
 
@@ -942,15 +946,18 @@ async function comoFazer(exId, voltar){
            <p class="figura-creditos">Ilustração: Workout Guide · Everkinetic ·
              <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>`
         : '<div class="palco" id="palcoBoneco"></div>'}
-      <p class="item__meta" style="margin-top:8px">${esc(mov.nome)} · ${esc(ex.grupo)} · ${esc(ex.equip)}</p>
+      <p class="item__meta" style="margin-top:8px">${
+        proprio ? esc(mov.nome) + ' · ' : ''}${esc(ex.grupo)} · ${esc(ex.equip)}</p>
       ${foto ? `<img class="foto-exercicio" src="${foto}" alt="Foto de ${esc(ex.nome)}">` : ''}
       <div class="row-actions" style="margin-top:10px">
         <button class="btn btn--sm btn--ghost" id="btnFotoEx">📷 ${foto ? 'Trocar a minha foto' : 'Incluir foto do exercício'}</button>
         ${foto ? '<button class="btn btn--sm btn--danger" id="btnApagarFotoEx">Remover</button>' : ''}
       </div>
       <input type="file" id="ficheiroEx" accept="image/*" hidden>
-      <label class="label" style="margin-top:14px">Como fazer</label>
-      <ol class="dicas">${mov.dicas.map(d => `<li>${esc(d)}</li>`).join('')}</ol>
+      ${proprio ? `<label class="label" style="margin-top:14px">Como fazer</label>
+      <ol class="dicas">${mov.dicas.map(d => `<li>${esc(d)}</li>`).join('')}</ol>`
+      : `<p class="item__meta" style="margin-top:14px">Segue a figura para o padrão do movimento.
+         Para a técnica ao pormenor, vê o vídeo aqui em baixo.</p>`}
       <div class="ex-cabeca" style="margin-top:14px">
         ${diagramaMusculos(ex.grupo)}
         <div>
@@ -1011,7 +1018,7 @@ function novoExercicio(){
       <div class="field">
         <label class="label" for="nEquip">Equipamento</label>
         <select class="input" id="nEquip">
-          ${['Barra','Halteres','Máquina','Polia','Peso corporal','Acessório','Livre']
+          ${['Barra','Halteres','Máquina','Polia','Peso corporal','Elástico','Kettlebell','Acessório','Livre']
             .map(g => `<option>${g}</option>`).join('')}
         </select>
       </div>`,
