@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 56;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 57;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -932,11 +932,16 @@ async function comoFazer(exId, voltar){
   const ex = Store.exercicio(exId);
   const mov = movimentoDoExercicio(ex);
   const foto = await Fotos.ler(CHAVE_FOTO_EX + exId).catch(() => null);
+  const temFigura = !!figuraDoExercicio(exId);
 
   Modal.abrir({
     titulo: ex.nome,
     corpo: `
-      <div class="palco" id="palcoBoneco"></div>
+      ${temFigura
+        ? `<div class="figura-ex" id="figuraEx"></div>
+           <p class="figura-creditos">Ilustração: Workout Guide · Everkinetic ·
+             <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>`
+        : '<div class="palco" id="palcoBoneco"></div>'}
       <p class="item__meta" style="margin-top:8px">${esc(mov.nome)} · ${esc(ex.grupo)} · ${esc(ex.equip)}</p>
       ${foto ? `<img class="foto-exercicio" src="${foto}" alt="Foto de ${esc(ex.nome)}">` : ''}
       <div class="row-actions" style="margin-top:10px">
@@ -979,7 +984,9 @@ async function comoFazer(exId, voltar){
   };
 
   pararAnimacao?.();
-  pararAnimacao = animarExercicio($('#palcoBoneco'), ex);
+  pararAnimacao = temFigura
+    ? animarFigura($('#figuraEx'), exId)
+    : animarExercicio($('#palcoBoneco'), ex);
 }
 
 function statBox(valor, rotulo){
@@ -2210,6 +2217,17 @@ function escolherTema(){
   };
 }
 
+/** Créditos das obras de terceiros usadas na app. A licença CC BY-SA
+    obriga a dar crédito, ligar à licença e indicar se houve alterações. */
+function creditos(){
+  textoLegal('Créditos e licenças', [
+    '<b>Ilustrações dos exercícios</b><br>Do projeto <a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide</a>, de Bryl Lim, a partir da arte original do <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>. Licença <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Os desenhos estão tal como vieram da origem — a app só os mostra em sequência e ajusta a cor na apresentação.',
+    '<b>Tipo de letra</b><br>Barlow e Barlow Condensed, de Jeremy Tribby, sob <a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL Open Font License 1.1</a>.',
+    '<b>Planos e respostas do treinador</b><br>Gerados por modelos de IA da NVIDIA, através de um servidor próprio.',
+    'Os restantes desenhos da app — equipamento, músculos e o boneco do movimento — foram feitos de raiz para a MovePulse AI.',
+  ]);
+}
+
 function textoLegal(titulo, paragrafos){
   Modal.abrir({
     titulo,
@@ -2427,6 +2445,7 @@ function ligarEventos(){
     'Antes de começar um programa de exercício, sobretudo se tens lesões, dores ou doença, fala com um profissional de saúde.',
     'Usas a app por tua conta e risco. Confirma que consegues executar cada exercício em segurança.',
   ]);
+  $op('#defCreditos').onclick = creditos;
   $op('#perfilVoltar').onclick = () => mostrar('inicio');
   $op('#btnRegistarPeso').onclick = registarPesoHoje;
   $op('#perfilIrIA').onclick = () => mostrar('ia');

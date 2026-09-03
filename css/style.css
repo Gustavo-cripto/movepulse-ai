@@ -692,6 +692,17 @@ line.an-osso.an-ativo{stroke-width:8}
 .barra-semanas{margin-top:12px}
 .barra-semanas .barra{height:6px;border-radius:3px;background:var(--bg-elev-2);overflow:hidden;margin-top:6px}
 .barra-semanas .barra i{display:block;height:100%;background:var(--accent-med);border-radius:3px}
+/* Figura que mostra a execução do exercício (linha branca; no tema claro
+   inverte-se para linha escura). */
+.figura-ex{position:relative;width:100%;aspect-ratio:1;max-height:300px;
+  display:grid;place-items:center;background:var(--bg-elev-2);border-radius:var(--radius);overflow:hidden}
+.figura-ex__frame{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain;
+  opacity:0;filter:invert(1)}   /* corte seco entre desenhos: sobrepostos ficavam a fantasma */
+.figura-ex__frame.is-visivel{opacity:1}
+:root[data-tema="escuro"] .figura-ex__frame,
+:root[data-tema="auto"].sistema-escuro .figura-ex__frame{filter:none}
+.figura-creditos{font-size:11.5px;color:var(--txt-dim);margin-top:6px;text-align:right}
+.figura-creditos a{color:inherit}
 .chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip-eq{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);
   border-radius:999px;padding:4px 12px 4px 6px;font-size:13px;font-weight:600}

@@ -36,7 +36,7 @@ const EXERCICIOS_BASE = [
   { id:'stiff',         nome:'Stiff com barra',              grupo:'Pernas',  equip:'Barra' },
   { id:'afundo',        nome:'Afundo com halteres',          grupo:'Pernas',  equip:'Halteres' },
   { id:'bulgaro',       nome:'Agachamento búlgaro',          grupo:'Pernas',  equip:'Halteres' },
-  { id:'panturrilha',   nome:'Panturrilha em pé',            grupo:'Pernas',  equip:'Máquina' },
+  { id:'panturrilha',   nome:'Gémeos em pé',            grupo:'Pernas',  equip:'Máquina' },
   { id:'hip-thrust',    nome:'Elevação pélvica (hip thrust)',grupo:'Pernas',  equip:'Barra' },
   { id:'cadeira-abd',   nome:'Cadeira abdutora',             grupo:'Pernas',  equip:'Máquina' },
 
@@ -65,17 +65,17 @@ const EXERCICIOS_BASE = [
 
   // Abdómen
   { id:'prancha',       nome:'Prancha isométrica',           grupo:'Abdómen', equip:'Peso corporal' },
-  { id:'abd-supra',     nome:'Abdominal supra',              grupo:'Abdómen', equip:'Peso corporal' },
+  { id:'abd-supra',     nome:'Abdominal',              grupo:'Abdómen', equip:'Peso corporal' },
   { id:'elev-pernas',   nome:'Elevação de pernas',           grupo:'Abdómen', equip:'Peso corporal' },
   { id:'abd-obliquo',   nome:'Abdominal oblíquo',            grupo:'Abdómen', equip:'Peso corporal' },
   { id:'roda-abd',      nome:'Roda abdominal',               grupo:'Abdómen', equip:'Acessório' },
 
   // Cardio
-  { id:'esteira',       nome:'Esteira',                      grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
-  { id:'bike',          nome:'Bicicleta ergométrica',        grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
-  { id:'eliptico',      nome:'Elíptico',                     grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
-  { id:'corda',         nome:'Pular corda',                  grupo:'Cardio',  equip:'Acessório', tipo:'cardio' },
-  { id:'remo-ergo',     nome:'Remo ergômetro',               grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
+  { id:'esteira',       nome:'Passadeira',                      grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
+  { id:'bike',          nome:'Bicicleta',        grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
+  { id:'eliptico',      nome:'Elíptica',                     grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
+  { id:'corda',         nome:'Saltar à corda',                  grupo:'Cardio',  equip:'Acessório', tipo:'cardio' },
+  { id:'remo-ergo',     nome:'Remo',               grupo:'Cardio',  equip:'Máquina', tipo:'cardio' },
 ].map(e => ({ tipo:'forca', ...e }));
 
 /* Fichas sugeridas para quem abre o app pela primeira vez. */
