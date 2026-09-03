@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 65;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 66;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1648,7 +1648,8 @@ async function mostrarFotosEquipamento(){
 function miniaturaEquipamento(id){
   const desenho = figuraDoEquipamento(id);
   return desenho
-    ? `<img class="equip-desenho-mini" src="exercicios/${desenho}/frame-2.svg" alt="" decoding="async">`
+    ? `<img class="equip-desenho-mini" src="exercicios/${desenho}/frame-2.svg" alt=""
+             loading="lazy" decoding="async">`
     : iconeEquipamento(id);
 }
 
