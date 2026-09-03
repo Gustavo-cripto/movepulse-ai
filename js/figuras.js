@@ -63,8 +63,10 @@ function animarFigura(palco, exId){
 
   palco.innerHTML = ORDEM_FIGURA
     .filter((n, i) => ORDEM_FIGURA.indexOf(n) === i)      // um <img> por desenho
+    // sem loading="lazy": sobrepostas e a opacidade zero, o navegador
+    // adiava o carregamento para sempre e a figura ficava em branco
     .map(n => `<img class="figura-ex__frame" src="exercicios/${slug}/frame-${n}.svg"
-                    alt="" data-frame="${n}" loading="lazy">`).join('');
+                    alt="" data-frame="${n}" decoding="async">`).join('');
 
   const imagens = new Map([...palco.querySelectorAll('[data-frame]')]
     .map(img => [+img.dataset.frame, img]));
