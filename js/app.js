@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 68;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 69;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1647,9 +1647,9 @@ async function mostrarFotosEquipamento(){
     que é o que se reconhece. Só cai no ícone simples se não houver desenho. */
 function miniaturaEquipamento(id){
   const desenho = figuraDoEquipamento(id);
-  return desenho
-    ? `<img class="equip-desenho-mini" src="exercicios/${desenho}/frame-2.svg" alt=""
-             loading="lazy" decoding="async">`
+  const src = desenhoProprioEquipamento(id) || (desenho && `exercicios/${desenho}/frame-2.svg`);
+  return src
+    ? `<img class="equip-desenho-mini" src="${src}" alt="" loading="lazy" decoding="async">`
     : iconeEquipamento(id);
 }
 
@@ -1657,6 +1657,7 @@ async function ampliarEquipamento(id){
   const nome = nomeEquipamento(id);
   const grupo = EQUIPAMENTOS.find(g => g.itens.some(i => i.id === id))?.cat || '';
   const foto = await Fotos.ler('eq:' + id).catch(() => null);
+  const proprio = desenhoProprioEquipamento(id);
   const desenho = figuraDoEquipamento(id);
 
   Modal.abrir({
@@ -1664,10 +1665,11 @@ async function ampliarEquipamento(id){
     corpo: `
       <div class="equip-grande">
         ${foto ? `<img src="${foto}" alt="${esc(nome)}">`
+          : proprio ? `<img class="equip-desenho" src="${proprio}" alt="${esc(nome)}">`
           : desenho ? `<img class="equip-desenho" src="exercicios/${desenho}/frame-2.svg" alt="${esc(nome)}">`
           : iconeEquipamento(id)}
       </div>
-      ${!foto && desenho ? `<p class="figura-creditos">Ilustração: Workout Guide · Everkinetic ·
+      ${!foto && !proprio && desenho ? `<p class="figura-creditos">Ilustração: Workout Guide · Everkinetic ·
         <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>` : ''}
       <p class="item__meta" style="margin-top:10px">${esc(grupo)}</p>
       <p class="item__meta" style="margin-top:8px">${foto

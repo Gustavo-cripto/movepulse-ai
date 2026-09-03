@@ -178,6 +178,17 @@ const FIGURA_EQUIPAMENTO = {
   'escada':'stair-climber', 'air-bike':'assault-bike',
 };
 
+/* A biblioteca não tem nenhuma estação multifunções de casa: a que lá havia
+   era a máquina de elevações assistidas. Esta é desenhada por nós, em traço,
+   para não destoar das outras. Não leva o crédito CC BY-SA, que não é de lá. */
+const DESENHO_PROPRIO = {
+  'm-multi': 'imagens/estacao-multifuncoes.svg',
+};
+
+function desenhoProprioEquipamento(id){
+  return DESENHO_PROPRIO[id] || null;
+}
+
 /** O desenho grande de uma peça de equipamento, ou null se não houver. */
 function figuraDoEquipamento(id){
   return FIGURA_EQUIPAMENTO[id] || null;
