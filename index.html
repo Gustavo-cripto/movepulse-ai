@@ -13,7 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=49">
+<link rel="stylesheet" href="css/style.css?v=50">
 </head>
 <body>
 
@@ -288,6 +288,7 @@
       <button id="defIdioma"><span class="def-icone">🌐</span>Idioma<span class="def-valor">Português</span></button>
       <button id="defUnidades"><span class="def-icone">📏</span>Unidades<span class="def-valor">kg · cm</span></button>
       <button id="defIA"><span class="def-icone">✨</span>Servidor de IA<span class="def-valor" id="defIAValor">—</span></button>
+      <button id="defSaude"><span class="def-icone">❤️</span>Apple Saúde<span class="def-valor" id="defSaudeValor">—</span></button>
     </div>
 
     <p class="def-grupo">Os meus dados</p>
@@ -305,6 +306,32 @@
       <button id="defTermos"><span class="def-icone">📄</span>Termos de utilização</button>
       <button id="defVersao"><span class="def-icone">ℹ️</span>Versão<span class="def-valor" id="defVersaoValor">—</span></button>
     </div>
+  </section>
+
+  <!-- ============ APPLE SAÚDE ============ -->
+  <section class="view" id="view-saude" hidden>
+    <button class="btn btn--sm btn--ghost" id="saudeVoltar" style="align-self:flex-start">‹ Voltar</button>
+    <div class="section-head"><h2>Apple Saúde</h2></div>
+
+    <div class="cartao-saude">
+      <h3>Sincronizar a MovePulse com o Apple Saúde</h3>
+      <p>Escolhe que dados passam de um lado para o outro. A ligação é feita pela app <b>Atalhos</b> da Apple — prepara-se uma vez e fica a funcionar.</p>
+    </div>
+
+    <p class="def-grupo">Transferir do Saúde</p>
+    <div class="lista-def">
+      <label class="linha-switch"><span class="def-icone">⚖️</span>Peso corporal
+        <input type="checkbox" class="switch" id="saudePeso"></label>
+    </div>
+
+    <p class="def-grupo">Guardar no Saúde</p>
+    <div class="lista-def">
+      <label class="linha-switch"><span class="def-icone">🏋️</span>Treinos
+        <input type="checkbox" class="switch" id="saudeTreinos"></label>
+    </div>
+
+    <div id="saudeAcoes"></div>
+    <div id="saudeGuia"></div>
   </section>
 
   <!-- ============ BOT ============ -->
@@ -481,15 +508,16 @@
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=49"></script>
-<script src="js/store.js?v=49"></script>
-<script src="js/nuvem.js?v=49"></script>
-<script src="js/db.js?v=49"></script>
-<script src="js/ia.js?v=49"></script>
-<script src="js/ui.js?v=49"></script>
-<script src="js/musculos.js?v=49"></script>
-<script src="js/animacao.js?v=49"></script>
-<script src="js/icones.js?v=49"></script>
-<script src="js/app.js?v=49"></script>
+<script src="js/data.js?v=50"></script>
+<script src="js/store.js?v=50"></script>
+<script src="js/nuvem.js?v=50"></script>
+  <script src="js/saude.js?v=50"></script>
+<script src="js/db.js?v=50"></script>
+<script src="js/ia.js?v=50"></script>
+<script src="js/ui.js?v=50"></script>
+<script src="js/musculos.js?v=50"></script>
+<script src="js/animacao.js?v=50"></script>
+<script src="js/icones.js?v=50"></script>
+<script src="js/app.js?v=50"></script>
 </body>
 </html>

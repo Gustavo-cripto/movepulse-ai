@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 49;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 50;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -24,6 +24,7 @@ function render(){
   if (viewAtual === 'bot')        renderBot();
   if (viewAtual === 'perfil')     renderPerfil();
   if (viewAtual === 'definicoes') renderDefinicoes();
+  if (viewAtual === 'saude')      renderSaude();
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
   if (viewAtual === 'ia')         renderIA();
@@ -1732,6 +1733,7 @@ function finalizarSessao(){
   if (!concluida) return toast('Nenhuma série marcada — treino descartado.');
   toast(`Treino guardado: ${fmtNum(volumeSessao(concluida))} kg de volume 🔥`);
   sincronizar(true);
+  if (Store.estado.config.saude.treinos) setTimeout(() => Saude.enviarTreino(concluida), 900);
 }
 
 /* ============================================================
@@ -1900,9 +1902,89 @@ function renderDefinicoes(){
   const c = Store.estado.config;
   $('#defTemaValor').textContent = NOMES_TEMA[c.tema || 'auto'];
   $('#defIAValor').textContent = c.ia.modo === 'direto' ? 'chave própria' : 'servidor próprio';
+  $('#defSaudeValor').textContent = resumoSaude();
   $('#defVersaoValor').textContent = VERSAO_APP;
   $('#defContaEstado').textContent = !Nuvem.configurada ? 'por ligar'
     : Nuvem.autenticado ? Nuvem.email : 'sem sessão';
+}
+
+/* ============================================================
+   Apple Saúde, pela ponte dos Atalhos
+   ============================================================ */
+function resumoSaude(){
+  const c = Store.estado.config.saude;
+  const ligados = [c.peso && 'peso', c.treinos && 'treinos'].filter(Boolean);
+  return ligados.length ? ligados.join(' · ') : 'desligado';
+}
+
+function guardarSaude(campo, ligado){
+  Store.estado.config.saude[campo] = ligado;
+  Store.salvar();
+  renderSaude();
+}
+
+function renderSaude(){
+  const c = Store.estado.config.saude;
+  $('#saudePeso').checked = !!c.peso;
+  $('#saudeTreinos').checked = !!c.treinos;
+
+  const acoes = [];
+  if (c.peso) acoes.push(`
+    <p class="def-grupo">Trazer o peso agora</p>
+    <div class="lista-def">
+      <button id="saudeLerPeso"><span class="def-icone">1</span>Ler o peso do Saúde</button>
+      <button id="saudeColarPeso"><span class="def-icone">2</span>Colar o peso na app</button>
+    </div>`);
+  if (c.treinos) acoes.push(`
+    <p class="def-grupo">Treinos</p>
+    <div class="lista-def">
+      <button id="saudeEnviarUltimo"><span class="def-icone">📤</span>Enviar o último treino</button>
+    </div>`);
+  $('#saudeAcoes').innerHTML = acoes.join('');
+
+  $('#saudeGuia').innerHTML = `
+    <p class="def-grupo">Como se liga</p>
+    <div class="cartao-saude guia-saude">
+      <p>Uma app web não pode falar com o Saúde — só as apps nativas podem. Quem faz a ponte é a app <b>Atalhos</b> da Apple. Cria estes dois atalhos uma vez, com os nomes exatos.</p>
+
+      <h4>Atalho 1 — <code>MovePulse Peso</code></h4>
+      <ol>
+        <li>Atalhos → <b>+</b> → muda o nome para <code>MovePulse Peso</code>.</li>
+        <li>Ação <b>Encontrar amostras de saúde</b> <i>(Find Health Samples)</i>: tipo <b>Massa corporal</b>, ordenar por data, <b>limite 1</b>.</li>
+        <li>Ação <b>Obter detalhes da amostra de saúde</b>: escolhe <b>Valor</b>.</li>
+        <li>Ação <b>Copiar para a área de transferência</b>.</li>
+      </ol>
+      <p class="aviso">Depois é só usar os botões 1 e 2 aqui em cima: o 1 vai buscar o peso, o 2 mete-o na app.</p>
+
+      <h4>Atalho 2 — <code>MovePulse Treino</code></h4>
+      <ol>
+        <li>Novo atalho com o nome <code>MovePulse Treino</code>.</li>
+        <li>Ação <b>Obter dicionário da entrada</b> — recebe os dados que a app manda.</li>
+        <li>Ação <b>Obter valor do dicionário</b> para a chave <code>minutos</code>; repete para <code>kcal</code> e <code>inicio</code>.</li>
+        <li>Ação <b>Registar treino</b> <i>(Log Workout)</i>: tipo <b>Treino de força</b>, duração igual a <code>minutos</code>, calorias iguais a <code>kcal</code>, data igual a <code>inicio</code>.</li>
+        <li>No Saúde, em <b>Partilha → Apps</b>, confirma que os <b>Atalhos</b> têm autorização para escrever treinos.</li>
+      </ol>
+      <p class="aviso">Ao terminares um treino, o iPhone salta um instante ao Atalhos e volta.</p>
+      <p class="aviso"><b>Se a duração ficar a zero:</b> é um defeito conhecido da ação Registar treino em algumas versões do iOS. Escreve o número de minutos à mão nessa ação, ou atualiza o iOS.</p>
+
+      <h4>E o Apple Watch?</h4>
+      <p>O relógio não consegue correr esta app — para isso seria preciso uma app nativa. O que dá é treinares com a app <b>Treino</b> do relógio ao mesmo tempo: ela grava batimentos e calorias no Saúde, e os teus treinos da MovePulse ficam guardados lá ao lado, no mesmo sítio.</p>
+    </div>`;
+
+  const ler = $('#saudeLerPeso');
+  if (ler) ler.onclick = () => Saude.pedirPeso();
+
+  const colar = $('#saudeColarPeso');
+  if (colar) colar.onclick = async () => {
+    try {
+      const kg = await Saude.colarPeso();
+      toast(`Peso guardado: ${fmtPeso(kg)} kg`);
+      renderSaude();
+    } catch (e) { toast(e.message); }
+  };
+
+  const enviar = $('#saudeEnviarUltimo');
+  if (enviar) enviar.onclick = () => Saude.enviarTreino(Store.estado.sessoes[0], true);
 }
 
 function escolherTema(){
@@ -2145,6 +2227,12 @@ function ligarEventos(){
   $op('#perfilIrIA').onclick = () => mostrar('ia');
   $op('#perfilDefinicoes').onclick = abrirConfig;
 
+  // Apple Saúde
+  $op('#defSaude').onclick = () => mostrar('saude');
+  $op('#saudeVoltar').onclick = () => mostrar('definicoes');
+  $op('#saudePeso').onchange = e => guardarSaude('peso', e.target.checked);
+  $op('#saudeTreinos').onchange = e => guardarSaude('treinos', e.target.checked);
+
   // Plano IA
   $op('#view-ia').addEventListener('click', e => {
     const musculo = e.target.closest('[data-musculo]');
@@ -2295,6 +2383,10 @@ ligarEventos();
 aplicarTema();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema);
 mostrar('inicio');
+
+// Peso trazido do Saúde por um Atalho, quando a app é aberta no Safari.
+const pesoImportado = Saude.pesoDoEndereco();
+if (pesoImportado) toast(`Peso do Saúde guardado: ${fmtPeso(pesoImportado)} kg`);
 
 /* ============================================================
    PWA: instalação na tela de início e uso offline

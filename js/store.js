@@ -16,6 +16,7 @@ const ESTADO_PADRAO = {
     // (No iOS, a app instalada tem armazenamento separado do Safari e não herda definições.)
     tema: 'auto',                       // auto | claro | escuro
     ia: { modo: 'servidor', servidor: SERVIDOR_PADRAO, chave: '' },
+    saude: { peso: false, treinos: false },   // ponte para o Apple Saúde
   },
   conversa: [],                         // perguntas ao treinador
   pesos: [],                            // {data, kg} ao longo do tempo
@@ -51,6 +52,7 @@ function carregar(){
       pesos: salvo.pesos || [],
       planoConfig: { ...base.planoConfig, ...salvo.planoConfig },
       config: { ...base.config, ...salvo.config,
+        saude: { ...base.config.saude, ...(salvo.config && salvo.config.saude) },
         ia: { ...base.config.ia, ...(salvo.config && salvo.config.ia),
           // um endereço em branco vindo de uma versão antiga volta ao padrão
           servidor: (salvo.config?.ia?.servidor || SERVIDOR_PADRAO) } } };

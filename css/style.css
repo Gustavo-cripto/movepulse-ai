@@ -639,5 +639,26 @@ line.an-osso.an-ativo{stroke-width:8}
 .lista-def .def-icone{width:30px;text-align:center;font-size:17px;flex:none}
 .def-valor{margin-left:auto;color:var(--txt-dim);font-size:13px}
 .lista-def button:has(.def-valor)::after{margin-left:8px}
+/* Linha com interruptor, no ecrã do Apple Saúde */
+.lista-def .linha-switch{display:flex;align-items:center;gap:12px;padding:14px 15px;
+  border-bottom:1px solid var(--line);font-size:15px;cursor:pointer}
+.lista-def .linha-switch:last-child{border-bottom:0}
+.switch{appearance:none;-webkit-appearance:none;margin:0 0 0 auto;flex:none;position:relative;
+  width:50px;height:30px;border-radius:15px;background:var(--line);cursor:pointer;
+  transition:background .18s ease}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.28);transition:transform .18s ease}
+.switch:checked{background:var(--accent-med)}
+.switch:checked::after{transform:translateX(20px)}
+.switch:focus-visible{outline:2px solid var(--accent-forte);outline-offset:2px}
+.cartao-saude{background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.cartao-saude h3{font-size:16.5px;margin-bottom:6px}
+.cartao-saude p{font-size:13.5px;color:var(--txt-dim);line-height:1.5}
+.guia-saude{font-size:13.5px;line-height:1.55}
+.guia-saude h4{font-size:14.5px;margin:16px 0 6px}
+.guia-saude ol{margin:0 0 4px 18px}
+.guia-saude li{margin-bottom:5px}
+.guia-saude code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px}
+.guia-saude .aviso{color:var(--txt-dim);margin-top:8px}
 .def-grupo{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-dim);
   font-weight:700;margin:20px 0 8px 4px}
