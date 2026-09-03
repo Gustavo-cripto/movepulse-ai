@@ -80,5 +80,5 @@ function diagramaMusculos(grupo){
 function linkDemonstracao(nome){
   const busca = encodeURIComponent(`como fazer ${nome} exercício técnica`);
   return `<a class="demo" href="https://www.youtube.com/results?search_query=${busca}"
-             target="_blank" rel="noopener noreferrer">▶ Ver execução</a>`;
+             target="_blank" rel="noopener noreferrer">▶ Ver execução no YouTube</a>`;
 }
