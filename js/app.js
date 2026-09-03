@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 64;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 65;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -623,7 +623,7 @@ function chipsEquipamento(ficha){
   if (!nomes.length) return '';
   return `<label class="label" style="margin-top:12px">Equipamento necessário</label>
     <div class="chips-eq">${nomes.map(e =>
-      `<span class="chip-eq">${e.id ? iconeEquipamento(e.id) : ''}${esc(e.nome)}</span>`).join('')}</div>`;
+      `<span class="chip-eq">${esc(e.nome)}</span>`).join('')}</div>`;
 }
 
 async function detalheTreino(id){
@@ -1643,6 +1643,15 @@ async function mostrarFotosEquipamento(){
 }
 
 /** Vista ampliada de uma peça de equipamento. */
+/** Imagem pequena de uma peça de equipamento: o desenho da própria máquina,
+    que é o que se reconhece. Só cai no ícone simples se não houver desenho. */
+function miniaturaEquipamento(id){
+  const desenho = figuraDoEquipamento(id);
+  return desenho
+    ? `<img class="equip-desenho-mini" src="exercicios/${desenho}/frame-2.svg" alt="" decoding="async">`
+    : iconeEquipamento(id);
+}
+
 async function ampliarEquipamento(id){
   const nome = nomeEquipamento(id);
   const grupo = EQUIPAMENTOS.find(g => g.itens.some(i => i.id === id))?.cat || '';
@@ -1701,7 +1710,7 @@ function seletorEquipamento(){
         ${g.itens.map(i => `
           <div class="equip-item ${escolhidos.has(i.id) ? 'is-ativa' : ''}">
             <button class="equip-item__icone" data-ampliar="${i.id}" aria-label="Ver ${esc(i.nome)}"
-                    id="eq-mini-${i.id}">${iconeEquipamento(i.id)}</button>
+                    id="eq-mini-${i.id}">${miniaturaEquipamento(i.id)}</button>
             <button class="equip-item__nome" data-equip="${i.id}">${esc(i.nome)}</button>
             <button class="equip-item__caixa" data-equip="${i.id}" aria-label="Marcar">✓</button>
           </div>`).join('')}

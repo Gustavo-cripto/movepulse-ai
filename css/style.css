@@ -433,7 +433,7 @@ h3{font-size:19px;font-weight:600}
   padding:9px 12px;margin-bottom:7px;font:inherit;color:inherit;cursor:pointer;font-size:14px;
 }
 .equip-item__icone{
-  width:52px;height:52px;border-radius:10px;background:var(--bg-elev-2);flex:none;
+  width:68px;height:68px;border-radius:10px;background:var(--bg-elev-2);flex:none;
   display:flex;align-items:center;justify-content:center;color:var(--accent-forte);
   border:0;padding:0;cursor:zoom-in;overflow:hidden;
 }
@@ -456,6 +456,10 @@ h3{font-size:19px;font-weight:600}
 :root[data-tema="escuro"] .equip-grande img.equip-desenho,
 :root[data-tema="auto"].sistema-escuro .equip-grande img.equip-desenho{filter:none}
 .icone-eq{width:34px;height:34px;display:block}
+/* desenho da máquina em tamanho pequeno: linha branca, invertida no tema claro */
+.equip-desenho-mini{width:100%;height:100%;object-fit:contain;padding:3px;filter:invert(1)}
+:root[data-tema="escuro"] .equip-desenho-mini,
+:root[data-tema="auto"].sistema-escuro .equip-desenho-mini{filter:none}
 .eq-esc{fill:#39424e}        /* estrutura e borracha */
 .eq-met{fill:#b9c3cd}        /* metal claro */
 .eq-met2{fill:#8b96a3}       /* metal sombreado */
@@ -721,11 +725,8 @@ line.an-osso.an-ativo{stroke-width:8}
 .figura-creditos{font-size:11.5px;color:var(--txt-dim);margin-top:6px;text-align:right}
 .figura-creditos a{color:inherit}
 .chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.chip-eq{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);
-  border-radius:999px;padding:4px 12px 4px 6px;font-size:13px;font-weight:600}
-.chip-eq .icone-eq{width:24px;height:24px}
-.chip-eq:has(.icone-eq){padding-left:6px}
-.chip-eq:not(:has(.icone-eq)){padding-left:12px}
+.chip-eq{display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--line);
+  border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600}
 /* Foto do exercício que o utilizador junta ao boneco */
 .foto-exercicio{display:block;width:100%;margin-top:10px;border-radius:var(--radius);border:1px solid var(--line)}
 .def-grupo{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-dim);
