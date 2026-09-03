@@ -688,6 +688,10 @@ line.an-osso.an-ativo{stroke-width:8}
 .ia-ex--toca::after{content:'›';padding-left:6px;color:var(--txt-dim);font-size:20px;align-self:center;line-height:1}
 .ia-ex--toca .prescricao{align-self:center}
 .ia-ex--toca:active{opacity:.6}
+/* Onde vai o programa de várias semanas */
+.barra-semanas{margin-top:12px}
+.barra-semanas .barra{height:6px;border-radius:3px;background:var(--bg-elev-2);overflow:hidden;margin-top:6px}
+.barra-semanas .barra i{display:block;height:100%;background:var(--accent-med);border-radius:3px}
 .chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip-eq{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);
   border-radius:999px;padding:4px 12px 4px 6px;font-size:13px;font-weight:600}

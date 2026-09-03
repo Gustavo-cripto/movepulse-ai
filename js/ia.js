@@ -66,13 +66,15 @@ const ESQUEMA_PLANO = {
       properties:{
         nome:{ type:'string' },
         resumo:{ type:'string' },
+        duracao_semanas:{ type:'integer', minimum:2, maximum:12,
+          description:'Quantas semanas dura o programa.' },
         treinos:{
           type:'array',
           items:{
             type:'object',
             properties:{
               nome:{ type:'string', description:'Ex.: "A — Peito e Tríceps"' },
-              dia:{ type:'string', enum: NOMES_DIA, description:'Dia da semana deste treino.' },
+              letra:{ type:'string', description:'Identificador curto do treino, ex.: "A".' },
               foco:{ type:'string' },
               exercicios:{
                 type:'array',
@@ -92,12 +94,37 @@ const ESQUEMA_PLANO = {
                 },
               },
             },
-            required:['nome','dia','foco','exercicios'],
+            required:['nome','letra','foco','exercicios'],
+            additionalProperties:false,
+          },
+        },
+        calendario:{
+          type:'array',
+          description:'Uma entrada por semana, da primeira à última.',
+          items:{
+            type:'object',
+            properties:{
+              semana:{ type:'integer', minimum:1, maximum:12 },
+              foco:{ type:'string', description:'O que muda nesta semana, em poucas palavras.' },
+              dias:{
+                type:'array',
+                items:{
+                  type:'object',
+                  properties:{
+                    dia:{ type:'string', enum: NOMES_DIA },
+                    treino:{ type:'string', description:'A letra do treino a fazer nesse dia.' },
+                  },
+                  required:['dia','treino'],
+                  additionalProperties:false,
+                },
+              },
+            },
+            required:['semana','foco','dias'],
             additionalProperties:false,
           },
         },
       },
-      required:['nome','resumo','treinos'],
+      required:['nome','resumo','duracao_semanas','treinos','calendario'],
       additionalProperties:false,
     },
     progressao:{ type:'string', description:'Como evoluir cargas e volume nas próximas semanas.' },
@@ -120,7 +147,15 @@ Regras:
 - Ajusta séries, repetições e descanso ao objetivo e à experiência do cliente.
 - Tem em conta as limitações/lesões indicadas e evita exercícios que as agravem; explica a
   substituição no campo "nota" do exercício.
-- Cada treino tem de indicar em "dia" um dos dias que o cliente escolheu, sem repetir dias.
+- Montas um PROGRAMA de várias semanas, não uma semana solta:
+  * "treinos" traz os treinos distintos, cada um com a sua letra (A, B, C, D...);
+  * "calendario" diz, semana a semana, que treino se faz em cada dia escolhido;
+  * um treino pode repetir-se em várias semanas — é assim que se progride;
+  * ao longo do programa introduz treinos novos, para variar os estímulos e não
+    fazer sempre o mesmo: as primeiras semanas assentam a técnica, as seguintes
+    trazem variantes ou mais volume.
+- Usa apenas os dias que o cliente escolheu, sem repetir dias dentro da mesma semana.
+- O "calendario" tem de ter exatamente "duracao_semanas" entradas, numeradas de 1 em diante.
 - Escreve em português de Portugal, com nomes de exercícios usados em ginásio.
 - Quando forem indicados grupos a priorizar, dá-lhes mais volume (séries) do que aos restantes,
   sem deixar o corpo desequilibrado: mantém pelo menos um exercício para os grandes grupos que
@@ -161,7 +196,10 @@ Perfil do cliente:
 - Limitações/lesões: ${perfil.limitacoes || 'nenhuma indicada'}
 - Notas: ${perfil.notas || '—'}
 
-Monta o plano com exatamente ${perfil.diasSemana.length} treinos por semana, um para cada dia indicado.` });
+Monta um programa de ${cfg.semanas || 6} semanas, com ${perfil.diasSemana.length} treinos por semana,
+um em cada dia indicado. Cria entre ${Math.max(3, perfil.diasSemana.length)} e ${
+  Math.max(4, perfil.diasSemana.length * 2)} treinos distintos: repete-os ao longo das semanas e vai
+introduzindo os novos a meio do programa.` });
 
   return {
     model: IA.MODELO,
@@ -319,13 +357,15 @@ function importarPlano(plano){
   Store.removerFichasDaIA();
 
   const criadas = [];
-  plano.treinos.forEach(treino => {
+  plano.treinos.forEach((treino, i) => {
     const ficha = {
       id: uid('t'),
       origem: 'ia',
+      letra: treino.letra || LETRAS_TREINO[i] || String(i + 1),
       nome: treino.nome,
       notas: treino.foco || 'Plano IA',
-      // o dia indicado pela IA; se faltar, tenta lê-lo do nome do treino
+      // dia fixo só nos planos antigos, de uma semana; nos programas
+      // quem manda é o calendário.
       dia: treino.dia ? diaParaNumero(treino.dia) : diaNoTexto(treino.nome),
       itens: treino.exercicios.map(ex => ({
         exId: resolverExercicio(ex).id,
@@ -337,7 +377,49 @@ function importarPlano(plano){
     Store.salvarTreino(ficha);
     criadas.push(ficha);
   });
+
+  guardarCalendario(plano, criadas);
   return criadas;
+}
+
+/** Converte o calendário do programa em semanas de fichas, para o app usar. */
+function guardarCalendario(plano, fichas){
+  const ordenadas = (plano.calendario || [])
+    .slice()
+    .sort((a, b) => (a.semana || 0) - (b.semana || 0));
+
+  const semanas = ordenadas
+    .map(sem => {
+      const mapa = { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null };
+      (sem.dias || []).forEach(({ dia, treino }) => {
+        const d = diaParaNumero(dia);
+        const ficha = fichaPorReferencia(treino, fichas);
+        if (d !== null && ficha) mapa[d] = ficha.id;
+      });
+      return mapa;
+    })
+    .filter(mapa => Object.values(mapa).some(Boolean));
+
+  Store.guardarProgramaIA(semanas, plano.nome, ordenadas.map(sem => sem.foco || ''));
+  return semanas;
+}
+
+/** Encontra a ficha a que o calendário se refere: pela letra ou pelo nome. */
+function fichaPorReferencia(referencia, fichas){
+  const t = normalizar(String(referencia || ''));
+  if (!t) return null;
+
+  const porLetra = fichas.find(f => normalizar(f.letra || '') === t);
+  if (porLetra) return porLetra;
+
+  const porNome = fichas.find(f => normalizar(f.nome) === t);
+  if (porNome) return porNome;
+
+  // "A" dentro de "A — Peito e Tríceps", ou o nome escrito por extenso
+  return fichas.find(f => {
+    const nome = normalizar(f.nome);
+    return nome.startsWith(t + ' ') || nome === t || nome.includes(t);
+  }) || null;
 }
 
 

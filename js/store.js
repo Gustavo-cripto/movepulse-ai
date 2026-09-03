@@ -22,11 +22,16 @@ const ESTADO_PADRAO = {
   pesos: [],                            // {data, kg} ao longo do tempo
   planoIA: null,                        // último plano gerado pela IA
   programa: { 0:null, 1:null, 2:null, 3:null, 4:null, 5:null, 6:null },  // domingo a sábado
+  // Programa de várias semanas gerado pela IA. Enquanto está a decorrer, é ele
+  // que manda no calendário; fora do seu intervalo volta a valer o programa
+  // semanal acima. { inicio, nome, semanas:[{0..6: fichaId}] }
+  programaIA: null,
   planoConfig: {
     local:'Ginásio', tipo:'Força e hipertrofia', duracao:'60',
     foco:'Corpo inteiro', intensidade:'Moderada', superseries:false,
     musculos:[],                         // grupos a dar prioridade; vazio = equilibrado
     equipamento:[],                      // ids do catálogo; vazio = tudo
+    semanas: 6,                          // quantas semanas dura o programa gerado
   },
   perfil: {
     nome:'', idade:'', altura:'', peso:'', sexo:'', pesoObjetivo:'',
@@ -47,6 +52,7 @@ function carregar(){
     const base = JSON.parse(JSON.stringify(ESTADO_PADRAO));
     return { ...base, ...salvo,
       programa: { ...base.programa, ...salvo.programa },
+      programaIA: salvo.programaIA || null,
       perfil: { ...base.perfil, ...salvo.perfil },
       conversa: salvo.conversa || [],
       pesos: salvo.pesos || [],
@@ -117,6 +123,7 @@ const Store = {
     Object.keys(estado.programa).forEach(d => {
       if (antigas.includes(estado.programa[d])) estado.programa[d] = null;
     });
+    estado.programaIA = null;
     salvar();
   },
 
@@ -237,12 +244,39 @@ const Store = {
   sessoesDoDia(chave){
     return estado.sessoes.filter(s => chaveDia(new Date(s.fim)) === chave);
   },
-  treinoDoDia(diaSemana){
-    const id = estado.programa[diaSemana];
+  /** Em que semana do programa cai esta data, ou null se estiver fora dele. */
+  semanaDoPrograma(data = new Date()){
+    const pr = estado.programaIA;
+    if (!pr?.semanas?.length) return null;
+    const passadas = Math.floor((inicioDaSemana(data) - pr.inicio) / 604800000);
+    return passadas >= 0 && passadas < pr.semanas.length ? passadas : null;
+  },
+
+  /** A ficha marcada para uma data, seguindo o programa quando está a decorrer. */
+  treinoDaData(data){
+    const semana = Store.semanaDoPrograma(data);
+    const mapa = semana === null ? estado.programa : estado.programaIA.semanas[semana];
+    const id = mapa?.[data.getDay()];
     return id ? Store.treino(id) : null;
   },
+
+  treinoDoDia(diaSemana){
+    return Store.treinoDaData(dataDoDiaNaSemana(diaSemana));
+  },
+
+  /** Edita o que está à vista: a semana do programa, se houver, senão a base. */
   definirDia(diaSemana, treinoId){
-    estado.programa[diaSemana] = treinoId || null;
+    const semana = Store.semanaDoPrograma(new Date());
+    if (semana === null) estado.programa[diaSemana] = treinoId || null;
+    else estado.programaIA.semanas[semana][diaSemana] = treinoId || null;
+    salvar();
+  },
+
+  /** Guarda o programa que veio da IA, a começar na semana em curso. */
+  guardarProgramaIA(semanas, nome, focos = []){
+    estado.programaIA = semanas?.length
+      ? { inicio: +inicioDaSemana(new Date()), nome: nome || 'Programa', semanas, focos }
+      : null;
     salvar();
   },
 
@@ -268,6 +302,21 @@ function num(v){
   const n = parseFloat(String(v).replace(',', '.'));
   return isFinite(n) ? n : 0;
 }
+/** Segunda-feira da semana a que a data pertence, às 00:00. */
+function inicioDaSemana(data){
+  const d = new Date(data);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - (d.getDay() + 6) % 7);   // 0 = domingo → recua 6
+  return d;
+}
+
+/** A data em que cai um dia da semana (0 = domingo) na semana da referência. */
+function dataDoDiaNaSemana(diaSemana, referencia = new Date()){
+  const d = inicioDaSemana(referencia);
+  d.setDate(d.getDate() + (diaSemana + 6) % 7);
+  return d;
+}
+
 function volumeSessao(sessao){
   return sessao.exercicios.reduce((tot, ex) =>
     tot + ex.series.reduce((t, se) => t + num(se.reps) * num(se.carga), 0), 0);

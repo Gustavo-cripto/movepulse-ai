@@ -5,6 +5,8 @@ const GRUPOS = ['Peito','Costas','Pernas','Ombros','Bíceps','Tríceps','Abdóme
 
 /* Dias da semana, com domingo em 0 — como no getDay() do JavaScript. */
 const LETRAS_DIA = ['D','S','T','Q','Q','S','S'];
+// Como se chamam os treinos de um programa, quando a IA não lhes dá letra.
+const LETRAS_TREINO = ['A','B','C','D','E','F','G','H'];
 const NOMES_DIA = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 
 const EXERCICIOS_BASE = [

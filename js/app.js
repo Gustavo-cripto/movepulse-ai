@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 54;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 55;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -64,6 +64,7 @@ function renderHoje(){
 
 /** Quantos treinos planeados para esta semana já foram feitos. */
 function renderPlanoSemana(){
+  const prog = resumoPrograma();
   const hoje = new Date();
   const segunda = new Date(hoje);
   segunda.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7));
@@ -73,7 +74,7 @@ function renderPlanoSemana(){
   for (let i = 0; i < 7; i++){
     const d = new Date(segunda);
     d.setDate(segunda.getDate() + i);
-    if (Store.treinoDoDia(d.getDay())) planeados++;
+    if (Store.treinoDaData(d)) planeados++;
     if (treinados.has(chaveDia(d))) feitos++;
   }
   const pct = planeados ? Math.min(100, Math.round((feitos / planeados) * 100)) : 0;
@@ -82,7 +83,8 @@ function renderPlanoSemana(){
     <div class="item">
       <div>
         <h3 style="font-size:15px">Progresso semanal</h3>
-        <p class="item__meta">${planeados ? `${feitos} de ${planeados} treinos planeados` : 'Ainda não planeaste a semana'}</p>
+        <p class="item__meta">${planeados ? `${feitos} de ${planeados} treinos planeados` : 'Ainda não planeaste a semana'}${
+          prog ? ` · semana ${prog.semana} de ${prog.total}` : ''}</p>
       </div>
       <strong style="font-size:20px">${pct}%</strong>
     </div>
@@ -140,7 +142,7 @@ async function preencherMiniaturas(ficha){
 function renderCartaoHoje(){
   const hoje = new Date();
   const chave = chaveDia(hoje);
-  const ficha = Store.treinoDoDia(hoje.getDay());
+  const ficha = Store.treinoDaData(hoje);
   const feitasHoje = Store.sessoesDoDia(chave);
 
   if (feitasHoje.length){
@@ -210,7 +212,7 @@ function renderSemana(){
     const d = new Date(segunda);
     d.setDate(segunda.getDate() + i);
     const chave = chaveDia(d);
-    const ficha = Store.treinoDoDia(d.getDay());
+    const ficha = Store.treinoDaData(d);
     const feito = treinados.has(chave);
     const eHoje = chave === chaveDia(hoje);
     return `<button class="dia ${ficha ? 'tem-plano' : ''} ${feito ? 'feito' : ''} ${eHoje ? 'hoje' : ''}"
@@ -227,14 +229,22 @@ function editorPrograma(){
     .concat(Store.estado.treinos.map(t =>
       `<option value="${t.id}" ${id === t.id ? 'selected' : ''}>${esc(t.nome)}</option>`)).join('');
 
+  const prog = resumoPrograma();
+  const semanaAtual = Store.semanaDoPrograma(new Date());
+  const mapa = semanaAtual === null
+    ? Store.estado.programa
+    : Store.estado.programaIA.semanas[semanaAtual];
+
   Modal.abrir({
-    titulo: 'Planear a semana',
+    titulo: prog ? `Semana ${prog.semana} de ${prog.total}` : 'Planear a semana',
     corpo: NOMES_DIA.map((nome, i) => `
       <div class="field">
         <label class="label" for="dia${i}">${nome}</label>
-        <select class="input" id="dia${i}" data-dia-sel="${i}">${opcoes(Store.estado.programa[i])}</select>
+        <select class="input" id="dia${i}" data-dia-sel="${i}">${opcoes(mapa[i])}</select>
       </div>`).join('') +
-      '<p class="item__meta">Repete-se todas as semanas. Podes começar qualquer treino fora do plano na mesma.</p>',
+      `<p class="item__meta">${prog
+        ? 'Estás a mexer só nesta semana do programa. As outras semanas ficam como estão.'
+        : 'Repete-se todas as semanas. Podes começar qualquer treino fora do plano na mesma.'}</p>`,
     acoes: [
       { texto:'Fechar', onClick: Modal.fechar },
       { texto:'Guardar', classe:'btn--primary', onClick(){
@@ -564,9 +574,9 @@ function renderTreinos(){
 /** O que aconteceu (ou vai acontecer) num dia do calendário. */
 function abrirDia(chave, diaSemana){
   const sessoes = Store.sessoesDoDia(chave);
-  const ficha = Store.treinoDoDia(diaSemana);
   const [ano, mes, dia] = chave.split('-').map(Number);
   const data = new Date(ano, mes - 1, dia);
+  const ficha = Store.treinoDaData(data);
   const titulo = data.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
 
   if (sessoes.length === 1) return detalheSessao(sessoes[0].id);
@@ -1088,7 +1098,7 @@ function renderMes(){
     const data = new Date(ano, mes, d);
     const chave = chaveDia(data);
     const treinou = treinados.has(chave);
-    const planeado = !!Store.treinoDoDia(data.getDay());
+    const planeado = !!Store.treinoDaData(data);
     if (treinou) treinosNoMes++;
     celulas.push(`<button class="mes__dia ${treinou ? 'treinou' : ''} ${chave === hoje ? 'hoje' : ''}"
       data-dia-mes="${chave}" data-dia-semana="${data.getDay()}">${d}${
@@ -1255,9 +1265,25 @@ function renderPerfil(){
   const perfil = Store.estado.perfil;
   $$('[data-perfil]').forEach(campo => { campo.value = perfil[campo.dataset.perfil] ?? ''; });
   renderDiasTreino();
+  renderDistanciaObjetivo();
   renderPeso();
   renderComposicao();
   renderImc();
+}
+
+/** Quanto falta para o peso que a pessoa quer alcançar. */
+function renderDistanciaObjetivo(){
+  const alvo = $('#perfilDistanciaObjetivo');
+  if (!alvo) return;
+  const p = Store.estado.perfil;
+  const atual = num(p.peso), objetivo = num(p.pesoObjetivo);
+  if (!atual || !objetivo) return (alvo.textContent = '');
+
+  const diferenca = Math.round((objetivo - atual) * 10) / 10;
+  if (Math.abs(diferenca) < 0.1) return (alvo.textContent = 'Estás no peso que querias. 🎯');
+  alvo.textContent = diferenca < 0
+    ? `Faltam ${fmtPeso(Math.abs(diferenca))} kg para chegares ao teu objetivo.`
+    : `Faltam ${fmtPeso(diferenca)} kg para ganhares até ao teu objetivo.`;
 }
 
 function registarPesoHoje(){
@@ -1469,6 +1495,23 @@ function renderMusculosPlano(){
 }
 
 /** Cartão do plano em vigor, com os treinos em carrossel. */
+/** Em que ponto vai o programa de várias semanas, se houver um a decorrer. */
+function resumoPrograma(){
+  const pr = Store.estado.programaIA;
+  const semana = Store.semanaDoPrograma(new Date());
+  if (!pr || semana === null) return null;
+  return { nome: pr.nome, semana: semana + 1, total: pr.semanas.length, foco: pr.focos?.[semana] || '' };
+}
+
+/** O dia em que uma ficha cai na semana em curso, ou null se não cair nenhum. */
+function diaDaFichaEstaSemana(fichaId){
+  const semana = Store.semanaDoPrograma(new Date());
+  const mapa = semana === null
+    ? Store.estado.programa
+    : Store.estado.programaIA.semanas[semana];
+  return [0,1,2,3,4,5,6].find(d => mapa?.[d] === fichaId) ?? null;
+}
+
 function renderPlanoAtual(){
   const plano = Store.estado.planoIA;
   if (!plano){
@@ -1479,6 +1522,7 @@ function renderPlanoAtual(){
   const cfg = Store.estado.planoConfig;
   const perfil = Store.estado.perfil;
   const treinados = Store.diasTreinados();
+  const prog = resumoPrograma();
   const hoje = new Date();
   const chaveHoje = chaveDia(hoje);
 
@@ -1489,9 +1533,7 @@ function renderPlanoAtual(){
     const ficha = fichas[n];
     // o dia verdadeiro é o do calendário, não o que a IA escreveu:
     // se dois treinos calharem no mesmo dia, um deles foi para outro sítio
-    const dia = ficha
-      ? [0,1,2,3,4,5,6].find(d => Store.estado.programa[d] === ficha.id) ?? null
-      : null;
+    const dia = ficha ? diaDaFichaEstaSemana(ficha.id) : null;
     const feitoHoje = dia === hoje.getDay() && treinados.has(chaveHoje);
     const eHoje = dia === hoje.getDay();
     const grupos = ficha ? gruposDaFicha(ficha) : [...new Set(treino.exercicios.map(e => e.grupo))];
@@ -1501,9 +1543,10 @@ function renderPlanoAtual(){
     return `<article class="treino-cartao ${eHoje ? 'is-hoje' : ''}">
       <div class="treino-topo">
         <span class="selo ${feitoHoje ? 'selo--feito' : eHoje ? 'selo--hoje' : ''}">
-          ${feitoHoje ? 'Concluído' : eHoje ? 'Hoje' : 'Planeado'}
+          ${feitoHoje ? 'Concluído' : eHoje ? 'Hoje' : dia !== null ? 'Planeado' : 'Mais à frente'}
         </span>
-        <span class="item__meta">${dia !== null ? esc(NOMES_DIA[dia]) : 'sem dia'}</span>
+        <span class="item__meta">${dia !== null ? esc(NOMES_DIA[dia])
+          : resumoPrograma() ? 'noutra semana' : 'sem dia'}</span>
       </div>
 
       <h3>${esc(treino.nome)}</h3>
@@ -1538,11 +1581,17 @@ function renderPlanoAtual(){
       <h3 style="margin-top:6px">${esc(plano.plano.nome)}</h3>
       <p class="item__meta" style="margin-top:4px">${esc(plano.plano.resumo)}</p>
       <div class="ia-lista" style="margin-top:10px">
-        <span class="tag">${plano.plano.treinos.length} treinos/semana</span>
+        <span class="tag">${plano.plano.treinos.length} treinos diferentes</span>
+        ${prog ? `<span class="tag">${prog.total} semanas</span>` : ''}
         <span class="tag">${esc(cfg.local)}</span>
         <span class="tag">${esc(cfg.duracao)} min</span>
         <span class="tag">${esc(perfil.experiencia)}</span>
       </div>
+      ${prog ? `<div class="barra-semanas">
+        <p class="item__meta">Semana <b>${prog.semana}</b> de ${prog.total}${
+          prog.foco ? ` · ${esc(prog.foco)}` : ''}</p>
+        <div class="barra"><i style="width:${Math.round(prog.semana / prog.total * 100)}%"></i></div>
+      </div>` : ''}
     </div>
 
     <div class="carrossel" id="carrosselTreinos">${cartoes}</div>
@@ -1812,6 +1861,9 @@ function mostrarPlano(plano, antigo){
  */
 function espalharPelaSemana(fichas){
   if (!fichas.length) return;
+  // Se o plano trouxe um programa de várias semanas, o calendário dele já
+  // marcou os dias: mexer aqui só ia estragar a primeira semana.
+  if (Store.estado.programaIA) return;
 
   const mapas = { 1:[1], 2:[1,4], 3:[1,3,5], 4:[1,2,4,5], 5:[1,2,3,4,5], 6:[1,2,3,4,5,6] };
   const doPerfil = Store.estado.perfil.diasSemana.length
@@ -2306,6 +2358,10 @@ function ligarEventos(){
     Store.guardarPerfil(campo, e.target.value);
     if (campo === 'altura' || campo === 'peso') renderImc();
     if (campo === 'nome') renderSaudacao();
+    if (campo === 'peso' || campo === 'pesoObjetivo'){
+      renderDistanciaObjetivo();
+      renderComposicao();
+    }
   });
   $op('#diasEscolha').onclick = e => {
     const b = e.target.closest('[data-dia-treino]');
@@ -2384,6 +2440,8 @@ function ligarEventos(){
       // o descanso é usado pelo cronómetro, por isso vive nas definições do treino
       Store.estado.config.descanso = +pastilha.dataset.valor;
       Store.salvar();
+    } else if (campo === 'semanas'){
+      Store.guardarPlanoConfig(campo, +pastilha.dataset.valor);
     } else {
       Store.guardarPlanoConfig(campo, pastilha.dataset.valor);
     }
