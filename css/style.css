@@ -458,6 +458,8 @@ h3{font-size:19px;font-weight:600}
 .icone-eq{width:34px;height:34px;display:block}
 /* desenho da máquina em tamanho pequeno: linha branca, invertida no tema claro */
 .equip-desenho-mini{width:100%;height:100%;object-fit:contain;padding:3px;filter:invert(1)}
+/* quando é o nosso desenho (sem par na biblioteca), enche a caixa na mesma */
+.equip-item__icone .icone-eq{width:80%;height:80%}
 :root[data-tema="escuro"] .equip-desenho-mini,
 :root[data-tema="auto"].sistema-escuro .equip-desenho-mini{filter:none}
 .eq-esc{fill:#39424e}        /* estrutura e borracha */

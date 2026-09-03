@@ -169,7 +169,7 @@ const FIGURA_EQUIPAMENTO = {
   'm-peck':'pec-deck', 'm-supino':'machine-chest-press', 'm-ombros':'machine-shoulder-press',
   'm-puxada':'lat-pulldown', 'm-remada':'machine-row', 'm-abdutora':'hip-abduction-machine',
   'm-gemeos':'seated-calf-raise', 'm-gluteos':'machine-glute-kickback',
-  'm-abdominal':'cable-crunch', 'm-multi':'assisted-pull-up', 'banco':'dumbbell-bench-press',
+  'm-abdominal':'cable-crunch', 'banco':'dumbbell-bench-press',
   'banco-incl':'incline-dumbbell-press', 'rack':'squat', 'barra-fixa':'pull-up',
   'paralelas':'dip', 'espaldar':'captains-chair-knee-raise', 'elasticos':'band-pull-apart',
   'trx':'inverted-row', 'corda':'jump-rope', 'bola':'stability-ball-hamstring-curl',
