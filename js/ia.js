@@ -212,7 +212,7 @@ introduzindo os novos a meio do programa.` });
 }
 
 /** Envia o pedido pelo modo configurado e devolve o objeto do plano. */
-async function pedirPlano(perfil, fotos){
+async function pedirPlano(perfil, fotos, jaTentou = false){
   try {
     return await pedirPlanoInterno(perfil, fotos);
   } catch (e) {
@@ -220,7 +220,15 @@ async function pedirPlano(perfil, fotos){
       throw new Error('Demorou demasiado tempo. Tenta com menos fotos.');
     }
     if (e instanceof TypeError){
-      throw new Error('Não consegui contactar o servidor. Verifica a ligação e o endereço em ⚙️.');
+      // A ligação caiu a meio. Acontece no telemóvel quando o ecrã bloqueia
+      // ou se sai da app: o pedido morre. Vale sempre a pena tentar de novo.
+      if (!jaTentou){
+        await new Promise(ok => setTimeout(ok, 1500));
+        return pedirPlano(perfil, fotos, true);
+      }
+      throw new Error(navigator.onLine
+        ? 'A ligação caiu a meio do pedido. Se saíres da app ou o ecrã bloquear, o telemóvel corta o pedido — deixa a app aberta e tenta outra vez.'
+        : 'Estás sem ligação à internet. O plano precisa de rede para ser gerado.');
     }
     throw e;
   }

@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 55;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 56;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1752,8 +1752,10 @@ async function gerarPlano(){
 
   aGerarPlano = true;
   $('#btnGerarPlano').disabled = true;
+  const soltarEcra = await manterEcraAceso();
   $('#iaEstado').innerHTML = `<span class="a-carregar"></span>${fotosGinasio.length
-    ? 'A analisar as fotos e a montar o plano…' : 'A montar o plano…'} pode demorar um minuto.`;
+    ? 'A analisar as fotos e a montar o plano…' : 'A montar o plano…'} demora meio minuto.
+    <br><small>Deixa a app aberta até ao fim.</small>`;
   $('#iaResultado').innerHTML = '';
 
   try {
@@ -1788,6 +1790,19 @@ async function gerarPlano(){
   } finally {
     aGerarPlano = false;
     $('#btnGerarPlano').disabled = false;
+    soltarEcra();
+  }
+}
+
+/** Impede o ecrã de bloquear enquanto se espera pela IA: no telemóvel, um
+    ecrã que adormece corta o pedido a meio. Devolve a função que o liberta. */
+async function manterEcraAceso(){
+  if (!navigator.wakeLock?.request) return () => {};
+  try {
+    const trava = await navigator.wakeLock.request('screen');
+    return () => trava.release().catch(() => {});
+  } catch {
+    return () => {};
   }
 }
 
