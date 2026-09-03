@@ -30,7 +30,7 @@ const NVIDIA = {
   url: 'https://integrate.api.nvidia.com/v1/chat/completions',
   listaModelos: 'https://integrate.api.nvidia.com/v1/models',
   modeloPadrao: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',   // etapa 1: ler fotos
-  modeloTexto: 'openai/gpt-oss-120b',                // etapa 2: escrever o plano
+  modeloTexto: 'nvidia/nemotron-3-super-120b-a12b',                // etapa 2: escrever o plano
   maxImagens: 5,                      // limite por omissão dos NIM de visão
 };
 
@@ -43,7 +43,10 @@ export default {
 
     // Diagnóstico: que provedor está ativo e que modelos existem.
     if (pedido.method === 'GET') {
-      if (url.pathname === '/modelos') return listarModelos(env, origem);
+      if (url.pathname === '/modelos'){
+        const testar = url.searchParams.get('testar');
+        return testar ? testarModelo(env, testar, origem) : listarModelos(env, origem);
+      }
       return json({ provedor: provedor(env), modelo: modeloAtivo(env) }, 200, origem);
     }
 
@@ -65,7 +68,7 @@ export default {
     if (problema) return erro(400, problema, origem);
 
     return provedor(env) === 'nvidia'
-      ? viaNvidia(corpo, env, origem, url.searchParams.get('diagnostico') === '1')
+      ? viaNvidia(corpo, env, origem, url.searchParams.get('diagnostico') || '')
       : viaAnthropic(corpo, env, origem);
   },
 };
@@ -101,7 +104,8 @@ async function viaAnthropic(corpo, env, origem){
    1. cada foto é analisada em paralelo por um modelo de visão (saída curta);
    2. um modelo de texto recebe a lista de equipamento e escreve o plano.
    ------------------------------------------------ */
-async function viaNvidia(corpo, env, origem, diagnostico = false){
+/** diagnostico: '1' mostra o que as fotos deram, '2' mostra o texto cru do plano. */
+async function viaNvidia(corpo, env, origem, diagnostico = ''){
   if (!env.NVIDIA_API_KEY) return erro(500, 'Falta configurar NVIDIA_API_KEY no servidor.', origem);
 
   const blocos = corpo.messages[0].content;
@@ -121,7 +125,7 @@ async function viaNvidia(corpo, env, origem, diagnostico = false){
     }));
     equipamentos = juntarEquipamentos(leituras);
 
-    if (diagnostico) return json({ fotos: fotos.length, leituras, equipamentos }, 200, origem);
+    if (diagnostico === '1') return json({ fotos: fotos.length, leituras, equipamentos }, 200, origem);
 
     if (!equipamentos.length){
       return erro(502, 'Não consegui identificar equipamento nas fotos. Tenta fotos mais próximas e com a chapa do nome visível.', origem);
@@ -137,11 +141,22 @@ ${equipamentos.map(e => `- ${e.nome} (${e.grupo}, confiança ${e.confianca})`).j
     : `Não há fotografias neste pedido. O equipamento disponível vem indicado na mensagem do
 utilizador. Trabalha com essa lista e não peças imagens.`;
 
-  const sistema = `${corpo.system || ''}
-
+  // O contexto vem primeiro e as regras da app depois: algumas dessas regras
+  // falam de "ver nas fotos", e um modelo literal, sem fotos à frente, concluía
+  // que não conseguia identificar nada e devolvia a resposta sem plano.
+  const sistema = `A tua tarefa nesta etapa é ESCREVER O PLANO DE TREINO. Não analisas imagens:
 ${contexto}
 
-Usa apenas este equipamento e peso corporal. Repete a lista no campo "equipamentos" da resposta.
+Regras do cliente (as partes sobre observar fotografias já foram cumpridas na etapa anterior):
+${corpo.system || ''}
+
+Obrigatório, mesmo que a lista de equipamento seja curta ou vazia:
+- Preenche "equipamentos" com a lista dada acima, tal como está.
+- Escreve sempre o plano completo em "plano", com um treino para cada dia pedido.
+- Nunca respondas que não conseguiste identificar equipamento: com pouco equipamento,
+  completa o plano com exercícios de peso corporal.
+
+Usa apenas este equipamento e peso corporal.
 
 Escreve TUDO em português de Portugal, incluindo os nomes dos treinos e dos exercícios.
 Nunca uses inglês: diz "corpo inteiro" (não "full body"), "levantamento terra" (não "deadlift"),
@@ -155,11 +170,18 @@ ${JSON.stringify(esquema)}`;
 
   const pedidoTexto = {
     model: env.MODELO_TEXTO || NVIDIA.modeloTexto,
-    max_tokens: 8000,
-    temperature: 0.3,
-    // Extensão da NVIDIA: obriga a saída a seguir o esquema. Onde não for
-    // suportada é ignorada, e fica a instrução no texto como rede.
-    ...(esquema ? { nvext: { guided_json: esquema } } : {}),
+    max_tokens: 9000,
+    temperature: 0.2,
+    // Obriga a saída a seguir o esquema, e limita o raciocínio (sem isso os
+    // nemotron gastam minutos a "pensar"). Vai primeiro a extensão da NVIDIA,
+    // porque é a que os modelos deste catálogo respeitam: há modelos que
+    // aceitam o response_format padrão e depois o ignoram em silêncio, e a
+    // resposta vem sem o plano. Se algum recusar a extensão, o chamarNvidia
+    // troca sozinho para o formato padrão.
+    nvext: {
+      max_thinking_tokens: 600,
+      ...(esquema ? { guided_json: esquema } : {}),
+    },
     messages: [
       { role:'system', content: sistema },
       { role:'user', content: perfil },
@@ -169,7 +191,10 @@ ${JSON.stringify(esquema)}`;
   let resposta = await chamarNvidia(env, pedidoTexto);
   if (resposta.erro) return erro(resposta.estado || 502, resposta.erro, origem);
 
-  let limpo = extrairJson(resposta.texto);
+  // O que se exige da resposta vem do esquema do pedido, não de uma lista fixa:
+  // há pedidos (só detetar equipamento) que não pedem plano nenhum.
+  const chavesObrigatorias = Array.isArray(esquema?.required) ? esquema.required : [];
+  let limpo = extrairJson(resposta.texto, chavesObrigatorias);
 
   // Uma segunda tentativa, mais insistente, antes de desistir.
   if (!limpo){
@@ -185,10 +210,11 @@ ${JSON.stringify(esquema)}`;
       ],
     });
     if (resposta.erro) return erro(resposta.estado || 502, resposta.erro, origem);
-    limpo = extrairJson(resposta.texto);
+    limpo = extrairJson(resposta.texto, chavesObrigatorias);
   }
 
-  if (diagnostico) return json({ bruto: String(resposta.texto).slice(0, 1500), conseguiuJson: !!limpo }, 200, origem);
+  if (diagnostico === '2') return json({ tamanho: String(resposta.texto).length,
+    fim: String(resposta.texto).slice(-600), conseguiuJson: !!limpo }, 200, origem);
 
   if (!limpo){
     return erro(502, `O modelo não devolveu JSON utilizável. Início da resposta: ${
@@ -272,6 +298,14 @@ async function chamarNvidia(env, pedido, tentativa = 0){
   }
 
   const bruto = await r.text();
+
+  // Modelos antigos não conhecem "response_format" e os novos não conhecem
+  // "nvext.guided_json". Ao primeiro 400 por causa disso, troca e repete.
+  if (r.status === 400 && tentativa < 2){
+    const alternativo = ajustarPedido(pedido, bruto);
+    if (alternativo) return chamarNvidia(env, alternativo, tentativa + 1);
+  }
+
   if (!r.ok) return { erro:`NVIDIA ${r.status}: ${bruto.slice(0, 200)}`, estado: r.status };
   try {
     const texto = JSON.parse(bruto).choices?.[0]?.message?.content;
@@ -283,15 +317,51 @@ async function chamarNvidia(env, pedido, tentativa = 0){
   }
 }
 
+/** Adapta o pedido quando o modelo recusa um campo que lhe mandámos.
+    Cada família de modelos aceita campos diferentes; em vez de manter uma
+    lista por modelo, aprende-se com o próprio erro. */
+function ajustarPedido(pedido, erroBruto){
+  const m = String(erroBruto).toLowerCase();
+
+  // Extensões da NVIDIA que este modelo não conhece: se são o motivo, tira-as.
+  if (pedido.nvext && (m.includes('max_thinking_tokens') || m.includes('unknown field'))
+      && !m.includes('guided_json')){
+    const { nvext, ...resto } = pedido;
+    return resto;
+  }
+
+  const recusaFormato = m.includes('response_format') || m.includes('guided_json') || m.includes('json_schema');
+  if (!recusaFormato) return null;
+
+  if (pedido.response_format?.json_schema?.schema){
+    const { response_format, ...resto } = pedido;
+    return { ...resto, nvext: { ...pedido.nvext, guided_json: response_format.json_schema.schema } };
+  }
+  if (pedido.nvext?.guided_json){
+    const { guided_json, ...outros } = pedido.nvext;
+    return { ...pedido,
+      nvext: Object.keys(outros).length ? outros : undefined,
+      response_format: {
+        type:'json_schema',
+        json_schema: { name:'plano_de_treino', strict:true, schema: guided_json },
+      } };
+  }
+  return null;
+}
+
 /** Tira cercas de código e texto à volta, devolvendo só o objeto JSON. */
-function extrairJson(texto){
-  let t = String(texto || '')
+function extrairJson(texto, exigidas = []){
+  const t = String(texto || '')
     .replace(/<think>[\s\S]*?<\/think>/gi, '')   // raciocínio de alguns modelos
     .replace(/```(?:json)?/gi, '')
     .trim();
 
-  // Percorre à procura de um objeto com as chavetas equilibradas, ignorando
-  // as que aparecem dentro de texto entre aspas.
+  // Estes modelos escrevem exemplos em JSON enquanto raciocinam, por isso o
+  // primeiro bloco equilibrado não é necessariamente a resposta. Recolhem-se
+  // todos os candidatos e fica o que traz as chaves que pedimos — em empate,
+  // o mais completo.
+  let melhor = null, melhorNota = -1;
+
   for (let i = t.indexOf('{'); i >= 0; i = t.indexOf('{', i + 1)){
     let nivel = 0, emTexto = false, escapado = false;
     for (let j = i; j < t.length; j++){
@@ -303,11 +373,24 @@ function extrairJson(texto){
       if (c === '{') nivel++;
       else if (c === '}' && --nivel === 0){
         const candidato = t.slice(i, j + 1);
-        try { JSON.parse(candidato); return candidato; } catch { break; }
+        let obj;
+        try { obj = JSON.parse(candidato); } catch { break; }
+
+        const temTudo = exigidas.every(k => obj && obj[k] !== undefined);
+        const nota = (temTudo ? 1e9 : 0) + candidato.length;
+        if (nota > melhorNota){ melhorNota = nota; melhor = candidato; }
+
+        // Se já traz o que pedimos e engloba o resto, não vale a pena continuar.
+        if (temTudo && i === t.indexOf('{')) return candidato;
+        break;
       }
     }
   }
-  return null;
+
+  if (!melhor) return null;
+  if (!exigidas.length) return melhor;
+  const obj = JSON.parse(melhor);
+  return exigidas.every(k => obj[k] !== undefined) ? melhor : null;
 }
 
 async function listarModelos(env, origem){
@@ -319,6 +402,23 @@ async function listarModelos(env, origem){
   const dados = await r.json().catch(() => ({}));
   const ids = (dados.data || []).map(m => m.id).sort();
   return json({ total: ids.length, modelos: ids }, r.status, origem);
+}
+
+/** Diagnóstico: vê se um modelo do catálogo responde a esta conta, e em quanto tempo.
+    Pede 5 tokens, para custar praticamente nada mesmo que alguém abuse. */
+async function testarModelo(env, modelo, origem){
+  if (provedor(env) !== 'nvidia') return erro(400, 'Só se aplica ao provedor nvidia.', origem);
+  const inicio = Date.now();
+  const r = await chamarNvidia(env, {
+    model: modelo,
+    max_tokens: 5,
+    messages: [{ role:'user', content:'Responde só: ok' }],
+  });
+  return json({
+    modelo,
+    segundos: Math.round((Date.now() - inicio) / 100) / 10,
+    ...(r.erro ? { erro: r.erro, estado: r.estado } : { resposta: String(r.texto).slice(0, 40) }),
+  }, 200, origem);
 }
 
 const CONVERSA = { maxMensagens: 24, maxTexto: 2000, maxTokens: 900 };
@@ -357,6 +457,9 @@ async function conversa(corpo, env, origem){
       model: env.MODELO_TEXTO || NVIDIA.modeloTexto,
       max_tokens: CONVERSA.maxTokens,
       temperature: 0.6,
+      // Sem isto, os nemotron respondem com o raciocínio à frente
+      // ("Okay, the user is asking...") e é isso que a pessoa lê.
+      nvext: { max_thinking_tokens: 0 },
       messages: [{ role:'system', content: sistema }, ...corpo.messages],
     });
     if (r.erro) return erro(r.estado || 502, r.erro, origem);
