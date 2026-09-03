@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 53;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 54;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -352,7 +352,9 @@ function renderSessao(s){
       ${i < total - 1
         ? '<button class="btn btn--primary" id="exSeguinte">Seguinte ›</button>'
         : '<button class="btn btn--primary" id="exTerminar">Terminar treino</button>'}
-    </div>`;
+    </div>
+    <p class="item__meta" style="text-align:center;margin-top:8px">
+      desliza para o lado para mudar de exercício</p>`;
 
   $('#exComoFazer').onclick = () => comoFazer(item.exId);
   $('#exSubstituir').onclick = () => seletorExercicio(novo => {
@@ -433,17 +435,97 @@ function pararCrono(){
   if (!Store.estado.sessaoAtiva) $('#tabTreino').hidden = true;
 }
 
+/* ============================================================
+   Gestos do treino: deslizar entre exercícios e marcar a série
+   ============================================================ */
+/** Deslizar na horizontal passa ao exercício seguinte ou anterior. */
+function ligarDeslizeExercicios(){
+  const vista = $op('#view-treino');
+  if (!vista.addEventListener) return;
+  let x0 = null, y0 = null;
+
+  vista.addEventListener('touchstart', e => {
+    // a tira de miniaturas e os campos têm gestos próprios
+    if (e.target.closest('.tira-ex, input, select, textarea, button, .set-row')) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive:true });
+
+  vista.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+    const s = Store.estado.sessaoAtiva;
+    if (!s) return;
+    Store.irParaExercicio((s.atual ?? 0) + (dx < 0 ? 1 : -1));
+    renderSessao(s);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }, { passive:true });
+}
+
+/** Arrastar a linha da série para a direita marca-a como feita. */
+function ligarDeslizeSeries(){
+  const vista = $op('#view-treino');
+  if (!vista.addEventListener) return;
+  let linha = null, x0 = 0, y0 = 0, dx = 0, horizontal = false;
+
+  vista.addEventListener('touchstart', e => {
+    if (e.target.closest('input, button')) { linha = null; return; }
+    linha = e.target.closest('.set-row');
+    if (!linha) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; horizontal = false;
+  }, { passive:true });
+
+  vista.addEventListener('touchmove', e => {
+    if (!linha) return;
+    dx = e.touches[0].clientX - x0;
+    const dy = e.touches[0].clientY - y0;
+    if (!horizontal && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) horizontal = true;
+    if (!horizontal) return;
+    e.preventDefault();
+    const puxado = Math.max(0, Math.min(dx, 96));
+    linha.classList.add('a-arrastar');
+    linha.classList.toggle('vai-marcar', puxado > 60);
+    linha.style.transform = `translateX(${puxado}px)`;
+  }, { passive:false });
+
+  const largar = () => {
+    if (!linha) return;
+    const marcar = horizontal && dx > 60;
+    linha.classList.remove('a-arrastar', 'vai-marcar');
+    linha.style.transform = '';
+    if (marcar) linha.querySelector('.set-check')?.click();
+    linha = null;
+  };
+  vista.addEventListener('touchend', largar, { passive:true });
+  vista.addEventListener('touchcancel', largar, { passive:true });
+}
+
 /* ---------------- Descanso ---------------- */
+const VOLTA_ANEL = 2 * Math.PI * 19;   // perímetro do anel do descanso
+
+function pintarAnel(restante, total){
+  const anel = $('#restAnel');
+  if (anel) anel.style.strokeDashoffset = VOLTA_ANEL * (1 - Math.max(0, restante) / total);
+}
+
 function iniciarDescanso(){
   const seg = Store.estado.config.descanso;
   if (!seg) return;
   restRestante = seg;
   $('#rest').hidden = false;
   $('#restTempo').textContent = restRestante;
+  // sem transição no arranque, senão o anel roda para trás à vista
+  $('#restAnel').style.transition = 'none';
+  pintarAnel(seg, seg);
+  requestAnimationFrame(() => { $('#restAnel').style.transition = ''; });
+
   clearInterval(restInterval);
   restInterval = setInterval(() => {
     restRestante--;
     $('#restTempo').textContent = Math.max(0, restRestante);
+    pintarAnel(restRestante, seg);
     if (restRestante <= 0){ pararDescanso(); bipe(); toast('Descanso concluído 💪'); }
   }, 1000);
 }
@@ -2278,6 +2360,9 @@ function ligarEventos(){
   $op('#btnRegistarPeso').onclick = registarPesoHoje;
   $op('#perfilIrIA').onclick = () => mostrar('ia');
   $op('#perfilDefinicoes').onclick = abrirConfig;
+
+  ligarDeslizeExercicios();
+  ligarDeslizeSeries();
 
   // Apple Saúde
   $op('#defSaude').onclick = () => mostrar('saude');

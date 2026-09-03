@@ -13,7 +13,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/style.css?v=53">
+<link rel="stylesheet" href="css/fontes.css?v=54">
+  <link rel="stylesheet" href="css/style.css?v=54">
 </head>
 <body>
 
@@ -487,8 +488,9 @@
 <!-- Modal genérico -->
 <div class="modal" id="modal" hidden>
   <div class="modal__backdrop" data-close></div>
-  <div class="modal__box" role="dialog" aria-modal="true">
-    <div class="modal__head">
+  <div class="modal__box" role="dialog" aria-modal="true" id="modalCaixa">
+    <div class="modal__pega" id="modalPega"><span></span></div>
+    <div class="modal__head" id="modalCabeca">
       <h3 id="modalTitulo">Título</h3>
       <button class="icon-btn" data-close aria-label="Fechar">✕</button>
     </div>
@@ -500,20 +502,27 @@
 <div class="toast" id="toast" hidden></div>
 
 <div class="rest" id="rest" hidden>
-  <span>Descanso <b id="restTempo">60</b>s</span>
+  <span class="rest__anel">
+    <svg viewBox="0 0 44 44" aria-hidden="true">
+      <circle class="rest__trilho" cx="22" cy="22" r="19"/>
+      <circle class="rest__linha" id="restAnel" cx="22" cy="22" r="19"/>
+    </svg>
+    <b id="restTempo">60</b>
+  </span>
+  <span>Descanso</span>
   <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=53"></script>
-<script src="js/store.js?v=53"></script>
-<script src="js/nuvem.js?v=53"></script>
-  <script src="js/saude.js?v=53"></script>
-<script src="js/db.js?v=53"></script>
-<script src="js/ia.js?v=53"></script>
-<script src="js/ui.js?v=53"></script>
-<script src="js/musculos.js?v=53"></script>
-<script src="js/animacao.js?v=53"></script>
-<script src="js/icones.js?v=53"></script>
-<script src="js/app.js?v=53"></script>
+<script src="js/data.js?v=54"></script>
+<script src="js/store.js?v=54"></script>
+<script src="js/nuvem.js?v=54"></script>
+  <script src="js/saude.js?v=54"></script>
+<script src="js/db.js?v=54"></script>
+<script src="js/ia.js?v=54"></script>
+<script src="js/ui.js?v=54"></script>
+<script src="js/musculos.js?v=54"></script>
+<script src="js/animacao.js?v=54"></script>
+<script src="js/icones.js?v=54"></script>
+<script src="js/app.js?v=54"></script>
 </body>
 </html>

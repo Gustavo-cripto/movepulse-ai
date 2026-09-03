@@ -78,11 +78,45 @@ const Modal = {
       rodape.appendChild(b);
     });
     rodape.hidden = !acoes.length;
+    $('#modalCaixa').style.transform = '';
     $('#modal').hidden = false;
     setTimeout(() => $('#modalCorpo input, #modalCorpo select')?.focus(), 60);
   },
-  fechar(){ $('#modal').hidden = true; },
+  fechar(){
+    $('#modal').hidden = true;
+    $('#modalCaixa').style.transform = '';
+  },
 };
+
+/** Arrastar a pega (ou o cabeçalho) para baixo fecha a folha,
+    como nas folhas do iOS. Só conta o gesto para baixo. */
+function ligarArrastoDaFolha(){
+  const caixa = $('#modalCaixa');
+  let inicioY = null, desloc = 0;
+
+  const comecar = e => { inicioY = e.touches[0].clientY; desloc = 0; caixa.style.transition = 'none'; };
+  const mover = e => {
+    if (inicioY === null) return;
+    desloc = Math.max(0, e.touches[0].clientY - inicioY);
+    if (desloc > 3) e.preventDefault();
+    caixa.style.transform = `translateY(${desloc}px)`;
+  };
+  const largar = () => {
+    if (inicioY === null) return;
+    caixa.style.transition = '';
+    if (desloc > 110) Modal.fechar();
+    else caixa.style.transform = '';
+    inicioY = null;
+  };
+
+  for (const alvo of [$('#modalPega'), $('#modalCabeca')]){
+    alvo.addEventListener('touchstart', comecar, { passive:true });
+    alvo.addEventListener('touchmove', mover, { passive:false });
+    alvo.addEventListener('touchend', largar);
+    alvo.addEventListener('touchcancel', largar);
+  }
+}
+ligarArrastoDaFolha();
 
 function confirmar(msg, aoConfirmar, textoOk = 'Confirmar'){
   Modal.abrir({
