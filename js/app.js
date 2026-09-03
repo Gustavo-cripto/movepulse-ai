@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 52;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 53;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -248,21 +248,13 @@ function editorPrograma(){
 }
 
 function renderInicio(){
-  const { treinos, sessoes } = Store.estado;
+  const { sessoes } = Store.estado;
   renderSaudacao();
   renderCartaoHoje();
   renderSemana();
   renderPlanoSemana();
   renderMes();
   renderProgresso();
-
-  $('#listaInicio').innerHTML = treinos.length
-    ? treinos.map(t => `
-        <button class="card card--tap" data-ver-treino="${t.id}">
-          <h3>${esc(t.nome)}</h3>
-          <p class="item__meta">${t.itens.length} exercício${t.itens.length === 1 ? '' : 's'} · ${duracaoEstimada(t)} min</p>
-        </button>`).join('')
-    : '<p class="empty">Ainda não tens fichas. Cria uma no separador Fichas.</p>';
 
   $('#ultimasSessoes').innerHTML = sessoes.length
     ? sessoes.slice(0, 3).map(cardSessao).join('')
