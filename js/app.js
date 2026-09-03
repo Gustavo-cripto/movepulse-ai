@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 59;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 60;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -936,7 +936,7 @@ async function comoFazer(exId, voltar){
   // pior do que não mostrar nada.
   const proprio = temMovimentoProprio(ex);
   const foto = await Fotos.ler(CHAVE_FOTO_EX + exId).catch(() => null);
-  const temFigura = !!figuraDoExercicio(exId);
+  const temFigura = !!figuraDoExercicio(ex);
 
   Modal.abrir({
     titulo: ex.nome,
@@ -992,7 +992,7 @@ async function comoFazer(exId, voltar){
 
   pararAnimacao?.();
   pararAnimacao = temFigura
-    ? animarFigura($('#figuraEx'), exId)
+    ? animarFigura($('#figuraEx'), ex)
     : animarExercicio($('#palcoBoneco'), ex);
 }
 

@@ -312,6 +312,31 @@ const PALAVRAS_VARIANTE = ['reto','inclinado','declinado','frontal','lateral','a
   'unilateral','bulgaro','martelo','scott','concentrada','livre','fixa','sentado','deitado','invertido',
   'inverso','supra','obliquo','isometrica','isometrico'];
 
+/* Palavras que não dizem nada sobre o exercício e só estragavam as contas:
+   "Supino reto com barra" tem três palavras úteis, não quatro. */
+const PALAVRAS_VAZIAS = new Set(['com','sem','para','pela','pelo','uma','dos','das','nas','nos','que','ate']);
+
+/** As palavras de um nome que contam para a comparação. */
+function palavrasUteis(nome){
+  return normalizar(nome).split(' ').filter(p => p.length > 2 && !PALAVRAS_VAZIAS.has(p));
+}
+
+/** Quanto dois nomes se parecem, de 0 a 1 (coeficiente de Dice). */
+function semelhancaNomes(a, b){
+  const pa = Array.isArray(a) ? a : palavrasUteis(a);
+  const pb = Array.isArray(b) ? b : palavrasUteis(b);
+  if (!pa.length || !pb.length) return 0;
+  const comuns = pa.filter(p => pb.includes(p)).length;
+  return (2 * comuns) / (pa.length + pb.length);
+}
+
+/* "Polia alta" e "polia baixa" são o aparelho, não a variante do exercício:
+   sem isto, "Puxada na polia alta" entrava em conflito com "Puxada frontal"
+   por causa do "alta". */
+function semAlturaDaPolia(nome){
+  return String(nome).replace(/polia (alta|baixa)/g, 'polia');
+}
+
 function conflito(listaPalavras, a, b){
   const ea = listaPalavras.filter(p => a.includes(p));
   const eb = listaPalavras.filter(p => b.includes(p));
@@ -322,19 +347,16 @@ function conflito(listaPalavras, a, b){
 /** Procura o exercício no catálogo por semelhança de nome; cria um novo se não houver. */
 function resolverExercicio(ex){
   const alvo = normalizar(ex.nome);
-  const palavrasAlvo = alvo.split(' ').filter(p => p.length > 2);
+  const palavrasAlvo = palavrasUteis(ex.nome);
   let melhor = null, melhorNota = 0;
 
   for (const cand of Store.todosExercicios()){
     const nome = normalizar(cand.nome);
     if (nome === alvo) return cand;
     if (conflito(PALAVRAS_EQUIP, alvo, nome)) continue;
-    if (conflito(PALAVRAS_VARIANTE, alvo, nome)) continue;
+    if (conflito(PALAVRAS_VARIANTE, semAlturaDaPolia(alvo), semAlturaDaPolia(nome))) continue;
 
-    const palavrasCand = nome.split(' ').filter(p => p.length > 2);
-    const comuns = palavrasAlvo.filter(p => palavrasCand.includes(p)).length;
-    // coeficiente de Dice: tolera nomes mais longos ou mais curtos dos dois lados
-    const nota = (2 * comuns) / (palavrasAlvo.length + palavrasCand.length || 1);
+    const nota = semelhancaNomes(palavrasAlvo, palavrasUteis(cand.nome));
     if (nota > melhorNota){ melhorNota = nota; melhor = cand; }
   }
   if (melhor && melhorNota >= 0.6) return melhor;

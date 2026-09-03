@@ -108,9 +108,43 @@ const FIGURAS_PROPRIAS = new Set([
   'worlds-greatest-stretch', 'wrist-curl', 'wrist-extension',
 ]);
 
-/** O desenho de um exercício, ou null se ainda não tiver. */
-function figuraDoExercicio(exId){
-  return FIGURA_DE[exId] || (FIGURAS_PROPRIAS.has(exId) ? exId : null);
+/** O desenho de um exercício. Aceita o id ou o próprio exercício —
+    com o exercício inteiro ainda dá para procurar um parecido. */
+function figuraDoExercicio(ex){
+  const id = typeof ex === 'string' ? ex : ex?.id;
+  if (FIGURA_DE[id]) return FIGURA_DE[id];
+  if (FIGURAS_PROPRIAS.has(id)) return id;
+  return typeof ex === 'object' ? figuraParecida(ex) : null;
+}
+
+/** Os exercícios que a IA inventa não têm figura própria. Procura-se no
+    catálogo o movimento mais parecido, dentro do mesmo grupo muscular e
+    sem trocar equipamento nem variante (não vale mostrar um inclinado
+    quando o exercício é declinado). */
+function figuraParecida(ex){
+  if (!ex?.nome || typeof semelhancaNomes !== 'function') return null;
+
+  const alvo = normalizar(ex.nome);
+  const palavras = palavrasUteis(ex.nome);
+  let melhor = null, melhorNota = 0;
+
+  for (const cand of EXERCICIOS_BASE){
+    if (ex.grupo && cand.grupo !== ex.grupo) continue;
+    const slug = FIGURA_DE[cand.id] || (FIGURAS_PROPRIAS.has(cand.id) ? cand.id : null);
+    if (!slug) continue;
+
+    const nome = normalizar(cand.nome);
+    if (conflito(PALAVRAS_EQUIP, alvo, nome)) continue;
+    if (conflito(PALAVRAS_VARIANTE, semAlturaDaPolia(alvo), semAlturaDaPolia(nome))) continue;
+
+    const palavrasCand = palavrasUteis(cand.nome);
+    const nota = semelhancaNomes(palavras, palavrasCand);
+    // a primeira palavra é o movimento ("agachamento", "supino", "remada"):
+    // quando é a mesma, basta menos parecença no resto do nome
+    const minimo = palavras[0] === palavrasCand[0] ? 0.34 : 0.5;
+    if (nota >= minimo && nota > melhorNota){ melhorNota = nota; melhor = slug; }
+  }
+  return melhor;
 }
 
 /** Vai e volta pelos três desenhos: 1 → 2 → 3 → 2 → … */
@@ -121,8 +155,8 @@ const TEMPO_FIGURA = 620;   // ms em cada desenho
  * Mostra o exercício a mexer dentro de `palco`.
  * Devolve a função que pára a animação.
  */
-function animarFigura(palco, exId){
-  const slug = figuraDoExercicio(exId);
+function animarFigura(palco, ex){
+  const slug = figuraDoExercicio(ex);
   if (!palco || !slug) return () => {};
 
   palco.innerHTML = ORDEM_FIGURA
