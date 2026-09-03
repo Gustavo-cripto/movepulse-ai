@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 51;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 52;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -518,12 +518,17 @@ function abrirDia(chave, diaSemana){
 }
 
 /** Mostra o que a ficha tem antes de começar — nada arranca sem se carregar em Iniciar. */
-/** Equipamento distinto que uma ficha precisa, pela ordem dos exercícios. */
+/** Equipamento distinto que uma ficha precisa, pela ordem dos exercícios.
+    "Barra olímpica" e "Barra" são a mesma peça: junta-se pelo id do catálogo
+    e fica o nome do catálogo, que é o mais claro dos dois. */
 function equipamentoDaFicha(ficha){
   const vistos = [];
   for (const it of ficha.itens){
     const nome = Store.exercicio(it.exId)?.equip;
-    if (nome && !vistos.includes(nome)) vistos.push(nome);
+    if (!nome) continue;
+    const id = idEquipamento(nome);
+    if (vistos.some(e => (id && e.id === id) || e.nome === nome)) continue;
+    vistos.push({ id, nome: id ? nomeEquipamento(id) : nome });
   }
   return vistos;
 }
@@ -533,10 +538,8 @@ function chipsEquipamento(ficha){
   const nomes = equipamentoDaFicha(ficha);
   if (!nomes.length) return '';
   return `<label class="label" style="margin-top:12px">Equipamento necessário</label>
-    <div class="chips-eq">${nomes.map(n => {
-      const id = idEquipamento(n);
-      return `<span class="chip-eq">${id ? iconeEquipamento(id) : ''}${esc(n)}</span>`;
-    }).join('')}</div>`;
+    <div class="chips-eq">${nomes.map(e =>
+      `<span class="chip-eq">${e.id ? iconeEquipamento(e.id) : ''}${esc(e.nome)}</span>`).join('')}</div>`;
 }
 
 async function detalheTreino(id){
@@ -561,7 +564,7 @@ async function detalheTreino(id){
         ${ficha.itens.map(it => {
           const ex = Store.exercicio(it.exId);
           const carga = Store.ultimaCarga(it.exId);
-          return `<div class="ia-ex" data-prev-ex="${it.exId}">
+          return `<div class="ia-ex ia-ex--toca" data-prev-ex="${it.exId}" role="button" tabindex="0">
             <span class="ia-media">${diagramaMusculos(ex.grupo)}</span>
             <div>
               <b>${esc(ex.nome)}</b>
@@ -582,6 +585,12 @@ async function detalheTreino(id){
         } },
     ],
   });
+
+  // tocar num exercício mostra como se executa, e volta a esta lista ao fechar
+  $('#modalCorpo').onclick = e => {
+    const linha = e.target.closest('[data-prev-ex]');
+    if (linha) comoFazer(linha.dataset.prevEx, () => detalheTreino(ficha.id));
+  };
 
   // miniaturas das máquinas, quando existirem
   for (const it of ficha.itens){
@@ -835,7 +844,7 @@ const CHAVE_FOTO_EX = 'ex:';
 
 /** Mostra o boneco a executar o exercício, com as dicas de técnica. */
 let pararAnimacao = null;
-async function comoFazer(exId){
+async function comoFazer(exId, voltar){
   const ex = Store.exercicio(exId);
   const mov = movimentoDoExercicio(ex);
   const foto = await Fotos.ler(CHAVE_FOTO_EX + exId).catch(() => null);
@@ -863,7 +872,8 @@ async function comoFazer(exId){
       </div>
       <p class="item__meta" style="margin-top:12px">O boneco mostra o padrão do movimento, não a tua
         técnica. Em caso de dúvida, procura o vídeo ou pergunta a um profissional.</p>`,
-    acoes: [{ texto:'Fechar', onClick(){ pararAnimacao?.(); Modal.fechar(); } }],
+    acoes: [{ texto: voltar ? '‹ Voltar ao treino' : 'Fechar',
+               onClick(){ pararAnimacao?.(); voltar ? voltar() : Modal.fechar(); } }],
   });
 
   $('#btnFotoEx').onclick = () => $('#ficheiroEx').click();
@@ -874,14 +884,14 @@ async function comoFazer(exId){
       const { dataUrl } = await comprimirFoto(f);
       await Fotos.guardar(CHAVE_FOTO_EX + exId, dataUrl);
       toast('Foto guardada ✅');
-      comoFazer(exId);
+      comoFazer(exId, voltar);
     } catch { toast('Não consegui guardar a foto.'); }
   };
   const apagarEx = $('#btnApagarFotoEx');
   if (apagarEx) apagarEx.onclick = async () => {
     await Fotos.apagar(CHAVE_FOTO_EX + exId);
     toast('Foto removida.');
-    comoFazer(exId);
+    comoFazer(exId, voltar);
   };
 
   pararAnimacao?.();

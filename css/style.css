@@ -661,6 +661,9 @@ line.an-osso.an-ativo{stroke-width:8}
 .guia-saude code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px}
 .guia-saude .aviso{color:var(--txt-dim);margin-top:8px}
 /* Equipamento necessário, na pré-visualização do treino */
+.ia-ex--toca{cursor:pointer}
+.ia-ex--toca::after{content:'›';margin-left:6px;color:var(--txt-dim);font-size:18px;align-self:center}
+.ia-ex--toca:active{opacity:.6}
 .chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip-eq{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);
   border-radius:999px;padding:4px 12px 4px 6px;font-size:13px;font-weight:600}
