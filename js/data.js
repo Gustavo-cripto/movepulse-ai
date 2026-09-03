@@ -174,6 +174,30 @@ const EQUIPAMENTOS = [
   ]},
 ];
 
+/* Nomes genéricos que os exercícios usam, e a peça do catálogo que os ilustra. */
+const ALIAS_EQUIPAMENTO = {
+  'barra':'barra', 'barra olimpica':'barra', 'halteres':'halteres',
+  'maquina':'m-peck', 'polia':'polia-alta', 'acessorio':'elasticos',
+  'peso corporal':null, 'livre':null,
+};
+
+function chaveEquipamento(texto){
+  return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+const MAPA_EQUIPAMENTO = (() => {
+  const mapa = {};
+  for (const g of EQUIPAMENTOS) for (const it of g.itens) mapa[chaveEquipamento(it.nome)] = it.id;
+  return mapa;
+})();
+
+/** id do catálogo a partir de um nome livre. Devolve null quando não há ilustração. */
+function idEquipamento(nome){
+  const k = chaveEquipamento(nome);
+  if (k in ALIAS_EQUIPAMENTO) return ALIAS_EQUIPAMENTO[k];
+  return MAPA_EQUIPAMENTO[k] || null;
+}
+
 const TOTAL_EQUIPAMENTOS = EQUIPAMENTOS.reduce((t, g) => t + g.itens.length, 0);
 
 /** Nome legível a partir do id. */

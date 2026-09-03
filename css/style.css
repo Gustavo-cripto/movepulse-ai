@@ -660,5 +660,14 @@ line.an-osso.an-ativo{stroke-width:8}
 .guia-saude li{margin-bottom:5px}
 .guia-saude code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px}
 .guia-saude .aviso{color:var(--txt-dim);margin-top:8px}
+/* Equipamento necessário, na pré-visualização do treino */
+.chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip-eq{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);
+  border-radius:999px;padding:4px 12px 4px 6px;font-size:13px;font-weight:600}
+.chip-eq .icone-eq{width:24px;height:24px}
+.chip-eq:has(.icone-eq){padding-left:6px}
+.chip-eq:not(:has(.icone-eq)){padding-left:12px}
+/* Foto do exercício que o utilizador junta ao boneco */
+.foto-exercicio{display:block;width:100%;margin-top:10px;border-radius:var(--radius);border:1px solid var(--line)}
 .def-grupo{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-dim);
   font-weight:700;margin:20px 0 8px 4px}

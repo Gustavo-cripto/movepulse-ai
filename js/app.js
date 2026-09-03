@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 50;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 51;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -518,6 +518,27 @@ function abrirDia(chave, diaSemana){
 }
 
 /** Mostra o que a ficha tem antes de começar — nada arranca sem se carregar em Iniciar. */
+/** Equipamento distinto que uma ficha precisa, pela ordem dos exercícios. */
+function equipamentoDaFicha(ficha){
+  const vistos = [];
+  for (const it of ficha.itens){
+    const nome = Store.exercicio(it.exId)?.equip;
+    if (nome && !vistos.includes(nome)) vistos.push(nome);
+  }
+  return vistos;
+}
+
+/** Fita de equipamento necessário, com a ilustração de cada peça. */
+function chipsEquipamento(ficha){
+  const nomes = equipamentoDaFicha(ficha);
+  if (!nomes.length) return '';
+  return `<label class="label" style="margin-top:12px">Equipamento necessário</label>
+    <div class="chips-eq">${nomes.map(n => {
+      const id = idEquipamento(n);
+      return `<span class="chip-eq">${id ? iconeEquipamento(id) : ''}${esc(n)}</span>`;
+    }).join('')}</div>`;
+}
+
 async function detalheTreino(id){
   const ficha = Store.treino(id);
   if (!ficha) return;
@@ -535,6 +556,7 @@ async function detalheTreino(id){
         <div class="previa-corpo">${diagramaMusculos(gruposDaFicha(ficha))}</div>
       </div>
       <p class="item__meta" style="margin-top:10px">${esc(grupos)}</p>
+      ${chipsEquipamento(ficha)}
       <div class="stack" style="margin-top:14px">
         ${ficha.itens.map(it => {
           const ex = Store.exercicio(it.exId);
@@ -808,17 +830,27 @@ async function detalheExercicio(id){
   };
 }
 
+/* A foto que o utilizador tira do exercício em si, à parte da foto da máquina. */
+const CHAVE_FOTO_EX = 'ex:';
+
 /** Mostra o boneco a executar o exercício, com as dicas de técnica. */
 let pararAnimacao = null;
-function comoFazer(exId){
+async function comoFazer(exId){
   const ex = Store.exercicio(exId);
   const mov = movimentoDoExercicio(ex);
+  const foto = await Fotos.ler(CHAVE_FOTO_EX + exId).catch(() => null);
 
   Modal.abrir({
     titulo: ex.nome,
     corpo: `
       <div class="palco" id="palcoBoneco"></div>
       <p class="item__meta" style="margin-top:8px">${esc(mov.nome)} · ${esc(ex.grupo)} · ${esc(ex.equip)}</p>
+      ${foto ? `<img class="foto-exercicio" src="${foto}" alt="Foto de ${esc(ex.nome)}">` : ''}
+      <div class="row-actions" style="margin-top:10px">
+        <button class="btn btn--sm btn--ghost" id="btnFotoEx">📷 ${foto ? 'Trocar a minha foto' : 'Incluir foto do exercício'}</button>
+        ${foto ? '<button class="btn btn--sm btn--danger" id="btnApagarFotoEx">Remover</button>' : ''}
+      </div>
+      <input type="file" id="ficheiroEx" accept="image/*" hidden>
       <label class="label" style="margin-top:14px">Como fazer</label>
       <ol class="dicas">${mov.dicas.map(d => `<li>${esc(d)}</li>`).join('')}</ol>
       <div class="ex-cabeca" style="margin-top:14px">
@@ -833,6 +865,24 @@ function comoFazer(exId){
         técnica. Em caso de dúvida, procura o vídeo ou pergunta a um profissional.</p>`,
     acoes: [{ texto:'Fechar', onClick(){ pararAnimacao?.(); Modal.fechar(); } }],
   });
+
+  $('#btnFotoEx').onclick = () => $('#ficheiroEx').click();
+  $('#ficheiroEx').onchange = async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    try {
+      const { dataUrl } = await comprimirFoto(f);
+      await Fotos.guardar(CHAVE_FOTO_EX + exId, dataUrl);
+      toast('Foto guardada ✅');
+      comoFazer(exId);
+    } catch { toast('Não consegui guardar a foto.'); }
+  };
+  const apagarEx = $('#btnApagarFotoEx');
+  if (apagarEx) apagarEx.onclick = async () => {
+    await Fotos.apagar(CHAVE_FOTO_EX + exId);
+    toast('Foto removida.');
+    comoFazer(exId);
+  };
 
   pararAnimacao?.();
   pararAnimacao = animarExercicio($('#palcoBoneco'), ex);
