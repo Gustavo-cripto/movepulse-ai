@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 63;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 64;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1647,13 +1647,18 @@ async function ampliarEquipamento(id){
   const nome = nomeEquipamento(id);
   const grupo = EQUIPAMENTOS.find(g => g.itens.some(i => i.id === id))?.cat || '';
   const foto = await Fotos.ler('eq:' + id).catch(() => null);
+  const desenho = figuraDoEquipamento(id);
 
   Modal.abrir({
     titulo: nome,
     corpo: `
       <div class="equip-grande">
-        ${foto ? `<img src="${foto}" alt="${esc(nome)}">` : iconeEquipamento(id)}
+        ${foto ? `<img src="${foto}" alt="${esc(nome)}">`
+          : desenho ? `<img class="equip-desenho" src="exercicios/${desenho}/frame-2.svg" alt="${esc(nome)}">`
+          : iconeEquipamento(id)}
       </div>
+      ${!foto && desenho ? `<p class="figura-creditos">Ilustração: Workout Guide · Everkinetic ·
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>` : ''}
       <p class="item__meta" style="margin-top:10px">${esc(grupo)}</p>
       <p class="item__meta" style="margin-top:8px">${foto
         ? 'Foto tirada por ti.'

@@ -157,6 +157,32 @@ function figuraParecida(ex){
   return melhor;
 }
 
+/* Desenho de cada peça de equipamento, para a vista ampliada: reaproveita-se
+   o exercício que se faz nela, porque mostra a própria máquina com detalhe.
+   No ícone pequeno continua o desenho simples, que se lê a 52px. */
+const FIGURA_EQUIPAMENTO = {
+  'barra':'bench-press', 'halteres':'dumbbell-bench-press', 'kettlebell':'kettlebell-swing',
+  'discos':'weighted-crunch', 'barra-ez':'ez-bar-curl', 'landmine':'landmine-press',
+  'barra-hex':'trap-bar-deadlift', 'crossover':'cable-fly', 'polia-alta':'lat-pulldown',
+  'polia-baixa':'seated-row', 'm-leg-press':'leg-press', 'm-extensora':'leg-extension',
+  'm-flexora':'lying-leg-curl', 'm-hack':'hack-squat', 'm-smith':'smith-machine-squat',
+  'm-peck':'pec-deck', 'm-supino':'machine-chest-press', 'm-ombros':'machine-shoulder-press',
+  'm-puxada':'lat-pulldown', 'm-remada':'machine-row', 'm-abdutora':'hip-abduction-machine',
+  'm-gemeos':'seated-calf-raise', 'm-gluteos':'machine-glute-kickback',
+  'm-abdominal':'cable-crunch', 'm-multi':'assisted-pull-up', 'banco':'dumbbell-bench-press',
+  'banco-incl':'incline-dumbbell-press', 'rack':'squat', 'barra-fixa':'pull-up',
+  'paralelas':'dip', 'espaldar':'captains-chair-knee-raise', 'elasticos':'band-pull-apart',
+  'trx':'inverted-row', 'corda':'jump-rope', 'bola':'stability-ball-hamstring-curl',
+  'roda':'ab-wheel', 'colchao':'plank', 'caixa':'step-up', 'passadeira':'running',
+  'bicicleta':'cycling', 'eliptica':'elliptical', 'remo-erg':'rowing',
+  'escada':'stair-climber', 'air-bike':'assault-bike',
+};
+
+/** O desenho grande de uma peça de equipamento, ou null se não houver. */
+function figuraDoEquipamento(id){
+  return FIGURA_EQUIPAMENTO[id] || null;
+}
+
 /** Vai e volta pelos três desenhos: 1 → 2 → 3 → 2 → … */
 const ORDEM_FIGURA = [1, 2, 3, 2];
 const TEMPO_FIGURA = 620;   // ms em cada desenho
