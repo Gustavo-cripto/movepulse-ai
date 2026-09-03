@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 60;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 61;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -942,7 +942,13 @@ async function comoFazer(exId, voltar){
     titulo: ex.nome,
     corpo: `
       ${temFigura
-        ? `<div class="figura-ex" id="figuraEx"></div>
+        ? `<div class="palco-duplo">
+             <div class="figura-ex" id="figuraEx"></div>
+             <div class="palco-musculos">
+               ${diagramaMusculos(ex.grupo)}
+               <span>${esc(ex.grupo)}</span>
+             </div>
+           </div>
            <p class="figura-creditos">Ilustração: Workout Guide · Everkinetic ·
              <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>`
         : '<div class="palco" id="palcoBoneco"></div>'}
@@ -958,14 +964,16 @@ async function comoFazer(exId, voltar){
       <ol class="dicas">${mov.dicas.map(d => `<li>${esc(d)}</li>`).join('')}</ol>`
       : `<p class="item__meta" style="margin-top:14px">Segue a figura para o padrão do movimento.
          Para a técnica ao pormenor, vê o vídeo aqui em baixo.</p>`}
-      <div class="ex-cabeca" style="margin-top:14px">
+      ${temFigura
+        ? `<p style="margin-top:14px">${linkDemonstracao(ex.nome)}</p>`
+        : `<div class="ex-cabeca" style="margin-top:14px">
         ${diagramaMusculos(ex.grupo)}
         <div>
           <p class="item__meta">Músculos trabalhados</p>
           <p style="font-size:14px;font-weight:600">${esc(ex.grupo)}</p>
           <p style="margin-top:6px">${linkDemonstracao(ex.nome)}</p>
         </div>
-      </div>
+      </div>`}
       <p class="item__meta" style="margin-top:12px">O boneco mostra o padrão do movimento, não a tua
         técnica. Em caso de dúvida, procura o vídeo ou pergunta a um profissional.</p>`,
     acoes: [{ texto: voltar ? '‹ Voltar ao treino' : 'Fechar',

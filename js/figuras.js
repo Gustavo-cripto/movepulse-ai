@@ -125,7 +125,7 @@ function figuraParecida(ex){
   if (!ex?.nome || typeof semelhancaNomes !== 'function') return null;
 
   const alvo = normalizar(ex.nome);
-  const palavras = palavrasUteis(ex.nome);
+  const palavras = palavrasUteis(semAlturaDaPolia(alvo));
   let melhor = null, melhorNota = 0;
 
   for (const cand of EXERCICIOS_BASE){
@@ -137,12 +137,22 @@ function figuraParecida(ex){
     if (conflito(PALAVRAS_EQUIP, alvo, nome)) continue;
     if (conflito(PALAVRAS_VARIANTE, semAlturaDaPolia(alvo), semAlturaDaPolia(nome))) continue;
 
-    const palavrasCand = palavrasUteis(cand.nome);
+    const palavrasCand = palavrasUteis(semAlturaDaPolia(nome));
     const nota = semelhancaNomes(palavras, palavrasCand);
     // a primeira palavra é o movimento ("agachamento", "supino", "remada"):
     // quando é a mesma, basta menos parecença no resto do nome
-    const minimo = palavras[0] === palavrasCand[0] ? 0.34 : 0.5;
-    if (nota >= minimo && nota > melhorNota){ melhorNota = nota; melhor = slug; }
+    const minimo = palavras[0] === palavrasCand[0] ? 0.3 : 0.5;
+    if (nota < minimo) continue;
+
+    // Empates são frequentes ("Prancha lateral" e "Prancha isométrica" dão a
+    // mesma nota para "Prancha lateral isométrica"). Desempata quem apanha as
+    // palavras mais à esquerda, que são as que mais definem o exercício.
+    const peso = nota + 0.001 * palavrasCand
+      .map(p => palavras.indexOf(p))
+      .filter(i => i >= 0)
+      .reduce((t, i) => t + 1 / (1 + i), 0);
+
+    if (peso > melhorNota){ melhorNota = peso; melhor = slug; }
   }
   return melhor;
 }

@@ -310,11 +310,15 @@ function normalizar(txt){
 const PALAVRAS_EQUIP = ['barra','halteres','halter','polia','maquina','cabo','smith','corda','elastico'];
 const PALAVRAS_VARIANTE = ['reto','inclinado','declinado','frontal','lateral','alta','baixa','curvada',
   'unilateral','bulgaro','martelo','scott','concentrada','livre','fixa','sentado','deitado','invertido',
-  'inverso','supra','obliquo','isometrica','isometrico'];
+  'inverso','supra','obliquo','isometrica','isometrico',
+  // máquinas que se distinguem só por uma palavra e trabalham músculos opostos
+  'flexora','extensora','abdutora','adutora'];
 
 /* Palavras que não dizem nada sobre o exercício e só estragavam as contas:
    "Supino reto com barra" tem três palavras úteis, não quatro. */
-const PALAVRAS_VAZIAS = new Set(['com','sem','para','pela','pelo','uma','dos','das','nas','nos','que','ate']);
+const PALAVRAS_VAZIAS = new Set(['com','sem','para','pela','pelo','uma','dos','das','nas','nos','que','ate',
+  // móveis, não movimentos: o que distingue é a palavra a seguir
+  'cadeira','mesa']);
 
 /** As palavras de um nome que contam para a comparação. */
 function palavrasUteis(nome){
@@ -330,11 +334,14 @@ function semelhancaNomes(a, b){
   return (2 * comuns) / (pa.length + pb.length);
 }
 
-/* "Polia alta" e "polia baixa" são o aparelho, não a variante do exercício:
-   sem isto, "Puxada na polia alta" entrava em conflito com "Puxada frontal"
-   por causa do "alta". */
+/* "Polia alta", "polia baixa" e "puxada alta" dizem respeito ao aparelho,
+   não à variante do exercício: sem isto, "Puxada alta na estação" entrava
+   em conflito com "Puxada frontal" por causa do "alta" — quando são o
+   mesmo exercício. O "alta" da remada alta, esse, conta. */
 function semAlturaDaPolia(nome){
-  return String(nome).replace(/polia (alta|baixa)/g, 'polia');
+  return String(nome)
+    .replace(/polia (alta|baixa)/g, 'polia')
+    .replace(/puxada alta/g, 'puxada');
 }
 
 function conflito(listaPalavras, a, b){

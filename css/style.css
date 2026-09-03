@@ -701,6 +701,14 @@ line.an-osso.an-ativo{stroke-width:8}
 .figura-ex__frame.is-visivel{opacity:1}
 :root[data-tema="escuro"] .figura-ex__frame,
 :root[data-tema="auto"].sistema-escuro .figura-ex__frame{filter:none}
+/* Figura e músculos lado a lado: vê-se o movimento e o que trabalha ao mesmo tempo. */
+.palco-duplo{display:flex;gap:10px;align-items:stretch}
+.palco-duplo .figura-ex{flex:1;min-width:0}
+.palco-musculos{flex:none;width:92px;background:var(--bg-elev-2);border-radius:var(--radius);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px 6px}
+.palco-musculos .musculos{gap:2px}
+.palco-musculos .corpo{width:38px}
+.palco-musculos span{font-size:11.5px;font-weight:700;color:var(--txt-dim);text-align:center;line-height:1.2}
 .figura-creditos{font-size:11.5px;color:var(--txt-dim);margin-top:6px;text-align:right}
 .figura-creditos a{color:inherit}
 .chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
