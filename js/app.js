@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 72;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 73;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -2169,9 +2169,78 @@ function aplicarTema(){
     ?.setAttribute('content', escuro ? '#0f1115' : '#f7faf2');
 }
 
+const NOMES_LETRA = { condensado:'Condensado', moderno:'Moderno' };
+const NOMES_TEXTO = { normal:'Normal', grande:'Grande', enorme:'Enorme' };
+
+/** Aplica o tipo de letra escolhido, trazendo a segunda família só se
+    for precisa — não vale a pena descarregar 136 KB a quem não a usa. */
+function aplicarLetra(){
+  const letra = Store.estado.config.letra || 'condensado';
+  document.documentElement.dataset.letra = letra;
+
+  if (letra === 'moderno' && !$('#fonteModerna')){
+    const link = document.createElement('link');
+    link.id = 'fonteModerna';
+    link.rel = 'stylesheet';
+    link.href = 'css/fontes-archivo.css?v=' + VERSAO_APP;
+    document.head.appendChild(link);
+  }
+}
+
+/** Tamanho do texto em toda a app. */
+function aplicarTamanhoTexto(){
+  document.documentElement.dataset.texto = Store.estado.config.texto || 'normal';
+}
+
+function escolherLetra(){
+  escolhaSimples('Tipo de letra', NOMES_LETRA, 'letra', () => {
+    aplicarLetra();
+    renderDefinicoes();
+  }, {
+    condensado: 'títulos estreitos, cabe mais por linha',
+    moderno: 'letras mais abertas, lê-se melhor ao longe',
+  });
+}
+
+function escolherTamanhoTexto(){
+  escolhaSimples('Tamanho do texto', NOMES_TEXTO, 'texto', () => {
+    aplicarTamanhoTexto();
+    renderDefinicoes();
+  }, {
+    normal: 'como sempre esteve',
+    grande: 'tudo 12% maior',
+    enorme: 'tudo 24% maior',
+  });
+}
+
+/** Modal de escolha entre poucas opções, guardadas em config. */
+function escolhaSimples(titulo, nomes, campo, aoEscolher, notas = {}){
+  Modal.abrir({
+    titulo,
+    corpo: Object.entries(nomes).map(([valor, nome]) => `
+      <button class="equip-item ${Store.estado.config[campo] === valor ? 'is-ativa' : ''}"
+              data-escolha="${valor}" style="width:100%">
+        <span class="equip-item__nome">${esc(nome)}${notas[valor]
+          ? ` <small style="color:var(--txt-dim)">— ${esc(notas[valor])}</small>` : ''}</span>
+        <span class="equip-item__caixa">✓</span>
+      </button>`).join(''),
+    acoes: [{ texto:'Fechar', onClick: Modal.fechar }],
+  });
+  $('#modalCorpo').onclick = e => {
+    const b = e.target.closest('[data-escolha]');
+    if (!b) return;
+    Store.estado.config[campo] = b.dataset.escolha;
+    Store.salvar();
+    Modal.fechar();
+    aoEscolher();
+  };
+}
+
 function renderDefinicoes(){
   const c = Store.estado.config;
   $('#defTemaValor').textContent = NOMES_TEMA[c.tema || 'auto'];
+  $('#defLetraValor').textContent = NOMES_LETRA[c.letra || 'condensado'];
+  $('#defTextoValor').textContent = NOMES_TEXTO[c.texto || 'normal'];
   $('#defIAValor').textContent = c.ia.modo === 'direto' ? 'chave própria' : 'servidor próprio';
   $('#defSaudeValor').textContent = resumoSaude();
   $('#defVersaoValor').textContent = VERSAO_APP;
@@ -2518,6 +2587,8 @@ function ligarEventos(){
   ligarDeslizeSeries();
 
   // Apple Saúde
+  $op('#defLetra').onclick = escolherLetra;
+  $op('#defTexto').onclick = escolherTamanhoTexto;
   $op('#defSaude').onclick = () => mostrar('saude');
   $op('#saudeVoltar').onclick = () => mostrar('definicoes');
   $op('#saudePeso').onchange = e => guardarSaude('peso', e.target.checked);
@@ -2673,6 +2744,8 @@ function ligarEventos(){
 /* ---------------- Início ---------------- */
 ligarEventos();
 aplicarTema();
+aplicarLetra();
+aplicarTamanhoTexto();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema);
 mostrar('inicio');
 

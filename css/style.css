@@ -18,6 +18,27 @@
   --pad:16px;
   --tabbar-h:64px;
 }
+/* ---------- Tipo de letra e tamanho ----------
+   Duas famílias à escolha (condensada nos títulos, ou Archivo em tudo) e
+   três tamanhos de texto, para quem não vê bem o miudinho. */
+:root[data-letra="moderno"] body{font-family:'Archivo',ui-sans-serif,-apple-system,sans-serif}
+:root[data-letra="moderno"] h1,
+:root[data-letra="moderno"] h2,
+:root[data-letra="moderno"] h3,
+:root[data-letra="moderno"] .hoje__tempo,
+:root[data-letra="moderno"] .timer,
+:root[data-letra="moderno"] .session-stats strong{
+  font-family:'Archivo',ui-sans-serif,sans-serif;letter-spacing:-.015em}
+:root[data-letra="moderno"] h1{font-size:19px}
+:root[data-letra="moderno"] h2{font-size:22px}
+:root[data-letra="moderno"] h3{font-size:17.5px}
+:root[data-letra="moderno"] .hoje__tempo{font-size:46px;font-weight:800}
+:root[data-letra="moderno"] .timer,
+:root[data-letra="moderno"] .session-stats strong{font-size:24px;font-weight:700}
+
+:root[data-texto="grande"] body{zoom:1.12}
+:root[data-texto="enorme"] body{zoom:1.24}
+
 /* ---------- Tema escuro ----------
    Aplica-se quando o utilizador o escolhe, ou quando escolhe
    "automático" e o sistema está em escuro.                    */
@@ -83,7 +104,7 @@ h3{font-size:19px;font-weight:600}
 }
 .topbar__brand{display:flex;align-items:center;gap:10px}
 .topbar__logo{font-size:24px}
-.topbar p{color:var(--txt-dim);font-size:12.5px}
+.topbar p{color:var(--txt-dim);font-size:13.5px}
 
 /* ---------- Layout ---------- */
 #app{padding:var(--pad);max-width:760px;margin:0 auto}
@@ -133,7 +154,7 @@ h3{font-size:19px;font-weight:600}
 }
 .input:focus{outline:2px solid var(--accent);outline-offset:-1px}
 .input::placeholder{color:#9aa48d}
-.label{display:block;font-size:12px;color:var(--txt-dim);margin-bottom:6px;font-weight:600}
+.label{display:block;font-size:13px;color:var(--txt-dim);margin-bottom:6px;font-weight:600}
 .field{margin-bottom:12px}
 .field-row{display:flex;gap:10px}
 .field-row>*{flex:1}
@@ -158,9 +179,11 @@ h3{font-size:19px;font-weight:600}
 .tab{
   background:none;border:0;color:var(--txt-dim);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:10px 4px;font:inherit;font-size:11.5px;font-weight:600;height:var(--tabbar-h);justify-content:center;
+  padding:10px 4px;font:inherit;font-size:12.5px;font-weight:600;height:var(--tabbar-h);justify-content:center;
 }
 .tab span{font-size:19px;line-height:1}
+.tab-icone{display:flex;align-items:center;justify-content:center;height:19px}
+.tab-icone svg{width:22px;height:22px;fill:currentColor}
 .tab.is-active{color:var(--accent-forte)}
 
 /* ---------- Sessão ---------- */
@@ -168,7 +191,7 @@ h3{font-size:19px;font-weight:600}
 .timer{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;font-size:27px;font-weight:700;color:var(--accent-forte)}
 .session-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;text-align:center}
 .session-stats strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:27px;font-weight:700}
-.session-stats span{font-size:12px;color:var(--txt-dim)}
+.session-stats span{font-size:13px;color:var(--txt-dim)}
 
 .set-row{
   display:grid;grid-template-columns:26px 1fr 1fr 42px;gap:8px;align-items:center;margin-top:8px;
@@ -184,14 +207,14 @@ h3{font-size:19px;font-weight:600}
   border-radius:9px;padding:10px 0;cursor:pointer;font-size:14px;
 }
 .set-row.is-done .set-check{background:var(--ok);border-color:var(--ok);color:#fff}
-.set-head{display:grid;grid-template-columns:26px 1fr 1fr 42px;gap:8px;font-size:11px;color:var(--txt-dim);text-align:center;margin-top:10px}
+.set-head{display:grid;grid-template-columns:26px 1fr 1fr 42px;gap:8px;font-size:12px;color:var(--txt-dim);text-align:center;margin-top:10px}
 
 /* ---------- Listas ---------- */
 .item{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .item__meta{font-size:13px;color:var(--txt-dim);margin-top:2px}
 .tag{
   display:inline-block;background:var(--bg-elev-2);border:1px solid var(--line);
-  color:var(--txt-dim);border-radius:999px;padding:2px 9px;font-size:11px;margin-right:5px;
+  color:var(--txt-dim);border-radius:999px;padding:2px 9px;font-size:12px;margin-right:5px;
 }
 .empty{text-align:center;color:var(--txt-dim);padding:26px 14px;border:1px dashed var(--line);border-radius:var(--radius);font-size:14px}
 
@@ -257,7 +280,7 @@ h3{font-size:19px;font-weight:600}
 .g-area{fill:url(#gFade)}
 .g-dot{fill:var(--accent-forte)}
 .g-grid{stroke:var(--line);stroke-width:1}
-.g-lbl{fill:var(--txt-dim);font-size:10px}
+.g-lbl{fill:var(--txt-dim);font-size:11.5px}
 
 /* ---------- Desktop (iMac / notebook) ---------- */
 @media(min-width:760px){
@@ -283,9 +306,9 @@ h3{font-size:19px;font-weight:600}
 .ia-ex{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
 .ia-ex:first-of-type{border-top:0}
 .ia-ex b{font-weight:600;font-size:14px}
-.ia-ex span{color:var(--txt-dim);font-size:12px}
+.ia-ex span{color:var(--txt-dim);font-size:13px}
 .ia-ex .prescricao{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--accent);font-size:13px;font-weight:600}
-.aviso{border:1px solid #e8dca8;background:#fdf9e7;color:#6b5b1b;border-radius:12px;padding:11px;font-size:12.5px}
+.aviso{border:1px solid #e8dca8;background:#fdf9e7;color:#6b5b1b;border-radius:12px;padding:11px;font-size:13.5px}
 .a-carregar{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent-forte);
   border-radius:50%;animation:girar .8s linear infinite;vertical-align:-2px;margin-right:7px}
 @keyframes girar{to{transform:rotate(360deg)}}
@@ -297,7 +320,7 @@ h3{font-size:19px;font-weight:600}
 .m-ativo{fill:var(--accent-med);stroke:var(--accent-med);stroke-width:1}
 .ia-ex{grid-template-columns:auto 1fr auto}
 .demo{
-  display:inline-block;margin-top:5px;font-size:12px;color:var(--txt-dim);
+  display:inline-block;margin-top:5px;font-size:13px;color:var(--txt-dim);
   text-decoration:none;border-bottom:1px solid var(--line);
 }
 .demo:hover{color:var(--accent-forte);border-color:var(--accent-med)}
@@ -308,10 +331,10 @@ h3{font-size:19px;font-weight:600}
 
 .mes-cabeca{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .mes{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.mes__rotulo{text-align:center;font-size:10px;color:var(--txt-dim);padding-bottom:2px}
+.mes__rotulo{text-align:center;font-size:11.5px;color:var(--txt-dim);padding-bottom:2px}
 .mes__dia{
   position:relative;aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;
-  font-size:11px;background:var(--bg-elev-2);color:var(--txt-dim);font-variant-numeric:tabular-nums;
+  font-size:12px;background:var(--bg-elev-2);color:var(--txt-dim);font-variant-numeric:tabular-nums;
   border:0;font-family:inherit;cursor:pointer;padding:0;
 }
 .mes__dia:not(.vazio):active{transform:scale(.94)}
@@ -341,7 +364,7 @@ h3{font-size:19px;font-weight:600}
   border-bottom:1px solid var(--line);
   border-radius:0 0 22px 22px;
 }
-.ola__data{color:var(--txt-dim);font-size:12.5px;margin-top:18px}
+.ola__data{color:var(--txt-dim);font-size:13.5px;margin-top:18px}
 .ola__nome{font-size:26px;letter-spacing:-.4px;margin-top:2px;margin-bottom:16px}
 
 /* dias em círculo, dentro do herói */
@@ -350,10 +373,11 @@ h3{font-size:19px;font-weight:600}
   background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;
   display:flex;flex-direction:column;align-items:center;gap:6px;
 }
-.dia__letra{font-size:10.5px;color:var(--txt-dim);font-weight:700;letter-spacing:.06em}
+.dia__letra{font-size:12px;color:var(--txt-dim);font-weight:700;letter-spacing:.06em}
 .dia.hoje .dia__letra{color:var(--accent-forte)}
 .dia__bola{
-  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  width:100%;max-width:38px;aspect-ratio:1;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
   border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--txt-dim);
   font-variant-numeric:tabular-nums;
 }
@@ -363,7 +387,7 @@ h3{font-size:19px;font-weight:600}
 
 /* cartão do treino de hoje */
 .hoje__etiqueta{
-  font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-forte);
+  font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-forte);
 }
 .hoje__tempo{font-family:'Barlow Condensed',sans-serif;font-size:54px;font-weight:700;letter-spacing:0;line-height:1;margin-top:6px}
 .hoje__tempo span{font-size:26px;font-weight:600;letter-spacing:0}
@@ -393,7 +417,7 @@ h3{font-size:19px;font-weight:600}
 }
 .atalho__icone{font-size:20px;flex:none}
 .atalho span{font-size:13.5px;font-weight:600;line-height:1.25;min-width:0}
-.atalho small{display:block;color:var(--txt-dim);font-weight:400;font-size:11.5px;margin-top:2px}
+.atalho small{display:block;color:var(--txt-dim);font-weight:400;font-size:12.5px;margin-top:2px}
 
 /* barra de progresso da semana */
 .barra{height:8px;border-radius:99px;background:var(--bg-elev-2);overflow:hidden;margin-top:10px}
@@ -410,7 +434,7 @@ h3{font-size:19px;font-weight:600}
 .interruptor{display:flex;align-items:flex-start;gap:11px;cursor:pointer}
 .interruptor input{width:20px;height:20px;accent-color:var(--accent);flex:none;margin-top:2px}
 .interruptor span{font-size:14px;font-weight:600}
-.interruptor small{display:block;color:var(--txt-dim);font-weight:400;font-size:12.5px;margin-top:3px}
+.interruptor small{display:block;color:var(--txt-dim);font-weight:400;font-size:13.5px;margin-top:3px}
 
 .linha{
   display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
@@ -424,7 +448,7 @@ h3{font-size:19px;font-weight:600}
 .equip-grupo{margin-top:18px}
 .equip-grupo:first-child{margin-top:0}
 .equip-cat{
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-dim);
+  font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-dim);
   font-weight:700;margin-bottom:8px;
 }
 .equip-item{
@@ -482,12 +506,12 @@ h3{font-size:19px;font-weight:600}
 .plano-grelha{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .plano-caixa{background:var(--bg-elev-2);border:1px solid var(--line);border-radius:12px;padding:12px}
 .plano-caixa strong{display:block;font-size:16px}
-.plano-caixa span{font-size:11.5px;color:var(--txt-dim)}
+.plano-caixa span{font-size:12.5px;color:var(--txt-dim)}
 .sessao-linha{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
 .sessao-dia{
   width:46px;height:46px;border-radius:50%;background:var(--bg-elev-2);border:1px solid var(--line);
   display:flex;align-items:center;justify-content:center;flex:none;
-  font-size:11.5px;font-weight:700;color:var(--accent-forte);
+  font-size:12.5px;font-weight:700;color:var(--accent-forte);
 }
 
 /* foto da máquina e diagrama ocupam a mesma coluna na pré-visualização */
@@ -512,12 +536,12 @@ h3{font-size:19px;font-weight:600}
 }
 .musculo-op .musculos{gap:2px}
 .musculo-op .corpo{width:26px}
-.musculo-op span{font-size:11px;font-weight:600;line-height:1.1;text-align:center}
+.musculo-op span{font-size:12px;font-weight:600;line-height:1.1;text-align:center}
 .musculo-op.is-ativa{border-color:var(--accent-med);background:#f2fae0;color:var(--txt)}
 
 /* separador que só existe enquanto há treino a decorrer */
 .tab--treino{color:var(--accent-forte);position:relative}
-.tab--treino b{font-size:11.5px;font-variant-numeric:tabular-nums;font-weight:700}
+.tab--treino b{font-size:12.5px;font-variant-numeric:tabular-nums;font-weight:700}
 .tab--treino::before{
   content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);
   width:34px;height:2px;border-radius:2px;background:var(--accent-med);
@@ -538,7 +562,7 @@ h3{font-size:19px;font-weight:600}
 .tira-item.is-atual{border-color:var(--accent-med);box-shadow:0 0 0 3px rgba(142,192,31,.25)}
 .tira-num{
   position:absolute;top:3px;left:4px;min-width:16px;height:16px;border-radius:8px;
-  background:var(--bg-elev-2);color:var(--txt-dim);font-size:10px;font-weight:700;
+  background:var(--bg-elev-2);color:var(--txt-dim);font-size:11.5px;font-weight:700;
   display:flex;align-items:center;justify-content:center;padding:0 4px;
 }
 .tira-item.is-feito .tira-num{background:var(--ok);color:#fff}
@@ -552,7 +576,7 @@ h3{font-size:19px;font-weight:600}
 .previa-corpo{flex:none}
 .previa-corpo .corpo{width:38px}
 .passo-conta{
-  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   color:var(--accent-forte);margin-bottom:10px;
 }
 .navegar{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
@@ -591,7 +615,7 @@ h3{font-size:19px;font-weight:600}
 .treino-cartao.is-hoje{border-color:#cfe6a0;background:linear-gradient(150deg,#f4fbe4,#fff 60%)}
 .treino-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .selo{
-  font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   background:var(--bg-elev-2);color:var(--txt-dim);border-radius:999px;padding:4px 10px;
 }
 .selo--hoje{background:var(--accent);color:var(--accent-ink)}
@@ -606,7 +630,7 @@ h3{font-size:19px;font-weight:600}
 }
 .treino-lista li:last-child{border-bottom:0;padding-bottom:0}
 .treino-lista span{color:var(--accent-forte);font-weight:700;font-variant-numeric:tabular-nums;flex:none}
-.treino-lista .mais{color:var(--txt-dim);font-size:12.5px;border-bottom:0}
+.treino-lista .mais{color:var(--txt-dim);font-size:13.5px;border-bottom:0}
 .pontos{display:flex;justify-content:center;gap:6px;margin:4px 0 8px}
 .ponto{width:6px;height:6px;border-radius:50%;background:var(--line);transition:background .2s,width .2s}
 .ponto.is-ativo{background:var(--accent-med);width:18px;border-radius:3px}
@@ -640,7 +664,7 @@ h3{font-size:19px;font-weight:600}
   content:'';position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:50%;
   border:1.5px solid var(--accent-med);
 }
-.lista-planeada span{color:var(--txt-dim);font-size:12.5px}
+.lista-planeada span{color:var(--txt-dim);font-size:13.5px}
 
 /* músculo trabalhado, aceso durante a animação */
 .an-ativo{stroke:var(--accent-med)}
@@ -690,7 +714,7 @@ line.an-osso.an-ativo{stroke-width:8}
 .guia-saude h4{font-size:14.5px;margin:16px 0 6px}
 .guia-saude ol{margin:0 0 4px 18px}
 .guia-saude li{margin-bottom:5px}
-.guia-saude code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px}
+.guia-saude code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:13.5px}
 .guia-saude .aviso{color:var(--txt-dim);margin-top:8px}
 /* Equipamento necessário, na pré-visualização do treino */
 /* Linha tocável: mais uma coluna, só para a seta. */
@@ -723,11 +747,11 @@ line.an-osso.an-ativo{stroke-width:8}
 .palco-musculos .corpo{width:auto;height:100%;max-width:100%;flex:0 1 auto}
 /* frente e costas ao mesmo tempo: a coluna alarga para não ficarem espremidos */
 .palco-musculos:has(.corpo + .corpo){width:146px}
-.palco-musculos span{font-size:12.5px;font-weight:700;color:var(--txt-dim);text-align:center;line-height:1.2}
-.figura-creditos{font-size:11.5px;color:var(--txt-dim);margin-top:6px;text-align:right}
+.palco-musculos span{font-size:13.5px;font-weight:700;color:var(--txt-dim);text-align:center;line-height:1.2}
+.figura-creditos{font-size:12.5px;color:var(--txt-dim);margin-top:6px;text-align:right}
 .figura-creditos a{color:inherit}
 .chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip-eq{display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--line);
   border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600}
-.def-grupo{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-dim);
+.def-grupo{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-dim);
   font-weight:700;margin:20px 0 8px 4px}

@@ -15,6 +15,8 @@ const ESTADO_PADRAO = {
     // Servidor por omissão: assim qualquer dispositivo funciona sem configuração.
     // (No iOS, a app instalada tem armazenamento separado do Safari e não herda definições.)
     tema: 'auto',                       // auto | claro | escuro
+    letra: 'condensado',                // condensado | moderno
+    texto: 'normal',                    // normal | grande | enorme
     ia: { modo: 'servidor', servidor: SERVIDOR_PADRAO, chave: '' },
     saude: { peso: false, treinos: false },   // ponte para o Apple Saúde
   },
