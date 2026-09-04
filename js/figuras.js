@@ -129,26 +129,37 @@ function figuraParecida(ex){
   let melhor = null, melhorNota = 0;
 
   for (const cand of EXERCICIOS_BASE){
-    if (ex.grupo && cand.grupo !== ex.grupo) continue;
     const slug = FIGURA_DE[cand.id] || (FIGURAS_PROPRIAS.has(cand.id) ? cand.id : null);
     if (!slug) continue;
 
+    // O grupo devia bater certo, mas a IA às vezes arruma o exercício noutro
+    // (os polichinelos em "Cardio", por exemplo). Noutro grupo exige-se
+    // bastante mais parecença no nome para valer.
+    const outroGrupo = !!ex.grupo && cand.grupo !== ex.grupo;
+
     const nome = normalizar(cand.nome);
     if (conflito(PALAVRAS_EQUIP, alvo, nome)) continue;
-    if (conflito(PALAVRAS_VARIANTE, semAlturaDaPolia(alvo), semAlturaDaPolia(nome))) continue;
+    if (conflitoDeVariante(semAlturaDaPolia(alvo), semAlturaDaPolia(nome))) continue;
 
     const palavrasCand = palavrasUteis(semAlturaDaPolia(nome));
-    const nota = semelhancaNomes(palavras, palavrasCand);
+    // A IA escreve muitas vezes o termo inglês ("Flexão de pernas (leg curl)").
+    // O nome do ficheiro do desenho é esse termo em inglês, e serve de segunda
+    // hipótese sem ser preciso guardar mais nada.
+    const nota = Math.max(
+      semelhancaNomes(palavras, palavrasCand),
+      semelhancaNomes(palavras, palavrasUteis(slug.replace(/-/g, ' '))),
+    );
     // a primeira palavra é o movimento ("agachamento", "supino", "remada"):
     // quando é a mesma, basta menos parecença no resto do nome
-    const minimo = palavras[0] === palavrasCand[0] ? 0.3 : 0.5;
+    const minimo = outroGrupo ? 0.7
+      : mesmaPalavra(palavras[0] || '', palavrasCand[0] || '') ? 0.3 : 0.5;
     if (nota < minimo) continue;
 
     // Empates são frequentes ("Prancha lateral" e "Prancha isométrica" dão a
     // mesma nota para "Prancha lateral isométrica"). Desempata quem apanha as
     // palavras mais à esquerda, que são as que mais definem o exercício.
     const peso = nota + 0.001 * palavrasCand
-      .map(p => palavras.indexOf(p))
+      .map(p => palavras.findIndex(q => mesmaPalavra(p, q)))
       .filter(i => i >= 0)
       .reduce((t, i) => t + 1 / (1 + i), 0);
 

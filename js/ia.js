@@ -308,21 +308,79 @@ function normalizar(txt){
 /* Palavras que distinguem exercícios parecidos: se as duas variantes não
    baterem certo, são exercícios diferentes (supino reto != supino inclinado). */
 const PALAVRAS_EQUIP = ['barra','halteres','halter','polia','maquina','cabo','smith','corda','elastico'];
-const PALAVRAS_VARIANTE = ['reto','inclinado','declinado','frontal','lateral','alta','baixa','curvada',
-  'unilateral','bulgaro','martelo','scott','concentrada','livre','fixa','sentado','deitado','invertido',
-  'inverso','supra','obliquo','isometrica','isometrico',
-  // máquinas que se distinguem só por uma palavra e trabalham músculos opostos
-  'flexora','extensora','abdutora','adutora'];
+/* Variantes por família. Só há conflito dentro da mesma família: "sentado" e
+   "concentrada" dizem coisas diferentes sobre o exercício e não se excluem,
+   mas "inclinado" e "declinado" sim. */
+const FAMILIAS_VARIANTE = [
+  ['reto','inclinado','declinado'],
+  ['frontal','lateral','posterior'],
+  ['alta','baixa'],
+  ['sentado','deitado'],
+  ['martelo','scott','concentrada','bulgaro'],
+  ['flexora','extensora'],
+  ['abdutora','adutora'],
+  ['invertido','inverso','curvada'],
+  ['supra','obliquo'],
+  ['livre','fixa'],
+];
 
 /* Palavras que não dizem nada sobre o exercício e só estragavam as contas:
    "Supino reto com barra" tem três palavras úteis, não quatro. */
 const PALAVRAS_VAZIAS = new Set(['com','sem','para','pela','pelo','uma','dos','das','nas','nos','que','ate',
   // móveis, não movimentos: o que distingue é a palavra a seguir
-  'cadeira','mesa']);
+  'cadeira','mesa',
+  // genéricas de mais para distinguir seja o que for
+  'alongamento','alongamentos','exercicio']);
+
+/* A IA escreve a mesma coisa de várias maneiras. Aqui ficam as trocas que se
+   veem sempre: termos ingleses e sinónimos de ginásio. */
+const SINONIMOS = {
+  press:'desenvolvimento', pressao:'desenvolvimento', pressoes:'desenvolvimento',
+  curl:'rosca', curls:'rosca',
+  row:'remada', rows:'remada', remo:'remada',
+  squat:'agachamento', squats:'agachamento',
+  lunge:'afundo', lunges:'afundo',
+  pushup:'flexao', pushups:'flexao', flexoes:'flexao',
+  jack:'polichinelo', jacks:'polichinelo',
+  crunch:'abdominal', crunches:'abdominal',
+  plank:'prancha', deadlift:'levantamento', bridge:'ponte', kickback:'coice',
+};
+
+/* Expressões inteiras, trocadas antes de separar as palavras. "Flexão de
+   bíceps" é uma rosca, não uma flexão de braços. */
+const EXPRESSOES = [
+  [/flexao (de |dos )?biceps/g, 'rosca'],
+  [/flexao (de |das )?pernas?/g, 'flexora'],
+  [/flexao (de |dos )?joelhos?/g, 'flexora'],
+  [/extensao (de |das )?pernas?/g, 'extensora'],
+  [/extensao (de |dos )?joelhos?/g, 'extensora'],
+  [/elevacao (de |da )?pelve/g, 'elevacao pelvica'],
+];
 
 /** As palavras de um nome que contam para a comparação. */
 function palavrasUteis(nome){
-  return normalizar(nome).split(' ').filter(p => p.length > 2 && !PALAVRAS_VAZIAS.has(p));
+  let texto = normalizar(nome);
+  for (const [de, para] of EXPRESSOES) texto = texto.replace(de, para);
+  return texto.split(' ')
+    .map(p => SINONIMOS[p] || p)
+    .filter(p => p.length > 2 && !PALAVRAS_VAZIAS.has(p));
+}
+
+/** Duas palavras que dizem o mesmo? "flexão" e "flexora", "crucifixo" e
+    "cruciforme" — a IA escreve variantes da mesma raiz. Contam como iguais
+    quando partilham uma raiz suficientemente longa. */
+function mesmaPalavra(a, b){
+  if (a === b) return true;
+  const curta = a.length < b.length ? a : b;
+  const longa = a.length < b.length ? b : a;
+  if (curta.length < 4) return false;
+  if (longa.startsWith(curta)) return true;
+
+  let iguais = 0;
+  while (iguais < curta.length && curta[iguais] === longa[iguais]) iguais++;
+  // cinco letras iguais chegam; quatro só quando as duas palavras são longas,
+  // senão "flexão" e "flexões" não se reconheciam (o ã muda a raiz)
+  return iguais >= 5 || (iguais >= 4 && curta.length >= 6);
 }
 
 /** Quanto dois nomes se parecem, de 0 a 1 (coeficiente de Dice). */
@@ -330,7 +388,7 @@ function semelhancaNomes(a, b){
   const pa = Array.isArray(a) ? a : palavrasUteis(a);
   const pb = Array.isArray(b) ? b : palavrasUteis(b);
   if (!pa.length || !pb.length) return 0;
-  const comuns = pa.filter(p => pb.includes(p)).length;
+  const comuns = pa.filter(p => pb.some(q => mesmaPalavra(p, q))).length;
   return (2 * comuns) / (pa.length + pb.length);
 }
 
@@ -342,6 +400,12 @@ function semAlturaDaPolia(nome){
   return String(nome)
     .replace(/polia (alta|baixa)/g, 'polia')
     .replace(/puxada alta/g, 'puxada');
+}
+
+/** Os dois nomes falam da mesma família de variante, mas de variantes
+    diferentes? Aí não são o mesmo exercício. */
+function conflitoDeVariante(a, b){
+  return FAMILIAS_VARIANTE.some(familia => conflito(familia, a, b));
 }
 
 function conflito(listaPalavras, a, b){
@@ -361,7 +425,7 @@ function resolverExercicio(ex){
     const nome = normalizar(cand.nome);
     if (nome === alvo) return cand;
     if (conflito(PALAVRAS_EQUIP, alvo, nome)) continue;
-    if (conflito(PALAVRAS_VARIANTE, semAlturaDaPolia(alvo), semAlturaDaPolia(nome))) continue;
+    if (conflitoDeVariante(semAlturaDaPolia(alvo), semAlturaDaPolia(nome))) continue;
 
     const nota = semelhancaNomes(palavrasAlvo, palavrasUteis(cand.nome));
     if (nota > melhorNota){ melhorNota = nota; melhor = cand; }
