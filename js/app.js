@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 71;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 72;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -923,20 +923,57 @@ async function detalheExercicio(id){
   };
 }
 
-/* A foto que o utilizador tira do exercício em si, à parte da foto da máquina. */
-const CHAVE_FOTO_EX = 'ex:';
-
 /** Mostra o boneco a executar o exercício, com as dicas de técnica. */
+/** O item do treino a decorrer que usa este exercício, se houver. */
+function itemDaSessao(exId){
+  return Store.estado.sessaoAtiva?.exercicios.find(i => i.exId === exId) || null;
+}
+
+/* Os exercícios já mostrados nesta cadeia de substituições. Sem isto, o
+   segundo clique trazia de volta o exercício de onde se tinha vindo. */
+let cadeiaSubstituicao = new Set();
+
+/** Outro exercício que trabalhe o mesmo grupo. Prefere o mesmo equipamento,
+    evita os que já estão no treino de hoje e os já mostrados. */
+function alternativaDe(ex){
+  const naSessao = new Set((Store.estado.sessaoAtiva?.exercicios || []).map(i => i.exId));
+
+  const doGrupo = Store.todosExercicios().filter(c =>
+    c.id !== ex.id && c.grupo === ex.grupo && figuraDoExercicio(c));
+  if (!doGrupo.length) return null;
+
+  const escolher = candidatos => {
+    const mesmoEquip = candidatos.filter(c => c.equip === ex.equip);
+    return [...mesmoEquip, ...candidatos.filter(c => !mesmoEquip.includes(c))][0];
+  };
+
+  // primeiro os que não estão no treino nem já foram vistos; depois os que
+  // já foram vistos; e por fim, se não sobrar nada, recomeça
+  const frescos = doGrupo.filter(c => !naSessao.has(c.id) && !cadeiaSubstituicao.has(c.id));
+  if (frescos.length) return escolher(frescos);
+
+  const foraDoTreino = doGrupo.filter(c => !naSessao.has(c.id));
+  if (foraDoTreino.length){
+    cadeiaSubstituicao = new Set([ex.id]);
+    return escolher(foraDoTreino);
+  }
+  return escolher(doGrupo);
+}
+
 let pararAnimacao = null;
-async function comoFazer(exId, voltar){
+async function comoFazer(exId, voltar, daSubstituicao = false){
+  // abrir o ecrã de novo começa uma cadeia nova de substituições
+  if (!daSubstituicao) cadeiaSubstituicao = new Set();
+  cadeiaSubstituicao.add(exId);
+
   const ex = Store.exercicio(exId);
   const mov = movimentoDoExercicio(ex);
   // As dicas são de um padrão de movimento. Nos exercícios do catálogo
   // alargado não há padrão próprio, e mostrar as de outro exercício seria
   // pior do que não mostrar nada.
   const proprio = temMovimentoProprio(ex);
-  const foto = await Fotos.ler(CHAVE_FOTO_EX + exId).catch(() => null);
   const temFigura = !!figuraDoExercicio(ex);
+  const naSessao = itemDaSessao(exId);
 
   Modal.abrir({
     titulo: ex.nome,
@@ -954,12 +991,9 @@ async function comoFazer(exId, voltar){
         : '<div class="palco" id="palcoBoneco"></div>'}
       <p class="item__meta" style="margin-top:8px">${
         proprio ? esc(mov.nome) + ' · ' : ''}${esc(ex.grupo)} · ${esc(ex.equip)}</p>
-      ${foto ? `<img class="foto-exercicio" src="${foto}" alt="Foto de ${esc(ex.nome)}">` : ''}
       <div class="row-actions" style="margin-top:10px">
-        <button class="btn btn--sm btn--ghost" id="btnFotoEx">📷 ${foto ? 'Trocar a minha foto' : 'Incluir foto do exercício'}</button>
-        ${foto ? '<button class="btn btn--sm btn--danger" id="btnApagarFotoEx">Remover</button>' : ''}
+        <button class="btn btn--sm btn--ghost btn--block" id="btnSubstituirEx">⇄ Substituir exercício</button>
       </div>
-      <input type="file" id="ficheiroEx" accept="image/*" hidden>
       ${proprio ? `<label class="label" style="margin-top:14px">Como fazer</label>
       <ol class="dicas">${mov.dicas.map(d => `<li>${esc(d)}</li>`).join('')}</ol>`
       : `<p class="item__meta" style="margin-top:14px">Segue a figura para o padrão do movimento.
@@ -980,22 +1014,19 @@ async function comoFazer(exId, voltar){
                onClick(){ pararAnimacao?.(); voltar ? voltar() : Modal.fechar(); } }],
   });
 
-  $('#btnFotoEx').onclick = () => $('#ficheiroEx').click();
-  $('#ficheiroEx').onchange = async e => {
-    const f = e.target.files[0];
-    if (!f) return;
-    try {
-      const { dataUrl } = await comprimirFoto(f);
-      await Fotos.guardar(CHAVE_FOTO_EX + exId, dataUrl);
-      toast('Foto guardada ✅');
-      comoFazer(exId, voltar);
-    } catch { toast('Não consegui guardar a foto.'); }
-  };
-  const apagarEx = $('#btnApagarFotoEx');
-  if (apagarEx) apagarEx.onclick = async () => {
-    await Fotos.apagar(CHAVE_FOTO_EX + exId);
-    toast('Foto removida.');
-    comoFazer(exId, voltar);
+  $('#btnSubstituirEx').onclick = () => {
+    const alt = alternativaDe(ex);
+    if (!alt) return toast('Não encontrei outro exercício para este grupo.');
+
+    // se o exercício está no treino a decorrer, a troca é mesmo feita lá,
+    // mantendo as séries que já foram registadas
+    if (naSessao){
+      naSessao.exId = alt.id;
+      Store.salvar();
+      renderSessao(Store.estado.sessaoAtiva);
+      toast(`Trocado para ${alt.nome}`);
+    }
+    comoFazer(alt.id, voltar, true);
   };
 
   pararAnimacao?.();
