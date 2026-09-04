@@ -206,7 +206,7 @@ const EXERCICIOS_BASE = [
   { id:'incline-push-up', nome:'Flexão com mãos elevadas', grupo:'Peito', equip:'Peso corporal' },
   { id:'weighted-push-up', nome:'Flexão com peso', grupo:'Peito', equip:'Peso corporal' },
   { id:'decline-push-up', nome:'Flexão com pés elevados', grupo:'Peito', equip:'Peso corporal' },
-  { id:'knee-push-up', nome:'Flexão de joelhos', grupo:'Peito', equip:'Peso corporal' },
+  { id:'knee-push-up', nome:'Flexão com joelhos apoiados', grupo:'Peito', equip:'Peso corporal' },
   { id:'explosive-push-up', nome:'Flexão explosiva', grupo:'Peito', equip:'Peso corporal' },
   { id:'hindu-push-up', nome:'Flexão hindu', grupo:'Peito', equip:'Peso corporal' },
   { id:'typewriter-push-up', nome:'Flexão máquina de escrever', grupo:'Peito', equip:'Peso corporal' },

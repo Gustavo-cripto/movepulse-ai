@@ -125,7 +125,7 @@ function figuraParecida(ex){
   if (!ex?.nome || typeof semelhancaNomes !== 'function') return null;
 
   const alvo = normalizar(ex.nome);
-  const palavras = palavrasUteis(semAlturaDaPolia(alvo));
+  const palavras = palavrasDoPedido(semAlturaDaPolia(alvo));
   let melhor = null, melhorNota = 0;
 
   for (const cand of EXERCICIOS_BASE){

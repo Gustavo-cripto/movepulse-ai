@@ -359,11 +359,18 @@ const EXPRESSOES = [
 
 /** As palavras de um nome que contam para a comparação. */
 function palavrasUteis(nome){
-  let texto = normalizar(nome);
-  for (const [de, para] of EXPRESSOES) texto = texto.replace(de, para);
-  return texto.split(' ')
+  return normalizar(nome).split(' ')
     .map(p => SINONIMOS[p] || p)
     .filter(p => p.length > 2 && !PALAVRAS_VAZIAS.has(p));
+}
+
+/** O mesmo, para o nome que veio da IA: só aqui se trocam as expressões,
+    senão a "Flexão de joelhos" do catálogo — que é de peito — passava a
+    ser lida como a flexora de pernas. */
+function palavrasDoPedido(nome){
+  let texto = normalizar(nome);
+  for (const [de, para] of EXPRESSOES) texto = texto.replace(de, para);
+  return palavrasUteis(texto);
 }
 
 /** Duas palavras que dizem o mesmo? "flexão" e "flexora", "crucifixo" e
@@ -418,7 +425,7 @@ function conflito(listaPalavras, a, b){
 /** Procura o exercício no catálogo por semelhança de nome; cria um novo se não houver. */
 function resolverExercicio(ex){
   const alvo = normalizar(ex.nome);
-  const palavrasAlvo = palavrasUteis(ex.nome);
+  const palavrasAlvo = palavrasDoPedido(ex.nome);
   let melhor = null, melhorNota = 0;
 
   for (const cand of Store.todosExercicios()){
