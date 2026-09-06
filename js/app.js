@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 82;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 83;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1729,7 +1729,9 @@ function renderIA(){
   // pastilhas: marca a opção guardada
   $$('[data-plano]').forEach(grupo => {
     const campo = grupo.dataset.plano;
-    const valor = campo === 'descanso' ? Store.estado.config.descanso : cfg[campo];
+    const valor = campo === 'descanso' ? Store.estado.config.descanso
+                : campo === 'objetivo' ? Store.estado.perfil.objetivo
+                : cfg[campo];
     $$('.pastilha', grupo).forEach(b =>
       b.classList.toggle('is-ativa', b.dataset.valor === String(valor)));
   });
@@ -1743,11 +1745,8 @@ function renderIA(){
     ? `${fotosGinasio.length} ${fotosGinasio.length === 1 ? 'foto' : 'fotos'}`
     : 'nenhuma';
 
-  const p = Store.estado.perfil;
-  $('#perfilResumo').textContent = [p.objetivo.split(' ')[0], p.experiencia,
-    `${p.diasSemana.length}x/semana`, p.limitacoes ? 'com limitações' : null].filter(Boolean).join(' · ');
-
   // o valor actual de cada linha de refinamento, para se ver sem abrir
+  $('#resumoObjetivo').textContent    = Store.estado.perfil.objetivo;
   $('#resumoTipo').textContent        = cfg.tipo;
   $('#resumoFoco').textContent        = cfg.foco;
   $('#resumoMusculos').textContent    = cfg.musculos.length ? cfg.musculos.join(', ') : 'todos';
@@ -2843,6 +2842,9 @@ function ligarEventos(){
       // o descanso é usado pelo cronómetro, por isso vive nas definições do treino
       Store.estado.config.descanso = +pastilha.dataset.valor;
       Store.salvar();
+    } else if (campo === 'objetivo'){
+      // o objetivo é do perfil: é o mesmo aqui e lá
+      Store.guardarPerfil('objetivo', pastilha.dataset.valor);
     } else if (campo === 'semanas'){
       Store.guardarPlanoConfig(campo, +pastilha.dataset.valor);
     } else {
@@ -2859,7 +2861,6 @@ function ligarEventos(){
   };
   $op('#linhaEquipamento').onclick = seletorEquipamento;
   $op('#linhaFotos').onclick = () => mostrar('fotos');
-  $op('#linhaPerfil').onclick = () => mostrar('perfil');
   $op('#fotosVoltar').onclick = () => mostrar('ia');
   $op('#btnIrExercicios').onclick = () => mostrar('exercicios');
   $op('#exVoltar').onclick = () => mostrar('treinos');
