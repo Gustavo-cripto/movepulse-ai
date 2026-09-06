@@ -3,142 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f7faf2">
+<meta name="theme-color" content="#f3f2f2">
 <meta name="description" content="App de treinos: fotografa o equipamento do ginásio, deixa a IA montar o plano e regista os teus treinos.">
 <title>MovePulse AI — App de Treinos</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' fill='%23f3f2f2'/><g stroke='%23201e1d' stroke-width='2.4' stroke-linecap='round' fill='none'><path d='M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11'/></g></svg>">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/fontes.css?v=77">
-  <link rel="stylesheet" href="css/style.css?v=77">
+<link rel="stylesheet" href="css/fontes.css?v=78">
+<link rel="stylesheet" href="css/style.css?v=78">
 </head>
 <body>
 
 <header class="topbar">
   <div class="topbar__brand">
-    <span class="topbar__logo">🏋️</span>
-    <div>
-      <h1>MovePulse AI</h1>
-      <p id="topbarSub">O teu diário de treino</p>
-    </div>
+    <h1>MovePulse</h1>
   </div>
-  <div style="display:flex;align-items:center;gap:4px">
+  <div class="topbar__estado">
+    <span class="topbar__ponto" aria-hidden="true"></span>
+    <p id="topbarSub">O teu diário de treino</p>
     <button class="btn btn--sm btn--primary" id="btnInstalar" hidden>Instalar</button>
-    <button class="icon-btn" id="btnConfig" title="Definições" aria-label="Definições">⚙️</button>
+    <button class="icon-btn" id="btnConfig" title="Definições" aria-label="Definições">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </div>
 </header>
 
 <main id="app">
 
-  <!-- ============ INÍCIO ============ -->
+  <!-- ============ HOJE ============ -->
   <section class="view" id="view-inicio">
-      <header class="heroi">
-        <div class="semana" id="semana"></div>
-        <div class="ola-linha">
-          <div>
-            <p class="ola__data" id="olaData">—</p>
-            <h2 class="ola__nome" id="olaNome">Olá</h2>
-          </div>
-          <button class="avatar" id="btnPerfil" aria-label="O meu perfil"><span id="avatarIniciais">👤</span></button>
-        </div>
-        <div id="cartaoHoje"></div>
-      </header>
+    <header class="heroi">
+      <p class="kicker" id="olaData">—</p>
+      <h2 class="heroi__titulo" id="olaNome">Olá</h2>
+      <p class="heroi__sub" id="hojeSub"></p>
+    </header>
 
-      <button class="atalho atalho--largo" id="btnPrograma">
-        <span class="atalho__icone">🗓</span>
-        <span>Planear semana<small>escolher a ficha de cada dia</small></span>
-      </button>
+    <div class="stats-fila" id="hojeStats"></div>
 
-      <div class="section-head"><h2>O meu plano</h2></div>
-      <div class="card" id="planoSemana"></div>
+    <button class="btn-largo" id="btnAcaoHoje"><span id="acaoHojeRotulo">Começar agora</span><span aria-hidden="true">→</span></button>
 
-      <div class="card">
-        <div class="mes-cabeca">
-          <button class="icon-btn" id="mesAnterior" aria-label="Mês anterior">‹</button>
-          <strong id="mesNome">—</strong>
-          <button class="icon-btn" id="mesSeguinte" aria-label="Mês seguinte">›</button>
-        </div>
-        <div class="mes" id="mes"></div>
-        <p class="item__meta" id="mesResumo"></p>
-      </div>
+    <div class="semana" id="semana"></div>
 
-      <button class="btn btn--ghost btn--block" id="btnTreinoLivre" style="margin-top:16px">+ Treino livre (sem ficha)</button>
+    <div class="par-acoes">
+      <button id="btnTreinoLivre">Treino livre</button>
+      <button id="btnTreinador">Perguntar ao treinador</button>
+    </div>
 
-      <div class="section-head">
-        <h2>Últimas sessões</h2>
-        <button class="btn btn--sm btn--ghost" id="btnHistorico">Ver tudo</button>
-      </div>
-      <div id="ultimasSessoes" class="stack"></div>
+    <div class="section-head section-head--pad">
+      <h2>Registo</h2>
+      <button class="btn-ligacao" id="btnVerRegisto">Ver tudo</button>
+    </div>
+    <div class="reg-lista" id="ultimasSessoes"></div>
 
-      <div class="section-head"><h2>Progresso</h2></div>
-      <div class="grid grid--stats grid--par" id="resumoStats"></div>
-
-      <div class="card">
-        <label class="label" for="selEx">Evolução por exercício</label>
-        <select class="input" id="selEx"></select>
-        <div id="grafico"></div>
-        <div class="grid grid--stats" id="recordesEx"></div>
-      </div>
+    <div class="volumes" id="volumeSemanas"></div>
   </section>
 
   <!-- ============ TREINO A DECORRER ============ -->
   <section class="view" id="view-treino" hidden>
-      <div class="card card--session">
-        <div class="session-head">
-          <div>
-            <h2 id="sessaoNome">Treino</h2>
-            <p class="muted" id="sessaoInfo">—</p>
-          </div>
-          <div class="timer" id="cronometro">00:00</div>
-        </div>
+    <div class="treino-estado" id="treinoEstado">
+      <div class="treino-estado__topo">
+        <span class="treino-estado__rotulo" id="sessaoNome">Treino</span>
+        <span class="timer" id="cronometro">00:00</span>
       </div>
-
-      <div id="sessaoExercicios" class="stack"></div>
-
-      <button class="btn btn--sm btn--ghost btn--block" id="btnAddExSessao">+ Adicionar exercício</button>
-      <div class="row-actions" style="margin-top:2px">
-        <button class="btn btn--sm btn--danger" id="btnCancelarSessao">Descartar</button>
-        <button class="btn btn--sm btn--ghost" id="btnFinalizarSessao">Terminar agora</button>
-      </div>
-  </section>
-
-
-  <!-- ============ TREINOS ============ -->
-  <section class="view" id="view-treinos" hidden>
-    <div class="section-head">
-      <h2>Minhas fichas</h2>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn--sm btn--ghost" id="btnIrExercicios">💪 Exercícios</button>
-        <button class="btn btn--sm btn--primary" id="btnNovoTreino">+ Nova ficha</button>
-      </div>
+      <div class="treino-estado__barra"><i id="treinoProgresso" style="width:0%"></i></div>
     </div>
-    <div id="listaTreinos" class="stack"></div>
-  </section>
+    <p class="visually-hidden" id="sessaoInfo" hidden>—</p>
 
-  <!-- ============ EXERCÍCIOS ============ -->
-  <section class="view" id="view-exercicios" hidden>
-    <button class="btn btn--sm btn--ghost" id="exVoltar" style="align-self:flex-start">‹ Fichas</button>
-    <div class="section-head">
-      <h2>Exercícios</h2>
-      <button class="btn btn--sm btn--ghost" id="btnNovoEx">+ Criar</button>
+    <div id="sessaoExercicios"></div>
+
+    <div class="par-acoes">
+      <button id="btnAddExSessao">+ Adicionar exercício</button>
+      <button id="btnFinalizarSessao">Terminar agora</button>
     </div>
-    <input class="input" type="search" id="buscaEx" placeholder="Buscar exercício…" autocomplete="off">
-    <div class="chips" id="filtrosGrupo"></div>
-    <div id="listaExercicios" class="stack"></div>
+    <div class="par-acoes">
+      <button id="btnCancelarSessao">Descartar treino</button>
+      <button id="btnTreinadorSessao">Perguntar ao treinador</button>
+    </div>
   </section>
 
-  <!-- ============ PROGRESSO ============ -->
-  <!-- ============ MEU PLANO IA ============ -->
-  <section class="view" id="view-ia" hidden>
-    <div class="section-head"><h2>O meu plano IA</h2></div>
+  <!-- ============ PLANO (fichas + gerador IA) ============ -->
+  <section class="view view--caixa" id="view-plano" hidden>
 
+    <div class="section-head"><h2>O meu plano</h2></div>
     <div id="planoAtual"></div>
 
-    <div class="card">
+    <div class="section-head"><h2>Criar plano com IA</h2></div>
+
+    <div>
       <label class="label">Onde treinas</label>
       <div class="pastilhas" data-plano="local">
         <button class="pastilha" data-valor="Ginásio">Ginásio</button>
@@ -146,15 +101,7 @@
         <button class="pastilha" data-valor="Ar livre">Ar livre</button>
       </div>
 
-      <label class="label" style="margin-top:16px">Tipo de treino</label>
-      <div class="pastilhas" data-plano="tipo">
-        <button class="pastilha" data-valor="Força e hipertrofia">Força e hipertrofia</button>
-        <button class="pastilha" data-valor="HIIT">HIIT</button>
-        <button class="pastilha" data-valor="Calistenia">Calistenia</button>
-        <button class="pastilha" data-valor="Mobilidade">Mobilidade</button>
-      </div>
-
-      <label class="label" style="margin-top:16px">Duração da sessão</label>
+      <label class="label" style="margin-top:18px">Quanto tempo tens</label>
       <div class="pastilhas" data-plano="duracao">
         <button class="pastilha" data-valor="20">20 min</button>
         <button class="pastilha" data-valor="30">30 min</button>
@@ -162,111 +109,186 @@
         <button class="pastilha" data-valor="60">60 min</button>
         <button class="pastilha" data-valor="80">80 min</button>
       </div>
-
-      <label class="label" style="margin-top:16px">Divisão do plano</label>
-      <div class="pastilhas" data-plano="foco">
-        <button class="pastilha" data-valor="Corpo inteiro">Corpo inteiro</button>
-        <button class="pastilha" data-valor="Superior / inferior">Superior / inferior</button>
-        <button class="pastilha" data-valor="Empurrar, puxar, pernas">Empurrar / puxar / pernas</button>
-        <button class="pastilha" data-valor="Costas e core">Costas e core</button>
-      </div>
-
-      <label class="label" style="margin-top:16px">Grupos a trabalhar</label>
-      <p class="item__meta" style="margin:-4px 0 10px">Escolhe os que queres priorizar. Sem escolha, o plano equilibra o corpo todo.</p>
-      <div class="musculos-grelha" id="musculosGrelha"></div>
-
-      <label class="label" style="margin-top:16px">Descanso entre séries</label>
-      <div class="pastilhas" data-plano="descanso">
-        <button class="pastilha" data-valor="45">45s</button>
-        <button class="pastilha" data-valor="60">60s</button>
-        <button class="pastilha" data-valor="90">90s</button>
-        <button class="pastilha" data-valor="120">2 min</button>
-        <button class="pastilha" data-valor="180">3 min</button>
-      </div>
-
-      <label class="label" style="margin-top:16px">Duração do programa</label>
-      <p class="item__meta" style="margin:-4px 0 10px">Quantas semanas o programa vai durar. Os treinos repetem-se e vão aparecendo novos pelo meio.</p>
-      <div class="pastilhas" data-plano="semanas">
-        <button class="pastilha" data-valor="4">4 semanas</button>
-        <button class="pastilha" data-valor="6">6 semanas</button>
-        <button class="pastilha" data-valor="8">8 semanas</button>
-        <button class="pastilha" data-valor="12">12 semanas</button>
-      </div>
-
-      <label class="label" style="margin-top:16px">Intensidade</label>
-      <div class="pastilhas" data-plano="intensidade">
-        <button class="pastilha" data-valor="Básica">Básica</button>
-        <button class="pastilha" data-valor="Moderada">Moderada</button>
-        <button class="pastilha" data-valor="Alta">Alta</button>
-      </div>
-
-      <label class="interruptor" style="margin-top:16px">
-        <input type="checkbox" id="planoSuperseries">
-        <span>
-          Superséries
-          <small>Exercícios seguidos sem descanso, em músculos diferentes.</small>
-        </span>
-      </label>
     </div>
 
-    <button class="linha" id="linhaEquipamento">
-      <span>Equipamento disponível</span>
-      <span class="linha__valor" id="equipResumo">todos</span>
-    </button>
-
-    <button class="linha" id="linhaFotos">
-      <span>Detetar por fotos do ginásio</span>
-      <span class="linha__valor" id="fotosResumo">0 fotos</span>
-    </button>
-
-    <button class="linha" id="linhaPerfil">
-      <span>Perfil e limitações</span>
-      <span class="linha__valor" id="perfilResumo">—</span>
-    </button>
-
-    <button class="btn btn--primary btn--block" id="btnGerarPlano">✨ Criar plano com IA</button>
+    <button class="btn-largo sangra" id="btnGerarPlano"><span>Gerar plano</span><span aria-hidden="true">→</span></button>
     <p class="item__meta" id="iaEstado"></p>
 
+    <div class="section-head"><h2>Afinar</h2></div>
+    <p class="item__meta" style="margin:-8px 0 0">Os valores por omissão vêm do teu perfil. Muda só o que quiseres.</p>
+
+    <div id="refinamentos">
+      <button class="linha" data-refino="equipamento" id="linhaEquipamento">
+        <span>Equipamento</span><span class="linha__valor" id="equipResumo">todos</span>
+      </button>
+
+      <button class="linha" data-refino="tipo"><span>Tipo de treino</span><span class="linha__valor" id="resumoTipo">—</span></button>
+      <div class="refino" data-painel="tipo" hidden>
+        <div class="pastilhas" data-plano="tipo">
+          <button class="pastilha" data-valor="Força e hipertrofia">Força e hipertrofia</button>
+          <button class="pastilha" data-valor="HIIT">HIIT</button>
+          <button class="pastilha" data-valor="Calistenia">Calistenia</button>
+          <button class="pastilha" data-valor="Mobilidade">Mobilidade</button>
+        </div>
+      </div>
+
+      <button class="linha" data-refino="foco"><span>Divisão</span><span class="linha__valor" id="resumoFoco">—</span></button>
+      <div class="refino" data-painel="foco" hidden>
+        <div class="pastilhas" data-plano="foco">
+          <button class="pastilha" data-valor="Corpo inteiro">Corpo inteiro</button>
+          <button class="pastilha" data-valor="Superior / inferior">Superior / inferior</button>
+          <button class="pastilha" data-valor="Empurrar, puxar, pernas">Empurrar / puxar / pernas</button>
+          <button class="pastilha" data-valor="Costas e core">Costas e core</button>
+        </div>
+      </div>
+
+      <button class="linha" data-refino="musculos"><span>Grupos a trabalhar</span><span class="linha__valor" id="resumoMusculos">todos</span></button>
+      <div class="refino" data-painel="musculos" hidden>
+        <p class="item__meta" style="margin:0 0 12px">Escolhe os que queres priorizar. Sem escolha, o plano equilibra o corpo todo.</p>
+        <div class="musculos-grelha" id="musculosGrelha"></div>
+      </div>
+
+      <button class="linha" data-refino="descanso"><span>Descanso entre séries</span><span class="linha__valor" id="resumoDescanso">—</span></button>
+      <div class="refino" data-painel="descanso" hidden>
+        <div class="pastilhas" data-plano="descanso">
+          <button class="pastilha" data-valor="45">45s</button>
+          <button class="pastilha" data-valor="60">60s</button>
+          <button class="pastilha" data-valor="90">90s</button>
+          <button class="pastilha" data-valor="120">2 min</button>
+          <button class="pastilha" data-valor="180">3 min</button>
+        </div>
+      </div>
+
+      <button class="linha" data-refino="semanas"><span>Duração do programa</span><span class="linha__valor" id="resumoSemanas">—</span></button>
+      <div class="refino" data-painel="semanas" hidden>
+        <p class="item__meta" style="margin:0 0 12px">Quantas semanas o programa vai durar. Os treinos repetem-se e vão aparecendo novos pelo meio.</p>
+        <div class="pastilhas" data-plano="semanas">
+          <button class="pastilha" data-valor="4">4 semanas</button>
+          <button class="pastilha" data-valor="6">6 semanas</button>
+          <button class="pastilha" data-valor="8">8 semanas</button>
+          <button class="pastilha" data-valor="12">12 semanas</button>
+        </div>
+      </div>
+
+      <button class="linha" data-refino="intensidade"><span>Intensidade</span><span class="linha__valor" id="resumoIntensidade">—</span></button>
+      <div class="refino" data-painel="intensidade" hidden>
+        <div class="pastilhas" data-plano="intensidade">
+          <button class="pastilha" data-valor="Básica">Básica</button>
+          <button class="pastilha" data-valor="Moderada">Moderada</button>
+          <button class="pastilha" data-valor="Alta">Alta</button>
+        </div>
+      </div>
+
+      <button class="linha" data-refino="superseries"><span>Superséries</span><span class="linha__valor" id="resumoSuperseries">—</span></button>
+      <div class="refino" data-painel="superseries" hidden>
+        <label class="interruptor">
+          <input type="checkbox" id="planoSuperseries">
+          <span>Superséries<small>Exercícios seguidos sem descanso, em músculos diferentes.</small></span>
+        </label>
+      </div>
+
+      <button class="linha" id="linhaFotos">
+        <span>Fotos do ginásio</span><span class="linha__valor" id="fotosResumo">0 fotos</span>
+      </button>
+
+      <button class="linha" id="linhaPerfil">
+        <span>Perfil e limitações</span><span class="linha__valor" id="perfilResumo">—</span>
+      </button>
+
+      <button class="linha" id="btnPrograma">
+        <span>Planear a semana</span><span class="linha__valor">escolher a ficha de cada dia</span>
+      </button>
+    </div>
+
     <div id="iaResultado"></div>
+
+    <div class="section-head">
+      <h2>Minhas fichas</h2>
+      <button class="btn-ligacao" id="btnNovoTreino">+ Nova ficha</button>
+    </div>
+    <div id="listaTreinos" class="stack"></div>
+    <button class="linha" id="btnIrExercicios"><span>Todos os exercícios</span><span class="linha__valor" id="totalExercicios">—</span></button>
+  </section>
+
+  <!-- ============ REGISTO ============ -->
+  <section class="view view--caixa" id="view-registo" hidden>
+    <div class="section-head"><h2>Esta semana</h2></div>
+    <div id="planoSemana"></div>
+
+    <div class="section-head">
+      <h2>Calendário</h2>
+      <span class="mes-cabeca" style="gap:8px;margin:0">
+        <button class="icon-btn" id="mesAnterior" aria-label="Mês anterior">‹</button>
+        <strong id="mesNome">—</strong>
+        <button class="icon-btn" id="mesSeguinte" aria-label="Mês seguinte">›</button>
+      </span>
+    </div>
+    <div class="mes" id="mes"></div>
+    <p class="item__meta" id="mesResumo"></p>
+
+    <div class="section-head">
+      <h2>Últimas sessões</h2>
+      <button class="btn-ligacao" id="btnHistorico">Ver tudo</button>
+    </div>
+    <div id="sessoesRegisto" class="stack"></div>
+
+    <div class="section-head"><h2>Progresso</h2></div>
+    <div class="grid grid--stats grid--par" id="resumoStats"></div>
+
+    <div class="section-head"><h2>Evolução por exercício</h2></div>
+    <select class="input" id="selEx" aria-label="Evolução por exercício"></select>
+    <div id="grafico"></div>
+    <div class="grid grid--stats" id="recordesEx"></div>
+  </section>
+
+  <!-- ============ EXERCÍCIOS ============ -->
+  <section class="view view--caixa" id="view-exercicios" hidden>
+    <div class="section-head">
+      <h2>Exercícios</h2>
+      <button class="btn-ligacao" id="exVoltar">‹ Plano</button>
+    </div>
+    <input class="input" type="search" id="buscaEx" placeholder="Buscar exercício…" autocomplete="off">
+    <div class="chips" id="filtrosGrupo"></div>
+    <div id="listaExercicios" class="stack"></div>
+    <button class="btn btn--block" id="btnNovoEx">+ Criar exercício</button>
   </section>
 
   <!-- ============ FOTOS DO GINÁSIO ============ -->
-  <section class="view" id="view-fotos" hidden>
-    <button class="btn btn--sm btn--ghost" id="fotosVoltar" style="align-self:flex-start">‹ Voltar</button>
-    <div class="section-head"><h2>Fotos do ginásio</h2></div>
+  <section class="view view--caixa" id="view-fotos" hidden>
+    <div class="section-head">
+      <h2>Fotos do ginásio</h2>
+      <button class="btn-ligacao" id="fotosVoltar">‹ Plano</button>
+    </div>
     <p class="muted">As fotos seguem com o pedido e a IA identifica nelas o equipamento — útil para
       apanhar máquinas que não estão na lista. Podes usar só a lista, só fotos, ou as duas coisas.</p>
 
-    <div class="card">
-      <div class="row-actions">
-        <button class="btn btn--sm btn--ghost" id="btnTirarFoto">📷 Tirar foto</button>
-        <button class="btn btn--sm btn--ghost" id="btnEscolherFoto">🖼 Galeria</button>
-      </div>
-      <input type="file" id="fotoCamera" accept="image/*" capture="environment" multiple hidden>
-      <input type="file" id="fotoGaleria" accept="image/*" multiple hidden>
-      <div class="fotos" id="fotos"></div>
-      <p class="item__meta" id="fotosInfo">Até 8 fotos. Ficam no dispositivo e só são enviadas quando geras o plano.</p>
+    <div class="row-actions">
+      <button class="btn btn--sm" id="btnTirarFoto">Tirar foto</button>
+      <button class="btn btn--sm" id="btnEscolherFoto">Galeria</button>
     </div>
+    <input type="file" id="fotoCamera" accept="image/*" capture="environment" multiple hidden>
+    <input type="file" id="fotoGaleria" accept="image/*" multiple hidden>
+    <div class="fotos" id="fotos"></div>
+    <p class="item__meta" id="fotosInfo">Até 8 fotos. Ficam no dispositivo e só são enviadas quando geras o plano.</p>
   </section>
 
-
   <!-- ============ NUTRIÇÃO ============ -->
-  <section class="view" id="view-nutricao" hidden>
-    <div class="section-head"><h2>Nutrição</h2></div>
+  <section class="view view--caixa" id="view-nutricao" hidden>
+    <div class="section-head">
+      <h2>Nutrição</h2>
+      <button class="btn-ligacao" id="nutricaoVoltar">‹ Perfil</button>
+    </div>
     <p class="muted">Esta parte ainda está por construir. A ideia é acompanhar a alimentação ao lado
       do treino — e não vale a pena fingir que já faz algo.</p>
 
-    <div class="card">
-      <label class="label">O que está pensado</label>
-      <ul class="lista-planeada">
-        <li><b>Registo de refeições</b><span>o que comeste, sem contar cada grama</span></li>
-        <li><b>Objetivo calórico e proteína</b><span>calculado a partir do teu perfil e treino</span></li>
-        <li><b>Sugestões do treinador</b><span>perguntas sobre alimentação no separador Treinador</span></li>
-        <li><b>Peso ao longo do tempo</b><span>gráfico junto ao progresso do treino</span></li>
-      </ul>
-      <p class="item__meta" style="margin-top:12px">Diz-me por onde queres começar e construo essa
-        parte primeiro.</p>
-    </div>
+    <label class="label" style="margin-top:8px">O que está pensado</label>
+    <ul class="lista-planeada">
+      <li><b>Registo de refeições</b><span>o que comeste, sem contar cada grama</span></li>
+      <li><b>Objetivo calórico e proteína</b><span>calculado a partir do teu perfil e treino</span></li>
+      <li><b>Sugestões do treinador</b><span>perguntas sobre alimentação no Treinador</span></li>
+      <li><b>Peso ao longo do tempo</b><span>gráfico junto ao progresso do treino</span></li>
+    </ul>
+    <p class="item__meta">Diz-me por onde queres começar e construo essa parte primeiro.</p>
 
     <div class="aviso">Nutrição toca em saúde: o que for feito aqui serão orientações gerais, não
       dietas clínicas. Para alimentação em contexto de doença, gravidez ou distúrbio alimentar, o
@@ -274,48 +296,52 @@
   </section>
 
   <!-- ============ DEFINIÇÕES ============ -->
-  <section class="view" id="view-definicoes" hidden>
-    <button class="btn btn--sm btn--ghost" id="defVoltar" style="align-self:flex-start">‹ Voltar</button>
-    <div class="section-head"><h2>Definições</h2></div>
+  <section class="view view--caixa" id="view-definicoes" hidden>
+    <div class="section-head">
+      <h2>Definições</h2>
+      <button class="btn-ligacao" id="defVoltar">‹ Perfil</button>
+    </div>
 
     <p class="def-grupo">Conta</p>
     <div class="lista-def">
-      <button id="defConta"><span class="def-icone">👤</span>A minha conta<span class="def-valor" id="defContaEstado">só neste dispositivo</span></button>
+      <button id="defConta"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>A minha conta<span class="def-valor" id="defContaEstado">só neste dispositivo</span></button>
     </div>
 
     <p class="def-grupo">Aplicação</p>
     <div class="lista-def">
-      <button id="defTema"><span class="def-icone">🌓</span>Aspeto<span class="def-valor" id="defTemaValor">—</span></button>
-      <button id="defLetra"><span class="def-icone">🔤</span>Tipo de letra<span class="def-valor" id="defLetraValor">—</span></button>
-      <button id="defTexto"><span class="def-icone">🔍</span>Tamanho do texto<span class="def-valor" id="defTextoValor">—</span></button>
-      <button id="defIdioma"><span class="def-icone">🌐</span>Idioma<span class="def-valor">Português</span></button>
-      <button id="defUnidades"><span class="def-icone">📏</span>Unidades<span class="def-valor">kg · cm</span></button>
-      <button id="defIA"><span class="def-icone">✨</span>Servidor de IA<span class="def-valor" id="defIAValor">—</span></button>
-      <button id="defSaude"><span class="def-icone">❤️</span>Apple Saúde<span class="def-valor" id="defSaudeValor">—</span></button>
+      <button id="defTema"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg></span>Aspeto<span class="def-valor" id="defTemaValor">—</span></button>
+      <button id="defLetra"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg></span>Tipo de letra<span class="def-valor" id="defLetraValor">—</span></button>
+      <button id="defTexto"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></span>Tamanho do texto<span class="def-valor" id="defTextoValor">—</span></button>
+      <button id="defIdioma"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg></span>Idioma<span class="def-valor">Português</span></button>
+      <button id="defUnidades"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15L15 3l6 6L9 21z"/><path d="M7.5 10.5l2 2"/><path d="M10.5 7.5l2 2"/><path d="M4.5 13.5l2 2"/></svg></span>Unidades<span class="def-valor">kg · cm</span></button>
+      <button id="defIA"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z"/></svg></span>Servidor de IA<span class="def-valor" id="defIAValor">—</span></button>
+      <button id="defSaude"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.6a5.5 5.5 0 0 0-7.8 0L12 6.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>Apple Saúde<span class="def-valor" id="defSaudeValor">—</span></button>
     </div>
 
     <p class="def-grupo">Os meus dados</p>
     <div class="lista-def">
-      <button id="defExportar"><span class="def-icone">⬇️</span>Exportar backup</button>
-      <button id="defImportar"><span class="def-icone">⬆️</span>Importar backup</button>
-      <button id="defCache"><span class="def-icone">🗄</span>Limpar cache e recarregar</button>
-      <button id="defApagar"><span class="def-icone">🗑</span>Apagar tudo</button>
+      <button id="defExportar"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span>Exportar backup</button>
+      <button id="defImportar"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></span>Importar backup</button>
+      <button id="defCache"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></span>Limpar cache e recarregar</button>
+      <button id="defApagar"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span>Apagar tudo</button>
     </div>
     <input type="file" id="defArquivo" accept="application/json" hidden>
 
     <p class="def-grupo">Sobre</p>
     <div class="lista-def">
-      <button id="defPrivacidade"><span class="def-icone">🛡</span>Privacidade</button>
-      <button id="defTermos"><span class="def-icone">📄</span>Termos de utilização</button>
-      <button id="defCreditos"><span class="def-icone">🎨</span>Créditos e licenças</button>
-      <button id="defVersao"><span class="def-icone">ℹ️</span>Versão<span class="def-valor" id="defVersaoValor">—</span></button>
+      <button id="defPrivacidade"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>Privacidade</button>
+      <button id="defTermos"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/></svg></span>Termos de utilização</button>
+      <button id="defCreditos"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="12" cy="7.5" r="1.2"/><circle cx="15.5" cy="10" r="1.2"/></svg></span>Créditos e licenças</button>
+      <button id="defVersao"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>Versão<span class="def-valor" id="defVersaoValor">—</span></button>
     </div>
   </section>
 
   <!-- ============ APPLE SAÚDE ============ -->
-  <section class="view" id="view-saude" hidden>
-    <button class="btn btn--sm btn--ghost" id="saudeVoltar" style="align-self:flex-start">‹ Voltar</button>
-    <div class="section-head"><h2>Apple Saúde</h2></div>
+  <section class="view view--caixa" id="view-saude" hidden>
+    <div class="section-head">
+      <h2>Apple Saúde</h2>
+      <button class="btn-ligacao" id="saudeVoltar">‹ Definições</button>
+    </div>
 
     <div class="cartao-saude">
       <h3>Sincronizar a MovePulse com o Apple Saúde</h3>
@@ -324,13 +350,13 @@
 
     <p class="def-grupo">Transferir do Saúde</p>
     <div class="lista-def">
-      <label class="linha-switch"><span class="def-icone">⚖️</span>Peso corporal
+      <label class="linha-switch"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a4 4 0 0 0 6 0z"/><path d="M19 7l3 7a4 4 0 0 1-6 0z"/></svg></span>Peso corporal
         <input type="checkbox" class="switch" id="saudePeso"></label>
     </div>
 
     <p class="def-grupo">Guardar no Saúde</p>
     <div class="lista-def">
-      <label class="linha-switch"><span class="def-icone">🏋️</span>Treinos
+      <label class="linha-switch"><span class="def-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg></span>Treinos
         <input type="checkbox" class="switch" id="saudeTreinos"></label>
     </div>
 
@@ -338,159 +364,138 @@
     <div id="saudeGuia"></div>
   </section>
 
-  <!-- ============ BOT ============ -->
-  <section class="view" id="view-bot" hidden>
+  <!-- ============ TREINADOR ============ -->
+  <section class="view view--caixa" id="view-bot" hidden>
     <div class="section-head">
       <h2>Treinador IA</h2>
-      <button class="btn btn--sm btn--ghost" id="botLimpar">Limpar</button>
+      <button class="btn-ligacao" id="botLimpar">Limpar</button>
     </div>
     <div class="conversa" id="conversa"></div>
     <div class="sugestoes" id="botSugestoes"></div>
     <form class="barra-envio" id="botForm">
       <input class="input" id="botTexto" placeholder="Pergunta ao treinador…" autocomplete="off">
-      <button class="btn btn--primary" id="botEnviar" type="submit" aria-label="Enviar">➤</button>
+      <button class="btn btn--primary" id="botEnviar" type="submit" aria-label="Enviar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+      </button>
     </form>
+    <button class="btn btn--block" id="botVoltar">‹ Voltar</button>
   </section>
 
   <!-- ============ PERFIL ============ -->
-  <section class="view" id="view-perfil" hidden>
-    <button class="btn btn--sm btn--ghost" id="perfilVoltar" style="align-self:flex-start">‹ Início</button>
+  <section class="view view--caixa" id="view-perfil" hidden>
     <div class="section-head"><h2>Perfil</h2></div>
 
-    <div class="card">
-      <label class="label">Sobre ti</label>
-      <div class="field">
-        <label class="label" for="pNome">Nome</label>
-        <input class="input" id="pNome" data-perfil="nome" placeholder="Como te chamas">
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label class="label" for="pIdade">Idade</label>
-          <input class="input" type="number" min="10" max="100" id="pIdade" data-perfil="idade" placeholder="—">
-        </div>
-        <div class="field">
-          <label class="label" for="pAltura">Altura (cm)</label>
-          <input class="input" type="number" min="100" max="230" id="pAltura" data-perfil="altura" placeholder="—">
-        </div>
-        <div class="field">
-          <label class="label" for="pPeso">Peso (kg)</label>
-          <input class="input" type="number" step="0.1" min="30" max="250" id="pPeso" data-perfil="peso" placeholder="—">
-        </div>
-      </div>
-      <p class="item__meta" id="perfilImc"></p>
+    <label class="label">Sobre ti</label>
+    <div class="field">
+      <label class="label" for="pNome">Nome</label>
+      <input class="input" id="pNome" data-perfil="nome" placeholder="Como te chamas">
     </div>
-
-    <div class="card">
-      <label class="label">Objetivo e treino</label>
+    <div class="field-row">
       <div class="field">
-        <label class="label" for="pObjetivo">Objetivo</label>
-        <select class="input" id="pObjetivo" data-perfil="objetivo">
-          <option>Hipertrofia (ganho de massa)</option>
-          <option>Perda de gordura</option>
-          <option>Força</option>
-          <option>Condição física geral</option>
-          <option>Saúde e mobilidade</option>
+        <label class="label" for="pIdade">Idade</label>
+        <input class="input" type="number" min="10" max="100" id="pIdade" data-perfil="idade" placeholder="—">
+      </div>
+      <div class="field">
+        <label class="label" for="pAltura">Altura (cm)</label>
+        <input class="input" type="number" min="100" max="230" id="pAltura" data-perfil="altura" placeholder="—">
+      </div>
+      <div class="field">
+        <label class="label" for="pPeso">Peso (kg)</label>
+        <input class="input" type="number" step="0.1" min="30" max="250" id="pPeso" data-perfil="peso" placeholder="—">
+      </div>
+    </div>
+    <p class="item__meta" id="perfilImc"></p>
+
+    <div class="section-head"><h2>Objetivo e treino</h2></div>
+    <div class="field">
+      <label class="label" for="pObjetivo">Objetivo</label>
+      <select class="input" id="pObjetivo" data-perfil="objetivo">
+        <option>Hipertrofia (ganho de massa)</option>
+        <option>Perda de gordura</option>
+        <option>Força</option>
+        <option>Condição física geral</option>
+        <option>Saúde e mobilidade</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="label" for="pPesoObjetivo">Peso que queres alcançar (kg)</label>
+        <input class="input" type="number" step="0.1" min="30" max="250" id="pPesoObjetivo" data-perfil="pesoObjetivo" placeholder="—">
+      </div>
+      <div class="field">
+        <label class="label" for="pExperiencia">Experiência</label>
+        <select class="input" id="pExperiencia" data-perfil="experiencia">
+          <option>Iniciante</option><option>Intermédio</option><option>Avançado</option>
         </select>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label class="label" for="pPesoObjetivo">Peso que queres alcançar (kg)</label>
-          <input class="input" type="number" step="0.1" min="30" max="250" id="pPesoObjetivo" data-perfil="pesoObjetivo" placeholder="—">
-        </div>
-        <div class="field">
-          <label class="label" for="pExperiencia">Experiência</label>
-          <select class="input" id="pExperiencia" data-perfil="experiencia">
-            <option>Iniciante</option><option>Intermédio</option><option>Avançado</option>
-          </select>
-        </div>
-      </div>
-      <p class="item__meta" id="perfilDistanciaObjetivo"></p>
+    </div>
+    <p class="item__meta" id="perfilDistanciaObjetivo"></p>
+    <div class="field">
+      <label class="label">Dias de treino</label>
+      <div class="dias-escolha" id="diasEscolha"></div>
+      <p class="item__meta" id="diasResumo"></p>
+    </div>
+    <div class="field">
+      <label class="label" for="pMinutos">Tempo por sessão (min)</label>
+      <select class="input" id="pMinutos" data-perfil="minutos">
+        <option>30</option><option>45</option><option>60</option><option>75</option><option>90</option>
+      </select>
+    </div>
+    <div class="field-row">
       <div class="field">
-        <label class="label">Dias de treino</label>
-        <div class="dias-escolha" id="diasEscolha"></div>
-        <p class="item__meta" id="diasResumo"></p>
-      </div>
-      <div class="field">
-        <label class="label" for="pMinutos">Tempo por sessão (min)</label>
-        <select class="input" id="pMinutos" data-perfil="minutos">
-          <option>30</option><option>45</option><option>60</option><option>75</option><option>90</option>
+        <label class="label" for="pSexo">Sexo</label>
+        <select class="input" id="pSexo" data-perfil="sexo">
+          <option value="">—</option>
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
         </select>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label class="label" for="pSexo">Sexo</label>
-          <select class="input" id="pSexo" data-perfil="sexo">
-            <option value="">—</option>
-            <option value="M">Masculino</option>
-            <option value="F">Feminino</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="label" for="pLimitacoes">Limitações ou lesões</label>
-        <input class="input" id="pLimitacoes" data-perfil="limitacoes" placeholder="Ex.: dor no ombro direito">
-      </div>
-      <div class="field">
-        <label class="label" for="pNotas">Notas</label>
-        <input class="input" id="pNotas" data-perfil="notas" placeholder="Ex.: prefiro treinos curtos e intensos">
-      </div>
-      <p class="item__meta">Guarda-se sozinho. É este perfil que a IA usa para montar os planos.</p>
     </div>
-
-    <div class="card">
-      <div class="card__title">
-        <div>
-          <h3>Peso corporal</h3>
-          <p class="item__meta" id="pesoResumo">—</p>
-        </div>
-        <button class="btn btn--sm btn--primary" id="btnRegistarPeso">Registar</button>
-      </div>
-      <div id="graficoPeso" style="margin-top:12px"></div>
+    <div class="field">
+      <label class="label" for="pLimitacoes">Limitações ou lesões</label>
+      <input class="input" id="pLimitacoes" data-perfil="limitacoes" placeholder="Ex.: dor no ombro direito">
     </div>
-
-    <div class="card">
-      <label class="label">Composição corporal</label>
-      <div class="grid grid--stats grid--par" id="composicao"></div>
-      <p class="item__meta" style="margin-top:10px" id="notaComposicao"></p>
+    <div class="field">
+      <label class="label" for="pNotas">Notas</label>
+      <input class="input" id="pNotas" data-perfil="notas" placeholder="Ex.: prefiro treinos curtos e intensos">
     </div>
+    <p class="item__meta">Guarda-se sozinho. É este perfil que a IA usa para montar os planos.</p>
 
-    <div class="card">
-      <label class="label">Energia</label>
-      <div class="grid grid--stats grid--par" id="energia"></div>
-      <p class="item__meta" style="margin-top:10px" id="notaEnergia"></p>
+    <div class="section-head">
+      <h2>Peso corporal</h2>
+      <button class="btn-ligacao" id="btnRegistarPeso">Registar</button>
     </div>
+    <p class="item__meta" id="pesoResumo">—</p>
+    <div id="graficoPeso"></div>
 
-    <div class="card">
-      <div class="card__title">
-        <div>
-          <h3>Plano com IA</h3>
-          <p class="item__meta">Fotografa as máquinas do ginásio e recebe um plano feito à medida.</p>
-        </div>
-      </div>
-      <button class="btn btn--primary btn--block" id="perfilIrIA" style="margin-top:12px">📷 Gerar plano</button>
-    </div>
+    <div class="section-head"><h2>Composição corporal</h2></div>
+    <div class="grid grid--stats grid--par" id="composicao"></div>
+    <p class="item__meta" id="notaComposicao"></p>
 
-    <div class="card">
-      <label class="label">Aplicação</label>
-      <div class="stack">
-        <button class="btn btn--ghost" id="perfilDefinicoes">⚙️ Definições e backup</button>
-      </div>
-      <p class="item__meta" style="margin-top:10px">Os teus dados ficam só neste dispositivo.</p>
+    <div class="section-head"><h2>Energia</h2></div>
+    <div class="grid grid--stats grid--par" id="energia"></div>
+    <p class="item__meta" id="notaEnergia"></p>
+
+    <div class="section-head"><h2>Mais</h2></div>
+    <div id="perfilLinhas">
+      <button class="linha" id="perfilIrIA"><span>Gerar plano com IA</span></button>
+      <button class="linha" id="perfilTreinador"><span>Treinador IA</span></button>
+      <button class="linha" id="perfilNutricao"><span>Nutrição</span><span class="linha__valor">por construir</span></button>
+      <button class="linha" id="perfilDefinicoes"><span>Definições e backup</span></button>
     </div>
+    <p class="item__meta">Os teus dados ficam só neste dispositivo, a não ser que ligues uma conta.</p>
   </section>
 
 </main>
 
 <nav class="tabbar">
-  <button class="tab is-active" data-view="inicio"><span class="tab-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="8.5" width="3" height="7" rx="1.4"/><rect x="5" y="6.5" width="3.2" height="11" rx="1.5"/><rect x="8" y="10.6" width="8" height="2.8" rx="1.2"/><rect x="15.8" y="6.5" width="3.2" height="11" rx="1.5"/><rect x="19.5" y="8.5" width="3" height="7" rx="1.4"/></svg></span>Início</button>
-  <button class="tab" data-view="ia"><span>✨</span>Plano IA</button>
-  <button class="tab" data-view="treinos"><span>📋</span>Fichas</button>
-  <button class="tab" data-view="bot"><span>💬</span>Treinador</button>
-  <button class="tab" data-view="nutricao"><span>🥗</span>Nutrição</button>
+  <button class="tab is-active" data-view="inicio">Hoje</button>
   <button class="tab tab--treino" data-view="treino" id="tabTreino" hidden>
-    <span>⏱</span><b id="tabTreinoTempo">00:00</b>
+    A treinar<b id="tabTreinoTempo">00:00</b>
   </button>
+  <button class="tab" data-view="plano">Plano</button>
+  <button class="tab" data-view="registo">Registo</button>
+  <button class="tab" data-view="perfil">Perfil</button>
 </nav>
 
 <!-- Modal genérico -->
@@ -500,7 +505,9 @@
     <div class="modal__pega" id="modalPega"><span></span></div>
     <div class="modal__head" id="modalCabeca">
       <h3 id="modalTitulo">Título</h3>
-      <button class="icon-btn" data-close aria-label="Fechar">✕</button>
+      <button class="icon-btn" data-close aria-label="Fechar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
     </div>
     <div class="modal__body" id="modalCorpo"></div>
     <div class="modal__foot" id="modalRodape"></div>
@@ -518,20 +525,20 @@
     <b id="restTempo">60</b>
   </span>
   <span>Descanso</span>
-  <button class="btn btn--sm btn--ghost" id="restPular">Saltar</button>
+  <button class="btn btn--sm" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=77"></script>
-<script src="js/store.js?v=77"></script>
-<script src="js/nuvem.js?v=77"></script>
-  <script src="js/saude.js?v=77"></script>
-<script src="js/db.js?v=77"></script>
-<script src="js/ia.js?v=77"></script>
-<script src="js/ui.js?v=77"></script>
-<script src="js/musculos.js?v=77"></script>
-  <script src="js/figuras.js?v=77"></script>
-<script src="js/animacao.js?v=77"></script>
-<script src="js/icones.js?v=77"></script>
-<script src="js/app.js?v=77"></script>
+<script src="js/data.js?v=78"></script>
+<script src="js/store.js?v=78"></script>
+<script src="js/nuvem.js?v=78"></script>
+<script src="js/saude.js?v=78"></script>
+<script src="js/db.js?v=78"></script>
+<script src="js/ia.js?v=78"></script>
+<script src="js/ui.js?v=78"></script>
+<script src="js/musculos.js?v=78"></script>
+<script src="js/figuras.js?v=78"></script>
+<script src="js/animacao.js?v=78"></script>
+<script src="js/icones.js?v=78"></script>
+<script src="js/app.js?v=78"></script>
 </body>
 </html>

@@ -2,18 +2,44 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 77;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 78;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
-let restInterval = null;
 let restRestante = 0;
+let restTotal = 0;
 
-/* ---------------- Navegação ---------------- */
+/* Ícones Lucide (ISC), a traço, para o que é desenhado em JS.
+   Só entram aqui os que a app usa mesmo — não vale a pena trazer a
+   biblioteca inteira para meia dúzia de traços. */
+const ICO = {
+  mais:    '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  menos:   '<path d="M5 12h14"/>',
+  check:   '<path d="M20 6L9 17l-5-5"/>',
+  camara:  '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  imagem:  '<rect x="3" y="3" width="18" height="18"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
+  lapis:   '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  lixo:    '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',
+  nuvem:   '<path d="M18 18H7a4.5 4.5 0 1 1 .9-8.9A6 6 0 0 1 19.5 10 4 4 0 0 1 18 18z"/>',
+  baixar:  '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
+  enviar:  '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
+  fechar:  '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>',
+};
+const ico = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICO[nome]}</svg>`;
+
+/* ---------------- Navegação ----------------
+   Os ecrãs antigos "Plano IA" e "Fichas" passaram a viver dentro de PLANO,
+   e o progresso passou para REGISTO. Os nomes antigos continuam a funcionar
+   para não haver ligações mortas espalhadas pelo código. */
+const ALIAS_VIEW = { ia:'plano', treinos:'plano', progresso:'registo' };
+
 function mostrar(view){
+  view = ALIAS_VIEW[view] || view;
   viewAtual = view;
   $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + view; });
   $$('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.view === view));
+  // no ecrã do treino é a barra do topo que conta o descanso
+  if (restRestante > 0) $('#rest').hidden = view === 'treino';
   window.scrollTo({ top: 0 });
   render();
 }
@@ -25,23 +51,29 @@ function render(){
   if (viewAtual === 'perfil')     renderPerfil();
   if (viewAtual === 'definicoes') renderDefinicoes();
   if (viewAtual === 'saude')      renderSaude();
-  if (viewAtual === 'treinos')    renderTreinos();
+  if (viewAtual === 'plano')      renderPlano();
+  if (viewAtual === 'registo')    renderRegisto();
   if (viewAtual === 'exercicios') renderExercicios();
-  if (viewAtual === 'ia')         renderIA();
   if (viewAtual === 'fotos')      renderFotos();
   atualizarSubtitulo();
 }
 
+/** O estado que aparece ao lado da marca, no topo. */
 function atualizarSubtitulo(){
   const s = Store.estado.sessaoAtiva;
-  $('#topbarSub').textContent = s ? `Em treino: ${s.nome}` : 'O teu diário de treino';
+  const prog = resumoPrograma();
+  $('#topbarSub').textContent = s ? 'Em treino'
+    : prog ? `Semana ${prog.semana}/${prog.total}`
+    : 'Diário de treino';
   atualizarTabTreino();
 }
 
-/** O separador do treino a decorrer aparece só quando há um, e leva de volta a ele. */
+/** Havendo treino a decorrer, a célula HOJE dá lugar a A TREINAR. */
 function atualizarTabTreino(){
   const s = Store.estado.sessaoAtiva;
+  const tabHoje = $('.tab[data-view="inicio"]');
   $('#tabTreino').hidden = !s;
+  if (tabHoje) tabHoje.hidden = !!s;
   if (s) iniciarCrono();
 }
 
@@ -65,15 +97,11 @@ function renderHoje(){
 /** Quantos treinos planeados para esta semana já foram feitos. */
 function renderPlanoSemana(){
   const prog = resumoPrograma();
-  const hoje = new Date();
-  const segunda = new Date(hoje);
-  segunda.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7));
   const treinados = Store.diasTreinados();
 
   let planeados = 0, feitos = 0;
   for (let i = 0; i < 7; i++){
-    const d = new Date(segunda);
-    d.setDate(segunda.getDate() + i);
+    const d = dataDoIndice(i);
     if (Store.treinoDaData(d)) planeados++;
     if (treinados.has(chaveDia(d))) feitos++;
   }
@@ -82,28 +110,16 @@ function renderPlanoSemana(){
   $('#planoSemana').innerHTML = `
     <div class="item">
       <div>
-        <h3 style="font-size:15px">Progresso semanal</h3>
+        <span class="stat__valor">${pct}%</span>
         <p class="item__meta">${planeados ? `${feitos} de ${planeados} treinos planeados` : 'Ainda não planeaste a semana'}${
           prog ? ` · semana ${prog.semana} de ${prog.total}` : ''}</p>
       </div>
-      <strong style="font-size:20px">${pct}%</strong>
     </div>
     <div class="barra"><div class="barra__cheio" style="width:${pct}%"></div></div>`;
 }
 
-function renderSaudacao(){
-  const nome = Store.estado.perfil.nome.trim();
-  const hoje = new Date();
-  const h = hoje.getHours();
-  const parte = h < 6 ? 'Boa madrugada' : h < 13 ? 'Bom dia' : h < 20 ? 'Boa tarde' : 'Boa noite';
-  // só a primeira letra em maiúscula: "Quarta-feira, 2 de setembro"
-  const data = hoje.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
-  $('#olaData').textContent = data.charAt(0).toUpperCase() + data.slice(1);
-  $('#olaNome').textContent = nome ? `${parte}, ${nome}!` : `${parte}!`;
-  $('#avatarIniciais').textContent = nome
-    ? nome.split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase()
-    : '👤';
-}
+/** Compatibilidade: o nome mudou, o ecrã é o mesmo. */
+function renderSaudacao(){ renderHeroi(); }
 
 /** Quanto tempo leva a ficha: cada série é o trabalho mais o descanso. */
 function duracaoEstimada(ficha){
@@ -123,73 +139,103 @@ function gruposDaFicha(ficha){
   return vistos;
 }
 
-/** Miniaturas: foto da máquina onde exista, senão o diagrama muscular. */
-async function preencherMiniaturas(ficha){
-  const alvo = $('#hojeMiniaturas');
-  if (!alvo) return;
-  const itens = ficha.itens.slice(0, 3);
-  const partes = await Promise.all(itens.map(async it => {
-    const ex = Store.exercicio(it.exId);
-    const foto = await Fotos.ler(it.exId).catch(() => null);
-    return foto
-      ? `<img src="${foto}" alt="${esc(ex.nome)}">`
-      : `<span class="mini-svg" title="${esc(ex.nome)}">${diagramaMusculos(ex.grupo).replace(/<\/?div[^>]*>/g, '')}</span>`;
-  }));
-  alvo.innerHTML = partes.join('');
-}
+/* ============================================================
+   TELA: HOJE
+   ============================================================ */
+/* A tira da semana começa à segunda. diaSel é o dia escolhido (0–6);
+   por omissão, hoje. */
+let diaSel = null;
 
-/** O cartão grande do topo: o que há para fazer hoje. */
-function renderCartaoHoje(){
+function indiceDeHoje(){ return (new Date().getDay() + 6) % 7; }
+
+/** A data que corresponde a um índice da tira, nesta semana. */
+function dataDoIndice(i){
   const hoje = new Date();
-  const chave = chaveDia(hoje);
-  const ficha = Store.treinoDaData(hoje);
-  const feitasHoje = Store.sessoesDoDia(chave);
-
-  if (feitasHoje.length){
-    const volume = feitasHoje.reduce((t, s) => t + volumeSessao(s), 0);
-    const minutos = Math.round(feitasHoje.reduce((t, s) => t + (s.fim - s.inicio), 0) / 6e4);
-    $('#cartaoHoje').innerHTML = `
-      <div class="hoje--feito">
-        <span class="hoje__etiqueta">Feito hoje ✓</span>
-        <p class="hoje__tempo">${minutos} <span>min</span></p>
-        <p class="hoje__onde">${feitasHoje.map(s => esc(s.nome)).join(' · ')} — ${fmtNum(volume)} kg de volume</p>
-      </div>`;
-    return;
-  }
-
-  if (!ficha){
-    $('#cartaoHoje').innerHTML = `
-      <div>
-        <span class="hoje__etiqueta">Hoje</span>
-        <p class="hoje__tempo">Descanso</p>
-        <p class="hoje__onde">Sem treino planeado. Podes treinar à mesma.</p>
-        <div class="hoje__fundo">
-          <span class="item__meta">Treino livre</span>
-          <button class="hoje__ir" id="btnDescansoLivre" aria-label="Começar treino livre">→</button>
-        </div>
-      </div>`;
-    $('#btnDescansoLivre').onclick = () => confirmar(
-      'Começar um treino livre, sem ficha? O cronómetro arranca já.',
-      () => { Store.iniciarSessao(null); mostrar('treino'); atualizarSubtitulo(); },
-      'Começar');
-    return;
-  }
-
-  const grupos = gruposDaFicha(ficha).slice(0, 3).join(', ');
-  $('#cartaoHoje').innerHTML = `
-    <div>
-      <span class="hoje__etiqueta">Especial para hoje</span>
-      <p class="hoje__tempo">${duracaoEstimada(ficha)} <span>min</span></p>
-      <p class="hoje__onde">${esc(ficha.nome)} • ${esc(grupos)}</p>
-      <div class="hoje__fundo">
-        <div class="hoje__miniaturas" id="hojeMiniaturas"></div>
-        <button class="hoje__ir" data-ver-treino="${ficha.id}" aria-label="Ver ${esc(ficha.nome)}">→</button>
-      </div>
-    </div>`;
-  preencherMiniaturas(ficha);
+  const d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  d.setDate(d.getDate() - indiceDeHoje() + i);
+  return d;
 }
 
-let mesVisivel = null;   // primeiro dia do mês mostrado no calendário
+/** A primeira palavra do nome do exercício, para o resumo do herói. */
+function primeiraPalavra(nome){
+  return String(nome).trim().split(/[\s,]+/)[0].toLowerCase();
+}
+
+function renderInicio(){
+  if (diaSel === null) diaSel = indiceDeHoje();
+  renderHeroi();
+  renderSemana();
+  renderRegistoCurto();
+  renderVolumeSemanas();
+}
+
+/** As três células de números por baixo do herói. */
+function pintarStats(pares){
+  $('#hojeStats').innerHTML = pares.map(([valor, rotulo]) =>
+    `<div><span class="stat__valor">${esc(valor)}</span><span class="rotulo">${esc(rotulo)}</span></div>`).join('');
+}
+
+/** O rótulo e a acção do botão largo mudam com o dia escolhido. */
+function definirAcaoHoje(rotulo, acao){
+  $('#acaoHojeRotulo').textContent = rotulo;
+  $('#btnAcaoHoje').onclick = acao;
+}
+
+function iniciarFicha(id){
+  if (Store.estado.sessaoAtiva) return toast('Já tens um treino a decorrer.');
+  Store.iniciarSessao(id);
+  mostrar('treino');
+  atualizarSubtitulo();
+}
+
+function comecarTreinoLivre(){
+  confirmar('Começar um treino livre, sem ficha? O cronómetro arranca já.',
+    () => { Store.iniciarSessao(null); mostrar('treino'); atualizarSubtitulo(); }, 'Começar');
+}
+
+/** O topo do Início: o dia escolhido, o que há para fazer e os números. */
+function renderHeroi(){
+  const data  = dataDoIndice(diaSel);
+  const chave = chaveDia(data);
+  const eHoje = diaSel === indiceDeHoje();
+  const sessoes = Store.sessoesDoDia(chave);
+  const ficha = Store.treinoDaData(data);
+  const nome  = Store.estado.perfil.nome.trim();
+
+  const legivel = data.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
+  $('#olaData').textContent = legivel.charAt(0).toUpperCase() + legivel.slice(1) + (eHoje ? ' · hoje' : '');
+
+  // já se treinou nesse dia
+  if (sessoes.length){
+    const volume  = sessoes.reduce((t, x) => t + volumeSessao(x), 0);
+    const minutos = Math.round(sessoes.reduce((t, x) => t + (x.fim - x.inicio), 0) / 6e4);
+    const series  = sessoes.reduce((t, x) => t + totalSeries(x), 0);
+    const exs     = sessoes.reduce((t, x) => t + x.exercicios.length, 0);
+    $('#olaNome').textContent = sessoes.map(x => x.nome).join(' + ');
+    $('#hojeSub').textContent = `Feito. ${fmtNum(volume)} kg de volume levantado.`;
+    pintarStats([[minutos, 'minutos'], [exs, 'exercícios'], [series, 'séries']]);
+    return definirAcaoHoje('Ver resumo', () => detalheSessao(sessoes[0].id));
+  }
+
+  // há ficha marcada para esse dia
+  if (ficha){
+    const grupos = gruposDaFicha(ficha);
+    const series = ficha.itens.reduce((t, i) => t + i.series, 0);
+    const nomes  = ficha.itens.slice(0, 4).map(i => primeiraPalavra(Store.exercicio(i.exId).nome));
+    $('#olaNome').textContent = ficha.nome;
+    $('#hojeSub').textContent = [grupos.join(' · '), nomes.join(', ')].filter(Boolean).join(' — ');
+    pintarStats([[duracaoEstimada(ficha), 'minutos'], [ficha.itens.length, 'exercícios'], [series, 'séries']]);
+    return eHoje
+      ? definirAcaoHoje('Começar agora', () => iniciarFicha(ficha.id))
+      : definirAcaoHoje('Ver ficha', () => detalheTreino(ficha.id));
+  }
+
+  // dia de descanso
+  $('#olaNome').textContent = eHoje && nome ? `Olá, ${nome}` : 'Descanso';
+  $('#hojeSub').textContent = 'Sem treino planeado para este dia. Podes treinar à mesma.';
+  pintarStats([['—', 'minutos'], ['—', 'exercícios'], ['—', 'séries']]);
+  definirAcaoHoje('Treino livre', comecarTreinoLivre);
+}
 
 /** Reduz o nome da ficha à sua marca: "Treino B" e "B — Costas" dão ambos "B". */
 function abreviar(nome){
@@ -203,24 +249,58 @@ function abreviar(nome){
 
 /** Tira de sete dias, da segunda ao domingo desta semana. */
 function renderSemana(){
-  const hoje = new Date();
-  const segunda = new Date(hoje);
-  segunda.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7));
   const treinados = Store.diasTreinados();
+  const hojeI = indiceDeHoje();
 
   $('#semana').innerHTML = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(segunda);
-    d.setDate(segunda.getDate() + i);
-    const chave = chaveDia(d);
+    const d = dataDoIndice(i);
     const ficha = Store.treinoDaData(d);
-    const feito = treinados.has(chave);
-    const eHoje = chave === chaveDia(hoje);
-    return `<button class="dia ${ficha ? 'tem-plano' : ''} ${feito ? 'feito' : ''} ${eHoje ? 'hoje' : ''}"
-              data-dia="${d.getDay()}" title="${ficha ? esc(ficha.nome) : 'Sem treino planeado'}">
-      <span class="dia__letra">${eHoje ? 'HOJE' : LETRAS_DIA[d.getDay()]}</span>
-      <span class="dia__bola">${feito ? '✓' : (ficha ? esc(abreviar(ficha.nome)) : d.getDate())}</span>
+    const feito = treinados.has(chaveDia(d));
+    const eHoje = i === hojeI;
+    // "feito" é tinta, "hoje" é verde: num ecrã, o verde é só o próximo passo
+    const estado = feito ? 'feito' : eHoje ? 'hoje' : ficha ? 'tem-plano' : 'sem-treino';
+    const marca  = feito ? '✓' : ficha ? esc(abreviar(ficha.nome)) : d.getDate();
+    return `<button class="dia ${estado} ${i === diaSel ? 'is-sel' : ''}" data-dia-i="${i}"
+              title="${ficha ? esc(ficha.nome) : 'Sem treino planeado'}">
+      <span class="dia__letra">${LETRAS_DIA[d.getDay()]}</span>
+      <span class="dia__marca">${marca}</span>
     </button>`;
   }).join('');
+}
+
+/** As três últimas sessões, no fim do Início. */
+function renderRegistoCurto(){
+  const { sessoes } = Store.estado;
+  $('#ultimasSessoes').innerHTML = sessoes.length
+    ? sessoes.slice(0, 3).map(cardSessao).join('')
+    : '<p class="empty section-head--pad">Os treinos concluídos aparecem aqui.</p>';
+}
+
+/** Volume levantado nas últimas oito semanas — só para ver a forma da coisa. */
+function renderVolumeSemanas(){
+  const hoje = new Date();
+  const segunda = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - indiceDeHoje());
+  const semanas = [];
+  for (let n = 7; n >= 0; n--){
+    const ini = new Date(segunda); ini.setDate(segunda.getDate() - n * 7);
+    const fim = new Date(ini);     fim.setDate(ini.getDate() + 7);
+    semanas.push(Store.estado.sessoes
+      .filter(x => x.fim >= ini.getTime() && x.fim < fim.getTime())
+      .reduce((t, x) => t + volumeSessao(x), 0));
+  }
+
+  const caixa = $('#volumeSemanas');
+  if (!semanas.some(v => v > 0)) return void (caixa.hidden = true);
+  caixa.hidden = false;
+  const maximo = Math.max(...semanas);
+  caixa.innerHTML = `
+    <p class="volumes__titulo rotulo">Volume · 8 semanas</p>
+    <div class="volumes__barras">
+      ${semanas.map((v, n) => `<i class="${n === 7 ? 'atual' : n === 6 ? 'penultima' : ''}"
+        style="height:${Math.max(2, Math.round(v / maximo * 88))}px"
+        title="${fmtNum(v)} kg"></i>`).join('')}
+    </div>
+    <p class="volumes__legenda">${fmtNum(semanas[7])} kg esta semana · melhor semana ${fmtNum(maximo)} kg</p>`;
 }
 
 /** Escolher que ficha se faz em cada dia da semana. */
@@ -251,50 +331,89 @@ function editorPrograma(){
           $$('[data-dia-sel]').forEach(sel => Store.definirDia(+sel.dataset.diaSel, sel.value));
           Modal.fechar();
           render();
-          toast('Semana planeada ✅');
+          toast('Semana planeada.');
         } },
     ],
   });
 }
 
-function renderInicio(){
-  const { sessoes } = Store.estado;
-  renderSaudacao();
-  renderCartaoHoje();
-  renderSemana();
-  renderPlanoSemana();
-  renderMes();
-  renderProgresso();
-
-  $('#ultimasSessoes').innerHTML = sessoes.length
-    ? sessoes.slice(0, 3).map(cardSessao).join('')
-    : '<p class="empty">Os treinos concluídos aparecem aqui.</p>';
-}
-
+/** Uma sessão do histórico, em linha reguada. */
 function cardSessao(s){
-  return `<button class="card card--tap" data-sessao="${s.id}">
-    <div class="item">
-      <div>
-        <h3>${esc(s.nome)}</h3>
-        <p class="item__meta">${fmtDataHora(s.fim)} · ${fmtDuracao(s.fim - s.inicio)}</p>
-      </div>
-      <div style="text-align:right">
-        <strong>${fmtNum(volumeSessao(s))} kg</strong>
-        <p class="item__meta">${totalSeries(s)} séries</p>
-      </div>
-    </div>
+  return `<button class="reg-linha" data-sessao="${s.id}">
+    <span>
+      <strong>${esc(s.nome)}</strong>
+      <span class="item__meta">${fmtDataHora(s.fim)} · ${fmtDuracao(s.fim - s.inicio)} · ${totalSeries(s)} séries</span>
+    </span>
+    <span><b>${fmtNum(volumeSessao(s))}</b><span class="un">kg</span></span>
   </button>`;
 }
 
-/* ---------------- Sessão em andamento ---------------- */
-function renderSessao(s){
-  $('#sessaoNome').textContent = s.nome;
+/* ============================================================
+   TELA: PLANO e TELA: REGISTO
+   ============================================================ */
+/** PLANO junta as fichas e o gerador de planos no mesmo sítio. */
+function renderPlano(){
+  renderIA();
+  renderTreinos();
+  const n = Store.todosExercicios().length;
+  $('#totalExercicios').textContent = `${n} no catálogo`;
+}
+
+/** REGISTO reúne o calendário, as sessões e o progresso. */
+function renderRegisto(){
+  renderPlanoSemana();
+  renderMes();
+  renderProgresso();
+  const { sessoes } = Store.estado;
+  $('#sessoesRegisto').innerHTML = sessoes.length
+    ? sessoes.slice(0, 10).map(cardSessao).join('')
+    : '<p class="empty">Os treinos concluídos aparecem aqui.</p>';
+}
+
+/* ============================================================
+   TELA: TREINO AO VIVO
+   ============================================================ */
+/** A barra do topo: tinta enquanto se treina, verde durante o descanso. */
+function pintarEstadoTreino(s){
+  if (!s) return;
+  const barra = $('#treinoEstado');
+  if (!barra) return;
+  const feitas = s.exercicios.reduce((t, it) => t + it.series.filter(x => x.feito).length, 0);
+  const totais = s.exercicios.reduce((t, it) => t + it.series.length, 0);
+  const emDescanso = restRestante > 0;
+
+  barra.classList.toggle('a-descansar', emDescanso);
+  // "Treino A · a decorrer" lê-se melhor do que o nome inteiro nesta barra
+  const marca = abreviar(s.nome);
+  const curto = marca.length === 1 ? `Treino ${marca}` : s.nome;
+  $('#sessaoNome').textContent = emDescanso ? 'Descanso' : `${curto} · a decorrer`;
+  $('#cronometro').textContent = emDescanso
+    ? fmtDuracao(Math.max(0, restRestante) * 1000)
+    : fmtDuracao(Date.now() - s.inicio);
+  $('#treinoProgresso').style.width = emDescanso
+    ? Math.round(Math.max(0, restRestante) / (restTotal || 1) * 100) + '%'
+    : (totais ? Math.round(feitas / totais * 100) : 0) + '%';
   $('#sessaoInfo').textContent = 'Iniciado às ' +
     new Date(s.inicio).toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
+}
 
+/** A dica que acompanha o exercício, conforme o estado. */
+function dicaDoTreino(item, feitas){
+  if (restRestante > 0) return `Descansa ${Math.max(0, restRestante)} segundos. Respira fundo e prepara a série seguinte.`;
+  const faltam = item.series.length - feitas;
+  if (!faltam) return 'Exercício fechado. Avança para o seguinte.';
+  const carga = Store.ultimaCarga(item.exId);
+  if (!feitas && carga) return `Da última vez levantaste ${fmtPeso(carga)} kg aqui. Faltam ${faltam} séries.`;
+  return `Faltam ${faltam} ${faltam === 1 ? 'série' : 'séries'} neste exercício.`;
+}
+
+function renderSessao(s){
+  pintarEstadoTreino(s);
   const total = s.exercicios.length;
+
   if (!total){
-    $('#sessaoExercicios').innerHTML = '<p class="empty">Adiciona o primeiro exercício deste treino.</p>';
+    $('#sessaoExercicios').innerHTML =
+      '<p class="empty section-head--pad">Adiciona o primeiro exercício deste treino.</p>';
     iniciarCrono();
     return;
   }
@@ -304,70 +423,116 @@ function renderSessao(s){
   const ex = Store.exercicio(item.exId);
   const cardio = ex.tipo === 'cardio';
   const feitasAqui = item.series.filter(se => se.feito).length;
+  const desenho = figuraDoExercicio(ex);
+  const passo = cardio ? 1 : 2.5;
+
+  const volumeEx = item.series.filter(se => se.feito)
+    .reduce((t, se) => t + num(se.reps) * num(se.carga), 0);
+  const melhorCarga = Math.max(0,
+    ...Store.seriesDoExercicio(item.exId).flatMap(h => h.series).map(se => num(se.carga)),
+    ...item.series.filter(se => se.feito).map(se => num(se.carga)));
+  const alvo = item.series[0]?.reps ? `${item.series.length}×${num(item.series[0].reps)}` : `${item.series.length} séries`;
+
+  const campo = (j, se, prop, valor) => `
+    <span class="serie-campo">
+      <button class="serie-passo" data-passo="${i}:${j}:${prop}:-${prop === 'reps' ? 1 : passo}"
+              aria-label="Menos">−</button>
+      <input class="serie-valor" type="number" inputmode="decimal" step="any" min="0"
+             value="${valor ?? ''}" data-campo="${prop}" data-i="${i}" data-j="${j}" placeholder="0">
+      <button class="serie-passo" data-passo="${i}:${j}:${prop}:${prop === 'reps' ? 1 : passo}"
+              aria-label="Mais">+</button>
+    </span>`;
 
   $('#sessaoExercicios').innerHTML = `
     <div class="tira-ex">
       ${s.exercicios.map((it, n) => {
         const e = Store.exercicio(it.exId);
-        const completo = it.series.every(se => se.feito);
-        const desenho = figuraDoExercicio(e);
+        const completo = it.series.length && it.series.every(se => se.feito);
+        const fig = figuraDoExercicio(e);
         return `<button class="tira-item ${n === i ? 'is-atual' : ''} ${completo ? 'is-feito' : ''}"
                   data-ir-ex="${n}" id="tira-${n}" title="${esc(e.nome)}">
-          ${desenho
-            ? `<img class="tira-figura" src="exercicios/${desenho}/frame-2.svg" alt="" decoding="async">`
+          ${fig
+            ? `<img class="tira-figura" src="exercicios/${fig}/frame-2.svg" alt="" decoding="async">`
             : diagramaMusculos(e.grupo)}
-          <span class="tira-num">${completo ? '✓' : n + 1}</span>
+          <span class="tira-num">${String(n + 1).padStart(2, '0')}</span>
+          <span class="tira-estado">${completo ? 'Feito' : n === i ? 'Agora' : '—'}</span>
         </button>`;
       }).join('')}
     </div>
 
-    <div class="card" data-ex-idx="${i}">
-      <p class="passo-conta">Exercício ${i + 1} de ${total} · ${feitasAqui}/${item.series.length} séries</p>
-      ${figuraDoExercicio(ex) ? '<div class="figura-ex figura-ex--sessao" id="figuraSessao"></div>' : ''}
-      <div class="card__title">
-        <div class="ex-cabeca">
-          ${diagramaMusculos(ex.grupo)}
-          <div>
-            <h3>${esc(ex.nome)}</h3>
-            <p class="item__meta">${esc(ex.grupo)} · ${esc(ex.equip)}</p>
-          </div>
+    <div class="ex-cabeca-treino" data-ex-idx="${i}">
+      <p class="kicker">Exercício ${i + 1} de ${total} · ${feitasAqui}/${item.series.length} séries</p>
+      <h2>${esc(ex.nome)}</h2>
+      <p class="ex-meta">${esc(ex.grupo)} · ${esc(ex.equip)} · alvo ${esc(alvo)}</p>
+      <span class="ex-cabeca" id="exFotoMaquina"></span>
+    </div>
+
+    <div class="ex-palco">
+      <div class="ex-palco__figura">
+        ${desenho ? '<div class="figura-ex" id="figuraSessao"></div>' : diagramaMusculos(ex.grupo)}
+      </div>
+      <div class="ex-palco__numeros">
+        <div>
+          <span class="rotulo">Volume acumulado</span>
+          <span class="num">${fmtNum(volumeEx)}<span class="un">kg</span></span>
         </div>
-        <button class="icon-btn" data-rm-ex="${i}" aria-label="Remover exercício">🗑</button>
-      </div>
-
-      <div class="acoes-ex">
-        <button class="btn btn--sm btn--primary" id="exComoFazer">▶ Como fazer</button>
-        <button class="btn btn--sm btn--ghost" id="exSubstituir">⇄ Substituir</button>
-        <button class="btn btn--sm btn--ghost" id="exHistorico">📈 Histórico</button>
-      </div>
-
-      <div class="set-head">
-        <span>#</span><span>${cardio ? 'Minutos' : 'Reps'}</span><span>${cardio ? 'Nível/km' : 'Carga (kg)'}</span><span>OK</span>
-      </div>
-      ${item.series.map((se, j) => `
-        <div class="set-row ${se.feito ? 'is-done' : ''}">
-          <span class="set-row__n">${j + 1}</span>
-          <input type="number" inputmode="decimal" step="any" min="0" value="${se.reps ?? ''}"
-                 data-campo="reps" data-i="${i}" data-j="${j}" placeholder="—">
-          <input type="number" inputmode="decimal" step="any" min="0" value="${se.carga ?? ''}"
-                 data-campo="carga" data-i="${i}" data-j="${j}" placeholder="—">
-          <button class="set-check" data-check="${i}:${j}" aria-label="Concluir série">✓</button>
-        </div>`).join('')}
-
-      <div class="row-actions" style="margin-top:10px">
-        <button class="btn btn--sm btn--ghost" data-add-serie="${i}">+ Série</button>
-        <button class="btn btn--sm btn--ghost" data-rm-serie="${i}">− Série</button>
+        <div>
+          <span class="rotulo">Melhor carga</span>
+          <span class="num num--peq">${melhorCarga ? fmtPeso(melhorCarga) : '—'}<span class="un">kg</span></span>
+        </div>
       </div>
     </div>
 
-    <div class="navegar">
-      <button class="btn btn--ghost" id="exAnterior" ${i === 0 ? 'disabled' : ''}>‹ Anterior</button>
-      ${i < total - 1
-        ? '<button class="btn btn--primary" id="exSeguinte">Seguinte ›</button>'
-        : '<button class="btn btn--primary" id="exTerminar">Terminar treino</button>'}
+    <div class="set-head">
+      <span>#</span><span>${cardio ? 'Min' : 'Reps'}</span><span>${cardio ? 'Nível' : 'Carga'}</span><span></span>
     </div>
-    <p class="item__meta" style="text-align:center;margin-top:8px">
-      desliza para o lado para mudar de exercício</p>`;
+    ${item.series.map((se, j) => `
+      <div class="set-row ${se.feito ? 'is-done' : ''}">
+        <span class="set-row__n">${j + 1}</span>
+        ${campo(j, se, 'reps', se.reps)}
+        ${campo(j, se, 'carga', se.carga)}
+        <button class="set-check" data-check="${i}:${j}"
+                aria-label="${se.feito ? 'Desmarcar série' : 'Concluir série'}">${se.feito ? '✓' : 'OK'}</button>
+      </div>`).join('')}
+
+    <div class="par-acoes">
+      <button data-add-serie="${i}">+ Série</button>
+      <button data-rm-serie="${i}">− Série</button>
+      <button id="btnSaltarDescanso">Saltar descanso</button>
+    </div>
+
+    <div class="par-acoes">
+      <button id="exComoFazer">Como fazer</button>
+      <button id="exSubstituir">Substituir</button>
+      <button id="exHistorico">Histórico</button>
+    </div>
+
+    <div class="dica-ia">
+      <span class="dica-ia__selo">IA</span>
+      <div>
+        <p id="dicaTreino">${esc(dicaDoTreino(item, feitasAqui))}</p>
+        <button class="btn btn--sm" id="exPerguntar">Perguntar ao treinador</button>
+      </div>
+    </div>
+
+    <button class="btn-largo" id="${i < total - 1 ? 'exSeguinte' : 'exTerminar'}">
+      <span>${i < total - 1 ? 'Exercício seguinte' : 'Terminar treino'}</span>
+      <span aria-hidden="true">→</span>
+    </button>
+
+    <div class="par-acoes">
+      ${i > 0 ? '<button id="exAnterior">‹ Exercício anterior</button>' : ''}
+      <button data-rm-ex="${i}">Remover este exercício</button>
+    </div>
+
+    <p class="item__meta" style="padding:14px var(--pad) 0">Desliza para o lado para mudar de
+      exercício. Deslizar uma linha para a direita marca a série.</p>`;
+
+  const irPara = n => {
+    Store.irParaExercicio(n);
+    renderSessao(Store.estado.sessaoAtiva);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  };
 
   $('#exComoFazer').onclick = () => comoFazer(item.exId);
   $('#exSubstituir').onclick = () => seletorExercicio(novo => {
@@ -378,10 +543,13 @@ function renderSessao(s){
     toast(`Trocado para ${novo.nome}`);
   });
   $('#exHistorico').onclick = () => detalheExercicio(item.exId);
+  $('#exPerguntar').onclick = () => perguntarSobre(ex);
+  $('#btnSaltarDescanso').onclick = pararDescanso;
 
-  $('#exAnterior').onclick = () => { Store.irParaExercicio(i - 1); renderSessao(Store.estado.sessaoAtiva); window.scrollTo({ top:0, behavior:'smooth' }); };
+  const anterior = $('#exAnterior');
+  if (anterior) anterior.onclick = () => irPara(i - 1);
   const seguinte = $('#exSeguinte');
-  if (seguinte) seguinte.onclick = () => { Store.irParaExercicio(i + 1); renderSessao(Store.estado.sessaoAtiva); window.scrollTo({ top:0, behavior:'smooth' }); };
+  if (seguinte) seguinte.onclick = () => irPara(i + 1);
   const terminar = $('#exTerminar');
   if (terminar) terminar.onclick = () => confirmar('Terminar e guardar este treino?', finalizarSessao, 'Terminar');
 
@@ -390,6 +558,16 @@ function renderSessao(s){
 
   setTimeout(carregarMiniaturas, 0);
   iniciarCrono();
+}
+
+/** Leva o Treinador já com o exercício em cima da mesa. */
+function perguntarSobre(ex){
+  mostrar('bot');
+  const caixa = $('#botTexto');
+  if (caixa){
+    caixa.value = `Sobre "${ex.nome}": `;
+    caixa.focus();
+  }
 }
 
 /** Põe a foto da máquina no cartão de cada exercício, se existir. */
@@ -410,7 +588,7 @@ async function carregarMiniaturas(){
     }
     if (n !== atual) continue;
 
-    const cabeca = $(`[data-ex-idx="${atual}"] .ex-cabeca`);
+    const cabeca = $('#exFotoMaquina');
     if (cabeca && !cabeca.querySelector('.ex-mini')){
       const img = document.createElement('img');
       img.className = 'ex-mini';
@@ -421,15 +599,29 @@ async function carregarMiniaturas(){
 }
 
 
+/* Um só tique de um segundo trata do cronómetro e do descanso: são a mesma
+   contagem vista de dois lados, e dois temporizadores acabavam a andar
+   desencontrados. */
 function iniciarCrono(){
   if (cronoInterval) return;
   const tick = () => {
     const s = Store.estado.sessaoAtiva;
     if (!s) return pararCrono();
-    const decorrido = fmtDuracao(Date.now() - s.inicio);
-    const relogio = $('#cronometro');
-    if (relogio) relogio.textContent = decorrido;
-    $('#tabTreinoTempo').textContent = decorrido;
+
+    if (restRestante > 0){
+      restRestante--;
+      $('#restTempo').textContent = Math.max(0, restRestante);
+      pintarAnel(restRestante, restTotal);
+      if (restRestante <= 0){ pararDescanso(); bipe(); toast('Descanso concluído.'); }
+    }
+
+    $('#tabTreinoTempo').textContent = fmtDuracao(Date.now() - s.inicio);
+    if (viewAtual === 'treino'){
+      pintarEstadoTreino(s);
+      const dica = $('#dicaTreino');
+      const item = s.exercicios[Math.max(0, Math.min(s.atual ?? 0, s.exercicios.length - 1))];
+      if (dica && item) dica.textContent = dicaDoTreino(item, item.series.filter(x => x.feito).length);
+    }
   };
   tick();
   cronoInterval = setInterval(tick, 1000);
@@ -437,7 +629,11 @@ function iniciarCrono(){
 function pararCrono(){
   clearInterval(cronoInterval);
   cronoInterval = null;
-  if (!Store.estado.sessaoAtiva) $('#tabTreino').hidden = true;
+  if (!Store.estado.sessaoAtiva){
+    $('#tabTreino').hidden = true;
+    const tabHoje = $('.tab[data-view="inicio"]');
+    if (tabHoje) tabHoje.hidden = false;
+  }
 }
 
 /* ============================================================
@@ -519,25 +715,22 @@ function iniciarDescanso(){
   const seg = Store.estado.config.descanso;
   if (!seg) return;
   restRestante = seg;
-  $('#rest').hidden = false;
+  restTotal = seg;
+  // no ecrã do treino quem conta é a barra do topo; fora dele, o anel
+  $('#rest').hidden = viewAtual === 'treino';
   $('#restTempo').textContent = restRestante;
   // sem transição no arranque, senão o anel roda para trás à vista
   $('#restAnel').style.transition = 'none';
   pintarAnel(seg, seg);
   requestAnimationFrame(() => { $('#restAnel').style.transition = ''; });
-
-  clearInterval(restInterval);
-  restInterval = setInterval(() => {
-    restRestante--;
-    $('#restTempo').textContent = Math.max(0, restRestante);
-    pintarAnel(restRestante, seg);
-    if (restRestante <= 0){ pararDescanso(); bipe(); toast('Descanso concluído 💪'); }
-  }, 1000);
+  iniciarCrono();
 }
 function pararDescanso(){
-  clearInterval(restInterval);
-  restInterval = null;
+  restRestante = 0;
+  restTotal = 0;
   $('#rest').hidden = true;
+  const s = Store.estado.sessaoAtiva;
+  if (s && viewAtual === 'treino') pintarEstadoTreino(s);
 }
 
 /* ============================================================
@@ -552,16 +745,15 @@ function renderTreinos(){
           <div>
             <h3>${esc(t.nome)}</h3>
             <p class="item__meta">${t.itens.length} exercícios · ${duracaoEstimada(t)} min${t.notas ? ' · ' + esc(t.notas) : ''}</p>
+            <p class="item__meta" style="margin-top:6px">
+              ${t.itens.slice(0, 4).map(i => esc(Store.exercicio(i.exId).nome)).join(' · ')}${t.itens.length > 4 ? ' …' : ''}
+            </p>
           </div>
-          <div style="display:flex;gap:2px">
-            <button class="icon-btn" data-edit-treino="${t.id}" aria-label="Editar">✏️</button>
-            <button class="icon-btn" data-del-treino="${t.id}" aria-label="Eliminar">🗑</button>
+          <div style="display:flex;gap:2px;flex:none">
+            <button class="icon-btn" data-edit-treino="${t.id}" aria-label="Editar ${esc(t.nome)}">${ico('lapis')}</button>
+            <button class="icon-btn" data-del-treino="${t.id}" aria-label="Eliminar ${esc(t.nome)}">${ico('lixo')}</button>
           </div>
         </div>
-        <p class="item__meta" style="margin:8px 0 12px">
-          ${t.itens.slice(0, 4).map(i => esc(Store.exercicio(i.exId).nome)).join(' · ')}${t.itens.length > 4 ? ' …' : ''}
-        </p>
-        <button class="btn btn--sm btn--primary btn--block" data-ver-treino="${t.id}">Ver treino</button>
       </div>`).join('')
     : '<p class="empty">Cria a tua primeira ficha para começar.</p>';
 }
@@ -707,7 +899,7 @@ function editorTreino(id){
             <div class="card" style="padding:11px">
               <div class="card__title">
                 <h3 style="font-size:14px">${esc(Store.exercicio(it.exId).nome)}</h3>
-                <button class="icon-btn" data-rm-item="${i}" aria-label="Remover">🗑</button>
+                <button class="icon-btn" data-rm-item="${i}" aria-label="Remover">${ico('lixo')}</button>
               </div>
               <div class="field-row" style="margin-top:9px">
                 <div>
@@ -733,7 +925,7 @@ function editorTreino(id){
             Store.salvarTreino(treino);
             Modal.fechar();
             render();
-            toast('Ficha guardada ✅');
+            toast('Ficha guardada.');
           } },
       ],
     });
@@ -868,12 +1060,12 @@ async function detalheExercicio(id){
         ${diagramaMusculos(ex.grupo)}
         <div>
           <p><span class="tag">${esc(ex.grupo)}</span><span class="tag">${esc(ex.equip)}</span></p>
-          <p style="margin-top:6px"><button class="btn btn--sm btn--primary" id="exDetComoFazer">▶ Como fazer</button></p>
+          <p style="margin-top:6px"><button class="btn btn--sm btn--primary" id="exDetComoFazer">Como fazer</button></p>
         </div>
       </div>
       ${foto ? `<img class="foto-maquina" src="${foto}" alt="Máquina de ${esc(ex.nome)}">` : ''}
       <div class="row-actions" style="margin-top:10px">
-        <button class="btn btn--sm btn--ghost" id="btnFotoMaquina">📷 ${foto ? 'Trocar foto' : 'Foto da máquina'}</button>
+        <button class="btn btn--sm btn--ghost" id="btnFotoMaquina">${foto ? 'Trocar foto' : 'Foto da máquina'}</button>
         ${foto ? '<button class="btn btn--sm btn--danger" id="btnApagarFoto">Remover foto</button>' : ''}
       </div>
       <input type="file" id="ficheiroMaquina" accept="image/*" capture="environment" hidden>
@@ -902,7 +1094,7 @@ async function detalheExercicio(id){
     try {
       const { dataUrl } = await comprimirFoto(f);
       await Fotos.guardar(id, dataUrl);
-      toast('Foto guardada ✅');
+      toast('Foto guardada.');
       detalheExercicio(id);
       if (Store.estado.sessaoAtiva) renderSessao(Store.estado.sessaoAtiva);
     } catch (erro) {
@@ -988,7 +1180,7 @@ async function comoFazer(exId, voltar, daSubstituicao = false){
       <p class="item__meta" style="margin-top:8px">${
         proprio ? esc(mov.nome) + ' · ' : ''}${esc(ex.grupo)} · ${esc(ex.equip)}</p>
       <div class="row-actions" style="margin-top:10px">
-        <button class="btn btn--sm btn--ghost btn--block" id="btnSubstituirEx">⇄ Substituir exercício</button>
+        <button class="btn btn--sm btn--ghost btn--block" id="btnSubstituirEx">Substituir exercício</button>
       </div>
       ${proprio ? `<label class="label" style="margin-top:14px">Como fazer</label>
       <ol class="dicas">${mov.dicas.map(d => `<li>${esc(d)}</li>`).join('')}</ol>`
@@ -1031,10 +1223,11 @@ async function comoFazer(exId, voltar, daSubstituicao = false){
     : animarExercicio($('#palcoBoneco'), ex);
 }
 
+/** Célula de número numa grelha reguada. */
 function statBox(valor, rotulo){
-  return `<div class="card" style="text-align:center;padding:11px">
-    <strong style="font-size:17px">${esc(valor)}</strong>
-    <p class="item__meta">${esc(rotulo)}</p>
+  return `<div class="stat-cel">
+    <span class="stat__valor">${esc(valor)}</span>
+    <span class="rotulo">${esc(rotulo)}</span>
   </div>`;
 }
 
@@ -1065,7 +1258,7 @@ function novoExercicio(){
           Store.criarExercicio({ nome, grupo: $('#nGrupo').value, equip: $('#nEquip').value });
           Modal.fechar();
           render();
-          toast('Exercício criado ✅');
+          toast('Exercício criado.');
         } },
     ],
   });
@@ -1122,6 +1315,8 @@ function historicoCompleto(){
     acoes: [{ texto:'Fechar', onClick: Modal.fechar }],
   });
 }
+
+let mesVisivel = null;   // primeiro dia do mês mostrado no calendário
 
 /** Calendário do mês, com os dias treinados acesos. */
 function renderMes(){
@@ -1329,7 +1524,7 @@ function renderDistanciaObjetivo(){
   if (!atual || !objetivo) return (alvo.textContent = '');
 
   const diferenca = Math.round((objetivo - atual) * 10) / 10;
-  if (Math.abs(diferenca) < 0.1) return (alvo.textContent = 'Estás no peso que querias. 🎯');
+  if (Math.abs(diferenca) < 0.1) return (alvo.textContent = 'Estás no peso que querias.');
   alvo.textContent = diferenca < 0
     ? `Faltam ${fmtPeso(Math.abs(diferenca))} kg para chegares ao teu objetivo.`
     : `Faltam ${fmtPeso(diferenca)} kg para ganhares até ao teu objetivo.`;
@@ -1353,7 +1548,7 @@ function registarPesoHoje(){
           Store.registarPeso(kg);
           Modal.fechar();
           renderPerfil();
-          toast('Peso registado ✅');
+          toast('Peso registado.');
         } },
     ],
   });
@@ -1488,15 +1683,6 @@ function renderImc(){
   $('#perfilImc').textContent = `IMC ${imc.toFixed(1)} — ${faixa}. É um indicador grosseiro: não distingue músculo de gordura.`;
 }
 
-/** Resumo do perfil mostrado no ecrã do Plano IA. */
-function renderResumoPerfil(){
-  const p = Store.estado.perfil;
-  $('#iaResumoPerfil').innerHTML = [
-    p.objetivo, p.experiencia, `${p.dias} dias/semana`, `${p.minutos} min`,
-    p.limitacoes ? `⚠ ${p.limitacoes}` : null,
-  ].filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join('');
-}
-
 /* ============================================================
    TELA: PLANO IA
    ============================================================ */
@@ -1525,7 +1711,16 @@ function renderIA(){
 
   const p = Store.estado.perfil;
   $('#perfilResumo').textContent = [p.objetivo.split(' ')[0], p.experiencia,
-    `${p.diasSemana.length}x/semana`, p.limitacoes ? '⚠' : null].filter(Boolean).join(' · ');
+    `${p.diasSemana.length}x/semana`, p.limitacoes ? 'com limitações' : null].filter(Boolean).join(' · ');
+
+  // o valor actual de cada linha de refinamento, para se ver sem abrir
+  $('#resumoTipo').textContent        = cfg.tipo;
+  $('#resumoFoco').textContent        = cfg.foco;
+  $('#resumoMusculos').textContent    = cfg.musculos.length ? cfg.musculos.join(', ') : 'todos';
+  $('#resumoDescanso').textContent    = `${Store.estado.config.descanso || 90}s`;
+  $('#resumoSemanas').textContent     = `${cfg.semanas || 6} semanas`;
+  $('#resumoIntensidade').textContent = cfg.intensidade;
+  $('#resumoSuperseries').textContent = cfg.superseries ? 'ligadas' : 'desligadas';
 
   renderPlanoAtual();
 
@@ -1626,8 +1821,8 @@ function renderPlanoAtual(){
 
   $('#planoAtual').innerHTML = `
     <div class="card">
-      <span class="hoje__etiqueta">Plano em vigor</span>
-      <h3 style="margin-top:6px">${esc(plano.plano.nome)}</h3>
+      <p class="kicker">Plano em vigor</p>
+      <h3 style="margin-top:8px">${esc(plano.plano.nome)}</h3>
       <p class="item__meta" style="margin-top:4px">${esc(plano.plano.resumo)}</p>
       <div class="ia-lista" style="margin-top:10px">
         <span class="tag">${plano.plano.treinos.length} treinos diferentes</span>
@@ -1703,7 +1898,7 @@ async function ampliarEquipamento(id){
         ? 'Foto tirada por ti.'
         : 'Este é o desenho da app. Tira uma foto à máquina do teu ginásio para a veres aqui em vez do desenho.'}</p>
       <div class="row-actions" style="margin-top:12px">
-        <button class="btn btn--sm btn--ghost" id="eqTirarFoto">📷 ${foto ? 'Trocar foto' : 'Fotografar máquina'}</button>
+        <button class="btn btn--sm btn--ghost" id="eqTirarFoto">${foto ? 'Trocar foto' : 'Fotografar máquina'}</button>
         ${foto ? '<button class="btn btn--sm btn--danger" id="eqApagarFoto">Remover</button>' : ''}
       </div>
       <input type="file" id="eqFicheiro" accept="image/*" capture="environment" hidden>`,
@@ -1717,7 +1912,7 @@ async function ampliarEquipamento(id){
     try {
       const { dataUrl } = await comprimirFoto(f);
       await Fotos.guardar('eq:' + id, dataUrl);
-      toast('Foto guardada ✅');
+      toast('Foto guardada.');
       ampliarEquipamento(id);
     } catch (erro) { toast('Não consegui guardar a foto.'); }
   };
@@ -1838,7 +2033,7 @@ async function gerarPlano(){
     $('#iaEstado').textContent = '';
     renderPlanoAtual();
     mostrarPlano(plano, false);
-    toast(`Plano criado e posto no calendário ✅`);
+    toast('Plano criado e posto no calendário.');
     sincronizar(true);
   } catch (e) {
     $('#iaEstado').textContent = '';
@@ -1847,7 +2042,7 @@ async function gerarPlano(){
       <div class="row-actions" style="margin-top:12px">
         <button class="btn btn--sm btn--primary" id="btnTentarDeNovo">Tentar de novo</button>
         ${problemaDeConfig
-          ? '<button class="btn btn--sm btn--ghost" id="btnErroConfig">⚙️ Definições</button>'
+          ? '<button class="btn btn--sm btn--ghost" id="btnErroConfig">Definições</button>'
           : ''}
       </div></div>`;
     $('#btnTentarDeNovo').onclick = gerarPlano;
@@ -1929,7 +2124,7 @@ function mostrarPlano(plano, antigo){
   $('#btnVerInicio').onclick = () => mostrar('inicio');
   $('#btnReporPlano').onclick = () => {
     espalharPelaSemana(importarPlano(plano.plano));
-    toast('Plano reposto no calendário ✅');
+    toast('Plano reposto no calendário.');
     mostrar('inicio');
   };
 }
@@ -1998,7 +2193,7 @@ function finalizarSessao(){
   pararCrono();
   mostrar('inicio');
   if (!concluida) return toast('Nenhuma série marcada — treino descartado.');
-  toast(`Treino guardado: ${fmtNum(volumeSessao(concluida))} kg de volume 🔥`);
+  toast(`Treino guardado: ${fmtNum(volumeSessao(concluida))} kg de volume.`);
   sincronizar(true);
   if (Store.estado.config.saude.treinos) setTimeout(() => Saude.enviarTreino(concluida), 900);
 }
@@ -2077,7 +2272,7 @@ async function acaoConta(acao){
 
 /** Ao entrar, decide o que fica: o que está no telemóvel ou o que está na nuvem. */
 async function primeiraSincronizacao(){
-  toast('Sessão iniciada ✅');
+  toast('Sessão iniciada.');
   let remoto = null;
   try { remoto = await Nuvem.ler(); } catch (e) { return toast('Entrei, mas não li a nuvem: ' + e.message); }
 
@@ -2102,7 +2297,7 @@ function aplicarRemoto(remoto){
   Store.salvar();
   aplicarTema();
   mostrar('inicio');
-  toast('Dados trazidos da nuvem ✅');
+  toast('Dados trazidos da nuvem.');
 }
 
 /** Envia o estado atual para a nuvem. */
@@ -2110,7 +2305,7 @@ async function sincronizar(silencioso = false){
   if (!Nuvem.configurada || !Nuvem.autenticado) return;
   try {
     await Nuvem.guardar(Store.estado);
-    if (!silencioso) toast('Guardado na nuvem ✅');
+    if (!silencioso) toast('Guardado na nuvem.');
     renderDefinicoes();
   } catch (e) {
     if (!silencioso) toast('Não consegui guardar na nuvem: ' + e.message);
@@ -2125,8 +2320,8 @@ function ecraSessaoIniciada(){
       <p class="item__meta" style="margin-top:6px">Os teus dados são guardados na nuvem sempre que
         acabas um treino ou mudas o plano, e podes trazê-los para outro telemóvel entrando com esta conta.</p>
       <div class="stack" style="margin-top:14px">
-        <button class="btn btn--ghost" id="contaSincronizar">☁️ Guardar agora na nuvem</button>
-        <button class="btn btn--ghost" id="contaTrazer">⬇️ Trazer os dados da nuvem</button>
+        <button class="btn btn--ghost" id="contaSincronizar">Guardar agora na nuvem</button>
+        <button class="btn btn--ghost" id="contaTrazer">Trazer os dados da nuvem</button>
       </div>`,
     acoes: [
       { texto:'Terminar sessão', classe:'btn--danger', onClick(){
@@ -2162,23 +2357,23 @@ function aplicarTema(){
 
   const escuro = tema === 'escuro' || (tema === 'auto' && sistemaEscuro);
   document.querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', escuro ? '#0f1115' : '#f7faf2');
+    ?.setAttribute('content', escuro ? '#141614' : '#f3f2f2');
 }
 
-const NOMES_LETRA = { condensado:'Condensado', moderno:'Moderno' };
+const NOMES_LETRA = { moderno:'Archivo', condensado:'Barlow' };
 const NOMES_TEXTO = { normal:'Normal', grande:'Grande', enorme:'Enorme' };
 
-/** Aplica o tipo de letra escolhido, trazendo a segunda família só se
-    for precisa — não vale a pena descarregar 136 KB a quem não a usa. */
+/** A app é desenhada em Archivo. Quem preferir o aspeto anterior volta ao
+    Barlow — e só nesse caso é que essa família se descarrega. */
 function aplicarLetra(){
-  const letra = Store.estado.config.letra || 'condensado';
+  const letra = Store.estado.config.letra === 'condensado' ? 'condensado' : 'moderno';
   document.documentElement.dataset.letra = letra;
 
-  if (letra === 'moderno' && !$('#fonteModerna')){
+  if (letra === 'condensado' && !$('#fonteBarlow')){
     const link = document.createElement('link');
-    link.id = 'fonteModerna';
+    link.id = 'fonteBarlow';
     link.rel = 'stylesheet';
-    link.href = 'css/fontes-archivo.css?v=' + VERSAO_APP;
+    link.href = 'css/fontes-barlow.css?v=' + VERSAO_APP;
     document.head.appendChild(link);
   }
 }
@@ -2193,8 +2388,8 @@ function escolherLetra(){
     aplicarLetra();
     renderDefinicoes();
   }, {
-    condensado: 'títulos estreitos, cabe mais por linha',
-    moderno: 'letras mais abertas, lê-se melhor ao longe',
+    moderno: 'a letra desta versão da app',
+    condensado: 'o aspeto anterior, com títulos estreitos',
   });
 }
 
@@ -2235,7 +2430,7 @@ function escolhaSimples(titulo, nomes, campo, aoEscolher, notas = {}){
 function renderDefinicoes(){
   const c = Store.estado.config;
   $('#defTemaValor').textContent = NOMES_TEMA[c.tema || 'auto'];
-  $('#defLetraValor').textContent = NOMES_LETRA[c.letra || 'condensado'];
+  $('#defLetraValor').textContent = NOMES_LETRA[c.letra === 'condensado' ? 'condensado' : 'moderno'];
   $('#defTextoValor').textContent = NOMES_TEXTO[c.texto || 'normal'];
   $('#defIAValor').textContent = c.ia.modo === 'direto' ? 'chave própria' : 'servidor próprio';
   $('#defSaudeValor').textContent = resumoSaude();
@@ -2274,7 +2469,7 @@ function renderSaude(){
   if (c.treinos) acoes.push(`
     <p class="def-grupo">Treinos</p>
     <div class="lista-def">
-      <button id="saudeEnviarUltimo"><span class="def-icone">📤</span>Enviar o último treino</button>
+      <button id="saudeEnviarUltimo"><span class="def-icone">${ico('enviar')}</span>Enviar o último treino</button>
     </div>`);
   $('#saudeAcoes').innerHTML = acoes.join('');
 
@@ -2350,7 +2545,7 @@ function escolherTema(){
 function creditos(){
   textoLegal('Créditos e licenças', [
     '<b>Ilustrações dos exercícios</b><br>Do projeto <a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide</a>, de Bryl Lim, a partir da arte original do <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>. Licença <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Os desenhos estão tal como vieram da origem — a app só os mostra em sequência e ajusta a cor na apresentação.',
-    '<b>Tipo de letra</b><br>Barlow e Barlow Condensed, de Jeremy Tribby, sob <a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL Open Font License 1.1</a>.',
+    '<b>Tipo de letra</b><br>Archivo, da Omnibus-Type, e Barlow / Barlow Condensed, de Jeremy Tribby — ambas sob <a href="https://openfontlicense.org/" target="_blank" rel="noopener">SIL Open Font License 1.1</a>.',
     '<b>Planos e respostas do treinador</b><br>Gerados por modelos de IA da NVIDIA, através de um servidor próprio.',
     'Os restantes desenhos da app — equipamento, músculos e o boneco do movimento — foram feitos de raiz para a MovePulse AI.',
   ]);
@@ -2391,8 +2586,8 @@ function abrirConfig(){
 
       <label class="label">Os meus dados</label>
       <div class="stack">
-        <button class="btn btn--ghost" id="cExportar">⬇️ Exportar backup (.json)</button>
-        <button class="btn btn--ghost" id="cImportar">⬆️ Importar backup</button>
+        <button class="btn btn--ghost" id="cExportar">Exportar backup (.json)</button>
+        <button class="btn btn--ghost" id="cImportar">Importar backup</button>
         <button class="btn btn--danger" id="cReset">Apagar tudo e recomeçar</button>
       </div>
       <input type="file" id="cArquivo" accept="application/json" hidden>
@@ -2410,7 +2605,7 @@ function abrirConfig(){
           };
           Store.salvar();
           Modal.fechar();
-          toast('Definições guardadas ✅');
+          toast('Definições guardadas.');
         } },
     ],
   });
@@ -2443,7 +2638,7 @@ function exportarDados(){
   a.download = `movepulse-backup-${data}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  toast('Backup gerado ✅');
+  toast('Backup gerado.');
 }
 
 function importarDados(arquivo){
@@ -2457,9 +2652,9 @@ function importarDados(arquivo){
       Store.salvar();
       Modal.fechar();
       render();
-      toast('Backup importado ✅');
+      toast('Backup importado.');
     } catch (e) {
-      toast('Arquivo inválido 😕');
+      toast('Arquivo inválido.');
     }
   };
   leitor.readAsText(arquivo);
@@ -2477,10 +2672,10 @@ function ligarEventos(){
   document.addEventListener('keydown', e => { if (e.key === 'Escape') Modal.fechar(); });
 
   // Hoje
-  $op('#btnTreinoLivre').onclick = () => confirmar(
-    'Começar um treino livre, sem ficha? O cronómetro arranca já.',
-    () => { Store.iniciarSessao(null); mostrar('treino'); atualizarSubtitulo(); },
-    'Começar');
+  $op('#btnTreinoLivre').onclick = comecarTreinoLivre;
+  $op('#btnVerRegisto').onclick = () => mostrar('registo');
+  $op('#btnTreinador').onclick = () => mostrar('bot');
+  $op('#btnTreinadorSessao').onclick = () => mostrar('bot');
   $op('#btnAddExSessao').onclick = () => seletorExercicio(ex => adicionarExercicioSessao(ex.id));
   $op('#btnFinalizarSessao').onclick = () =>
     confirmar('Terminar e guardar este treino?', finalizarSessao, 'Finalizar');
@@ -2491,6 +2686,10 @@ function ligarEventos(){
 
   // Fichas / exercícios
   $op('#btnNovoTreino').onclick = () => editorTreino(null);
+  $op('#botVoltar').onclick = () => mostrar('perfil');
+  $op('#nutricaoVoltar').onclick = () => mostrar('perfil');
+  $op('#perfilTreinador').onclick = () => mostrar('bot');
+  $op('#perfilNutricao').onclick = () => mostrar('nutricao');
   $op('#btnNovoEx').onclick = novoExercicio;
   $op('#buscaEx').oninput = renderExercicios;
   $op('#filtrosGrupo').onclick = e => {
@@ -2530,9 +2729,8 @@ function ligarEventos(){
     Store.alternarDiaTreino(+b.dataset.diaTreino);
     renderDiasTreino();
   };
-  $op('#btnPerfil').onclick = () => mostrar('perfil');
   $op('#btnConfig').onclick = () => mostrar('definicoes');
-  $op('#defVoltar').onclick = () => mostrar('inicio');
+  $op('#defVoltar').onclick = () => mostrar('perfil');
   $op('#defTema').onclick = escolherTema;
   $op('#defIA').onclick = abrirConfig;
   $op('#defConta').onclick = ecraConta;
@@ -2574,7 +2772,6 @@ function ligarEventos(){
     'Usas a app por tua conta e risco. Confirma que consegues executar cada exercício em segurança.',
   ]);
   $op('#defCreditos').onclick = creditos;
-  $op('#perfilVoltar').onclick = () => mostrar('inicio');
   $op('#btnRegistarPeso').onclick = registarPesoHoje;
   $op('#perfilIrIA').onclick = () => mostrar('ia');
   $op('#perfilDefinicoes').onclick = abrirConfig;
@@ -2590,8 +2787,19 @@ function ligarEventos(){
   $op('#saudePeso').onchange = e => guardarSaude('peso', e.target.checked);
   $op('#saudeTreinos').onchange = e => guardarSaude('treinos', e.target.checked);
 
+  // Plano: refinamentos que se abrem e fecham, um de cada vez
+  $op('#refinamentos').addEventListener('click', e => {
+    const linha = e.target.closest('[data-refino]');
+    if (!linha) return;
+    const painel = $(`[data-painel="${linha.dataset.refino}"]`);
+    if (!painel) return;
+    const abrir = painel.hidden;
+    $$('#refinamentos .refino').forEach(x => { x.hidden = true; });
+    painel.hidden = !abrir;
+  });
+
   // Plano IA
-  $op('#view-ia').addEventListener('click', e => {
+  $op('#view-plano').addEventListener('click', e => {
     const musculo = e.target.closest('[data-musculo]');
     if (musculo){
       Store.alternarMusculo(musculo.dataset.musculo);
@@ -2609,15 +2817,21 @@ function ligarEventos(){
     } else {
       Store.guardarPlanoConfig(campo, pastilha.dataset.valor);
     }
+    // o painel aberto fica aberto: quem afina uma coisa costuma afinar duas
+    const abertos = $$('#refinamentos .refino').filter(x => !x.hidden).map(x => x.dataset.painel);
     renderIA();
+    abertos.forEach(nome => { const el = $(`[data-painel="${nome}"]`); if (el) el.hidden = false; });
   });
-  $op('#planoSuperseries').onchange = e => Store.guardarPlanoConfig('superseries', e.target.checked);
+  $op('#planoSuperseries').onchange = e => {
+    Store.guardarPlanoConfig('superseries', e.target.checked);
+    $('#resumoSuperseries').textContent = e.target.checked ? 'ligadas' : 'desligadas';
+  };
   $op('#linhaEquipamento').onclick = seletorEquipamento;
   $op('#linhaFotos').onclick = () => mostrar('fotos');
   $op('#linhaPerfil').onclick = () => mostrar('perfil');
-  $op('#fotosVoltar').onclick = () => mostrar('ia');
+  $op('#fotosVoltar').onclick = () => mostrar('plano');
   $op('#btnIrExercicios').onclick = () => mostrar('exercicios');
-  $op('#exVoltar').onclick = () => mostrar('treinos');
+  $op('#exVoltar').onclick = () => mostrar('plano');
   $('#btnTirarFoto').onclick    = () => $('#fotoCamera').click();
   $op('#btnEscolherFoto').onclick = () => $('#fotoGaleria').click();
   $('#fotoCamera').onchange  = e => { adicionarFotos(e.target.files); e.target.value = ''; };
@@ -2634,11 +2848,10 @@ function ligarEventos(){
   $op('#btnHistorico').onclick = historicoCompleto;
   $op('#btnPrograma').onclick = editorPrograma;
   $op('#semana').onclick = e => {
-    const dia = e.target.closest('[data-dia]');
+    const dia = e.target.closest('[data-dia-i]');
     if (!dia) return;
-    const ficha = Store.treinoDoDia(+dia.dataset.dia);
-    if (!ficha) return editorPrograma();
-    detalheTreino(ficha.id);
+    diaSel = +dia.dataset.diaI;
+    renderInicio();
   };
 
   // Progresso
@@ -2691,6 +2904,20 @@ function ligarEventos(){
     if (passo){
       Store.irParaExercicio(+passo.dataset.irEx);
       return renderSessao(Store.estado.sessaoAtiva);
+    }
+
+    const maisMenos = alvo.closest('[data-passo]');
+    if (maisMenos){
+      const [i, j, campo, delta] = maisMenos.dataset.passo.split(':');
+      const serie = Store.estado.sessaoAtiva?.exercicios[+i]?.series[+j];
+      if (!serie) return;
+      const valor = Math.max(0, Math.round((num(serie[campo]) + parseFloat(delta)) * 10) / 10);
+      serie[campo] = valor ? String(valor) : '';
+      Store.salvar();
+      // só o campo se atualiza: repintar o ecrã inteiro tirava o dedo do sítio
+      const caixa = $(`.set-row input[data-campo="${campo}"][data-i="${i}"][data-j="${j}"]`);
+      if (caixa) caixa.value = serie[campo];
+      return;
     }
 
     const check = alvo.closest('[data-check]');
@@ -2773,5 +3000,5 @@ $('#btnInstalar').onclick = async () => {
 };
 window.addEventListener('appinstalled', () => {
   $('#btnInstalar').hidden = true;
-  toast('App instalado 🎉');
+  toast('App instalado.');
 });
