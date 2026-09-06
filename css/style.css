@@ -321,6 +321,10 @@ h3{font-size:21px;font-weight:600}
 .demo:hover{color:var(--accent-forte);border-color:var(--accent-med)}
 .ex-cabeca{display:flex;gap:12px;align-items:flex-start}
 .ex-cabeca .musculos .corpo{width:46px}
+/* no treino, quem mostra o movimento é a figura grande: o mapa muscular
+   ao lado do nome pode ser pequeno */
+[data-ex-idx] .ex-cabeca .musculos .corpo{width:30px}
+[data-ex-idx] .ex-cabeca{align-items:center}
 
 /* ---------- Semana e mês ---------- */
 
@@ -552,6 +556,9 @@ h3{font-size:21px;font-weight:600}
   display:flex;align-items:center;justify-content:center;
 }
 .tira-item .musculos{gap:1px}
+.tira-figura{width:100%;height:100%;object-fit:contain;padding:4px;filter:invert(1)}
+:root[data-tema="escuro"] .tira-figura,
+:root[data-tema="auto"].sistema-escuro .tira-figura{filter:none}
 .tira-item .corpo{width:22px}
 .tira-item img{width:100%;height:100%;object-fit:cover}
 .tira-item.is-atual{border-color:var(--accent-med);box-shadow:0 0 0 3px rgba(142,192,31,.25)}
@@ -743,6 +750,7 @@ line.an-osso.an-ativo{stroke-width:8}
 /* frente e costas ao mesmo tempo: a coluna alarga para não ficarem espremidos */
 .palco-musculos:has(.corpo + .corpo){width:146px}
 .palco-musculos span{font-size:15px;font-weight:700;color:var(--txt-dim);text-align:center;line-height:1.2}
+.figura-ex--sessao{aspect-ratio:4/3;max-height:210px;margin-bottom:12px}
 .figura-creditos{font-size:14.5px;color:var(--txt-dim);margin-top:6px;text-align:right}
 .figura-creditos a{color:inherit}
 .chips-eq{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}

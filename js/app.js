@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 75;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 76;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -310,9 +310,12 @@ function renderSessao(s){
       ${s.exercicios.map((it, n) => {
         const e = Store.exercicio(it.exId);
         const completo = it.series.every(se => se.feito);
+        const desenho = figuraDoExercicio(e);
         return `<button class="tira-item ${n === i ? 'is-atual' : ''} ${completo ? 'is-feito' : ''}"
                   data-ir-ex="${n}" id="tira-${n}" title="${esc(e.nome)}">
-          ${diagramaMusculos(e.grupo)}
+          ${desenho
+            ? `<img class="tira-figura" src="exercicios/${desenho}/frame-2.svg" alt="" decoding="async">`
+            : diagramaMusculos(e.grupo)}
           <span class="tira-num">${completo ? '✓' : n + 1}</span>
         </button>`;
       }).join('')}
@@ -320,6 +323,7 @@ function renderSessao(s){
 
     <div class="card" data-ex-idx="${i}">
       <p class="passo-conta">Exercício ${i + 1} de ${total} · ${feitasAqui}/${item.series.length} séries</p>
+      ${figuraDoExercicio(ex) ? '<div class="figura-ex figura-ex--sessao" id="figuraSessao"></div>' : ''}
       <div class="card__title">
         <div class="ex-cabeca">
           ${diagramaMusculos(ex.grupo)}
@@ -381,6 +385,9 @@ function renderSessao(s){
   const terminar = $('#exTerminar');
   if (terminar) terminar.onclick = () => confirmar('Terminar e guardar este treino?', finalizarSessao, 'Terminar');
 
+  pararFiguraSessao?.();
+  pararFiguraSessao = animarFigura($('#figuraSessao'), ex);
+
   setTimeout(carregarMiniaturas, 0);
   iniciarCrono();
 }
@@ -399,7 +406,7 @@ async function carregarMiniaturas(){
     if (naTira && !naTira.querySelector('img')){
       const mini = document.createElement('img');
       mini.src = foto; mini.alt = '';
-      naTira.querySelector('.musculos')?.replaceWith(mini);
+      (naTira.querySelector('.musculos') || naTira.querySelector('.tira-figura'))?.replaceWith(mini);
     }
     if (n !== atual) continue;
 
@@ -948,6 +955,7 @@ function alternativaDe(ex){
   return escolher(doGrupo);
 }
 
+let pararFiguraSessao = null;
 let pararAnimacao = null;
 async function comoFazer(exId, voltar, daSubstituicao = false){
   // abrir o ecrã de novo começa uma cadeia nova de substituições
