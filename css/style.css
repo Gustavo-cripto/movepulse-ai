@@ -254,7 +254,7 @@ button,input,select,textarea{font-family:inherit}
 /* ---------- Tabbar ---------- */
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
-  display:grid;grid-template-columns:repeat(4,1fr);
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
   background:var(--barra);
   border-top:2px solid var(--line-forte);
   padding-bottom:env(safe-area-inset-bottom);
@@ -262,11 +262,14 @@ button,input,select,textarea{font-family:inherit}
 .tab{
   position:relative;
   background:none;border:0;border-right:1px solid var(--line);color:var(--txt-dim);cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  padding:10px 4px;font:inherit;font-size:11px;font-weight:800;letter-spacing:.1em;
-  text-transform:uppercase;height:var(--tabbar-h);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  padding:10px 2px;font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.01em;
+  height:var(--tabbar-h);line-height:1.1;text-align:center;
   transition:color .12s ease-out;
 }
+.tab-icone{display:flex;align-items:center;justify-content:center;height:21px}
+.tab-icone svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;display:block}
 .tab:last-child{border-right:0}
 .tab.is-active{color:var(--txt)}
 .tab.is-active::before{
@@ -274,14 +277,37 @@ button,input,select,textarea{font-family:inherit}
 }
 
 /* separador que só existe enquanto há treino a decorrer */
-.tab--treino{color:var(--accent);grid-column:1}
-.tab--treino b{font-size:13px;font-weight:800;letter-spacing:.04em}
+.tab--treino{color:var(--accent)}
+.tab--treino b{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
 .tab--treino.is-active{color:var(--accent)}
 
 /* ============================================================
    HOJE
    ============================================================ */
-.heroi{padding:22px var(--pad) 20px;background:none;border:0;border-radius:0;margin:0}
+.heroi{padding:18px var(--pad) 18px;background:none;border:0;border-radius:0;margin:0}
+.ola__nome{font-size:30px;font-weight:800;line-height:1.02;letter-spacing:-.025em;margin-top:8px}
+/* o cartão do dia sangra nas tiras, mas o texto respeita a margem */
+.heroi-dia{padding:18px var(--pad) 16px}
+.heroi-dia .heroi__titulo{margin-top:8px}
+/* o resto do Início mantém a margem lateral; o herói e as tiras sangram */
+.corpo-inicio{padding:6px var(--pad) var(--pad)}
+.corpo-inicio>.section-head:first-child{padding-top:20px}
+
+/* miniaturas dos exercícios do dia, em células de largura igual */
+.hoje__miniaturas{
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
+  border-bottom:2px solid var(--line-forte);
+}
+.hoje__miniaturas>*{
+  display:flex;align-items:center;justify-content:center;height:80px;padding:10px 4px;
+  border-right:1px solid var(--line);min-width:0;
+}
+.hoje__miniaturas>*:last-child{border-right:0}
+.hoje__miniaturas .fig{width:100%;max-width:58px;height:58px;object-fit:contain;filter:invert(1)}
+.hoje__miniaturas .foto{width:100%;height:58px;object-fit:cover;filter:grayscale(1)}
+.hoje__miniaturas .corpo{width:auto;height:56px}
+:root[data-tema="escuro"] .hoje__miniaturas .fig,
+:root[data-tema="auto"].sistema-escuro .hoje__miniaturas .fig{filter:none}
 .heroi__titulo{
   font-size:46px;font-weight:800;line-height:.94;letter-spacing:-.035em;
   text-transform:uppercase;margin-top:10px;text-wrap:balance;
@@ -304,6 +330,7 @@ button,input,select,textarea{font-family:inherit}
   display:grid;grid-template-columns:repeat(7,1fr);
   border-bottom:2px solid var(--line-forte);
 }
+.mes-cabeca{display:flex;align-items:center;gap:6px;margin:0}
 .dia{
   background:none;border:0;border-right:1px solid var(--line);padding:12px 4px 14px;
   cursor:pointer;color:var(--txt);font:inherit;

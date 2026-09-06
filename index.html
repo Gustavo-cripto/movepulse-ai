@@ -13,8 +13,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/fontes.css?v=78">
-<link rel="stylesheet" href="css/style.css?v=78">
+<link rel="stylesheet" href="css/fontes.css?v=79">
+<link rel="stylesheet" href="css/style.css?v=79">
 </head>
 <body>
 
@@ -34,32 +34,58 @@
 
 <main id="app">
 
-  <!-- ============ HOJE ============ -->
+  <!-- ============ INÍCIO ============ -->
   <section class="view" id="view-inicio">
-    <header class="heroi">
-      <p class="kicker" id="olaData">—</p>
-      <h2 class="heroi__titulo" id="olaNome">Olá</h2>
-      <p class="heroi__sub" id="hojeSub"></p>
-    </header>
-
-    <div class="stats-fila" id="hojeStats"></div>
-
-    <button class="btn-largo" id="btnAcaoHoje"><span id="acaoHojeRotulo">Começar agora</span><span aria-hidden="true">→</span></button>
-
     <div class="semana" id="semana"></div>
 
-    <div class="par-acoes">
-      <button id="btnTreinoLivre">Treino livre</button>
-      <button id="btnTreinador">Perguntar ao treinador</button>
-    </div>
+    <header class="heroi">
+      <div class="ola-linha">
+        <div>
+          <p class="kicker" id="olaData">—</p>
+          <h2 class="ola__nome" id="olaNome">Olá</h2>
+        </div>
+        <button class="avatar" id="btnPerfil" aria-label="O meu perfil"><span id="avatarIniciais">—</span></button>
+      </div>
+    </header>
 
-    <div class="section-head section-head--pad">
-      <h2>Registo</h2>
-      <button class="btn-ligacao" id="btnVerRegisto">Ver tudo</button>
-    </div>
-    <div class="reg-lista" id="ultimasSessoes"></div>
+    <div id="cartaoHoje"></div>
 
-    <div class="volumes" id="volumeSemanas"></div>
+    <div class="corpo-inicio">
+      <button class="atalho atalho--largo" id="btnPrograma">
+        <span class="atalho__icone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg></span>
+        <span>Planear semana<small>escolher a ficha de cada dia</small></span>
+      </button>
+
+      <div class="section-head"><h2>O meu plano</h2></div>
+      <div id="planoSemana"></div>
+
+      <div class="section-head">
+        <h2>Calendário</h2>
+        <span class="mes-cabeca">
+          <button class="icon-btn" id="mesAnterior" aria-label="Mês anterior">‹</button>
+          <strong id="mesNome">—</strong>
+          <button class="icon-btn" id="mesSeguinte" aria-label="Mês seguinte">›</button>
+        </span>
+      </div>
+      <div class="mes" id="mes"></div>
+      <p class="item__meta" id="mesResumo"></p>
+
+      <button class="btn btn--block" id="btnTreinoLivre" style="margin-top:18px">+ Treino livre (sem ficha)</button>
+
+      <div class="section-head">
+        <h2>Últimas sessões</h2>
+        <button class="btn-ligacao" id="btnHistorico">Ver tudo</button>
+      </div>
+      <div id="ultimasSessoes" class="stack sangra"></div>
+
+      <div class="section-head"><h2>Progresso</h2></div>
+      <div class="grid grid--stats grid--par" id="resumoStats"></div>
+
+      <div class="section-head"><h2>Evolução por exercício</h2></div>
+      <select class="input" id="selEx" aria-label="Evolução por exercício"></select>
+      <div id="grafico"></div>
+      <div class="grid grid--stats" id="recordesEx"></div>
+    </div>
   </section>
 
   <!-- ============ TREINO A DECORRER ============ -->
@@ -85,13 +111,13 @@
     </div>
   </section>
 
-  <!-- ============ PLANO (fichas + gerador IA) ============ -->
-  <section class="view view--caixa" id="view-plano" hidden>
+  <!-- ============ PLANO IA ============ -->
+  <section class="view view--caixa" id="view-ia" hidden>
 
-    <div class="section-head"><h2>O meu plano</h2></div>
+    <div class="section-head"><h2>O meu plano IA</h2></div>
     <div id="planoAtual"></div>
 
-    <div class="section-head"><h2>Criar plano com IA</h2></div>
+    <div class="section-head"><h2>Criar plano</h2></div>
 
     <div>
       <label class="label">Onde treinas</label>
@@ -118,7 +144,7 @@
     <p class="item__meta" style="margin:-8px 0 0">Os valores por omissão vêm do teu perfil. Muda só o que quiseres.</p>
 
     <div id="refinamentos">
-      <button class="linha" data-refino="equipamento" id="linhaEquipamento">
+      <button class="linha" id="linhaEquipamento">
         <span>Equipamento</span><span class="linha__valor" id="equipResumo">todos</span>
       </button>
 
@@ -194,14 +220,13 @@
       <button class="linha" id="linhaPerfil">
         <span>Perfil e limitações</span><span class="linha__valor" id="perfilResumo">—</span>
       </button>
-
-      <button class="linha" id="btnPrograma">
-        <span>Planear a semana</span><span class="linha__valor">escolher a ficha de cada dia</span>
-      </button>
     </div>
 
     <div id="iaResultado"></div>
+  </section>
 
+  <!-- ============ FICHAS ============ -->
+  <section class="view view--caixa" id="view-treinos" hidden>
     <div class="section-head">
       <h2>Minhas fichas</h2>
       <button class="btn-ligacao" id="btnNovoTreino">+ Nova ficha</button>
@@ -210,42 +235,11 @@
     <button class="linha" id="btnIrExercicios"><span>Todos os exercícios</span><span class="linha__valor" id="totalExercicios">—</span></button>
   </section>
 
-  <!-- ============ REGISTO ============ -->
-  <section class="view view--caixa" id="view-registo" hidden>
-    <div class="section-head"><h2>Esta semana</h2></div>
-    <div id="planoSemana"></div>
-
-    <div class="section-head">
-      <h2>Calendário</h2>
-      <span class="mes-cabeca" style="gap:8px;margin:0">
-        <button class="icon-btn" id="mesAnterior" aria-label="Mês anterior">‹</button>
-        <strong id="mesNome">—</strong>
-        <button class="icon-btn" id="mesSeguinte" aria-label="Mês seguinte">›</button>
-      </span>
-    </div>
-    <div class="mes" id="mes"></div>
-    <p class="item__meta" id="mesResumo"></p>
-
-    <div class="section-head">
-      <h2>Últimas sessões</h2>
-      <button class="btn-ligacao" id="btnHistorico">Ver tudo</button>
-    </div>
-    <div id="sessoesRegisto" class="stack"></div>
-
-    <div class="section-head"><h2>Progresso</h2></div>
-    <div class="grid grid--stats grid--par" id="resumoStats"></div>
-
-    <div class="section-head"><h2>Evolução por exercício</h2></div>
-    <select class="input" id="selEx" aria-label="Evolução por exercício"></select>
-    <div id="grafico"></div>
-    <div class="grid grid--stats" id="recordesEx"></div>
-  </section>
-
   <!-- ============ EXERCÍCIOS ============ -->
   <section class="view view--caixa" id="view-exercicios" hidden>
     <div class="section-head">
       <h2>Exercícios</h2>
-      <button class="btn-ligacao" id="exVoltar">‹ Plano</button>
+      <button class="btn-ligacao" id="exVoltar">‹ Fichas</button>
     </div>
     <input class="input" type="search" id="buscaEx" placeholder="Buscar exercício…" autocomplete="off">
     <div class="chips" id="filtrosGrupo"></div>
@@ -257,7 +251,7 @@
   <section class="view view--caixa" id="view-fotos" hidden>
     <div class="section-head">
       <h2>Fotos do ginásio</h2>
-      <button class="btn-ligacao" id="fotosVoltar">‹ Plano</button>
+      <button class="btn-ligacao" id="fotosVoltar">‹ Plano IA</button>
     </div>
     <p class="muted">As fotos seguem com o pedido e a IA identifica nelas o equipamento — útil para
       apanhar máquinas que não estão na lista. Podes usar só a lista, só fotos, ou as duas coisas.</p>
@@ -274,10 +268,7 @@
 
   <!-- ============ NUTRIÇÃO ============ -->
   <section class="view view--caixa" id="view-nutricao" hidden>
-    <div class="section-head">
-      <h2>Nutrição</h2>
-      <button class="btn-ligacao" id="nutricaoVoltar">‹ Perfil</button>
-    </div>
+    <div class="section-head"><h2>Nutrição</h2></div>
     <p class="muted">Esta parte ainda está por construir. A ideia é acompanhar a alimentação ao lado
       do treino — e não vale a pena fingir que já faz algo.</p>
 
@@ -285,7 +276,7 @@
     <ul class="lista-planeada">
       <li><b>Registo de refeições</b><span>o que comeste, sem contar cada grama</span></li>
       <li><b>Objetivo calórico e proteína</b><span>calculado a partir do teu perfil e treino</span></li>
-      <li><b>Sugestões do treinador</b><span>perguntas sobre alimentação no Treinador</span></li>
+      <li><b>Sugestões do treinador</b><span>perguntas sobre alimentação no separador Treinador</span></li>
       <li><b>Peso ao longo do tempo</b><span>gráfico junto ao progresso do treino</span></li>
     </ul>
     <p class="item__meta">Diz-me por onde queres começar e construo essa parte primeiro.</p>
@@ -299,7 +290,7 @@
   <section class="view view--caixa" id="view-definicoes" hidden>
     <div class="section-head">
       <h2>Definições</h2>
-      <button class="btn-ligacao" id="defVoltar">‹ Perfil</button>
+      <button class="btn-ligacao" id="defVoltar">‹ Início</button>
     </div>
 
     <p class="def-grupo">Conta</p>
@@ -378,12 +369,14 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
       </button>
     </form>
-    <button class="btn btn--block" id="botVoltar">‹ Voltar</button>
   </section>
 
   <!-- ============ PERFIL ============ -->
   <section class="view view--caixa" id="view-perfil" hidden>
-    <div class="section-head"><h2>Perfil</h2></div>
+    <div class="section-head">
+      <h2>Perfil</h2>
+      <button class="btn-ligacao" id="perfilVoltar">‹ Início</button>
+    </div>
 
     <label class="label">Sobre ti</label>
     <div class="field">
@@ -479,8 +472,6 @@
     <div class="section-head"><h2>Mais</h2></div>
     <div id="perfilLinhas">
       <button class="linha" id="perfilIrIA"><span>Gerar plano com IA</span></button>
-      <button class="linha" id="perfilTreinador"><span>Treinador IA</span></button>
-      <button class="linha" id="perfilNutricao"><span>Nutrição</span><span class="linha__valor">por construir</span></button>
       <button class="linha" id="perfilDefinicoes"><span>Definições e backup</span></button>
     </div>
     <p class="item__meta">Os teus dados ficam só neste dispositivo, a não ser que ligues uma conta.</p>
@@ -489,13 +480,24 @@
 </main>
 
 <nav class="tabbar">
-  <button class="tab is-active" data-view="inicio">Hoje</button>
-  <button class="tab tab--treino" data-view="treino" id="tabTreino" hidden>
-    A treinar<b id="tabTreinoTempo">00:00</b>
+  <button class="tab is-active" data-view="inicio">
+    <span class="tab-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M3.5 9v6"/><path d="M17.5 6.5v11"/><path d="M20.5 9v6"/><path d="M6.5 12h11"/></svg></span>Início
   </button>
-  <button class="tab" data-view="plano">Plano</button>
-  <button class="tab" data-view="registo">Registo</button>
-  <button class="tab" data-view="perfil">Perfil</button>
+  <button class="tab" data-view="ia">
+    <span class="tab-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z"/></svg></span>Plano IA
+  </button>
+  <button class="tab" data-view="treinos">
+    <span class="tab-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8"/><path d="M8 16h5"/></svg></span>Fichas
+  </button>
+  <button class="tab" data-view="bot">
+    <span class="tab-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-3.9 8.5 8.5 0 0 1 8.4-9 8.5 8.5 0 0 1 8.6 8.4z"/></svg></span>Treinador
+  </button>
+  <button class="tab" data-view="nutricao">
+    <span class="tab-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z"/><path d="M11.4 8.5a3 3 0 1 1 4.2-4.2"/></svg></span>Nutrição
+  </button>
+  <button class="tab tab--treino" data-view="treino" id="tabTreino" hidden>
+    <span class="tab-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg></span><b id="tabTreinoTempo">00:00</b>
+  </button>
 </nav>
 
 <!-- Modal genérico -->
@@ -528,17 +530,17 @@
   <button class="btn btn--sm" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=78"></script>
-<script src="js/store.js?v=78"></script>
-<script src="js/nuvem.js?v=78"></script>
-<script src="js/saude.js?v=78"></script>
-<script src="js/db.js?v=78"></script>
-<script src="js/ia.js?v=78"></script>
-<script src="js/ui.js?v=78"></script>
-<script src="js/musculos.js?v=78"></script>
-<script src="js/figuras.js?v=78"></script>
-<script src="js/animacao.js?v=78"></script>
-<script src="js/icones.js?v=78"></script>
-<script src="js/app.js?v=78"></script>
+<script src="js/data.js?v=79"></script>
+<script src="js/store.js?v=79"></script>
+<script src="js/nuvem.js?v=79"></script>
+<script src="js/saude.js?v=79"></script>
+<script src="js/db.js?v=79"></script>
+<script src="js/ia.js?v=79"></script>
+<script src="js/ui.js?v=79"></script>
+<script src="js/musculos.js?v=79"></script>
+<script src="js/figuras.js?v=79"></script>
+<script src="js/animacao.js?v=79"></script>
+<script src="js/icones.js?v=79"></script>
+<script src="js/app.js?v=79"></script>
 </body>
 </html>
