@@ -155,6 +155,10 @@ Regras:
     fazer sempre o mesmo: as primeiras semanas assentam a técnica, as seguintes
     trazem variantes ou mais volume.
 - Usa apenas os dias que o cliente escolheu, sem repetir dias dentro da mesma semana.
+- VARIA. Quando te for dada a lista de exercícios que a app conhece, escolhe entre esses e usa
+  os nomes tal como estão. Não te fiques pelos seis clássicos de sempre: explora variantes de
+  pegada, de inclinação, unilaterais, na polia e na máquina. Se te for dado o plano anterior,
+  no máximo um terço dos exercícios pode repetir-se.
 - O "calendario" tem de ter exatamente "duracao_semanas" entradas, numeradas de 1 em diante.
 - Escreve em português de Portugal, com nomes de exercícios usados em ginásio.
 - Quando forem indicados grupos a priorizar, dá-lhes mais volume (séries) do que aos restantes,
@@ -163,7 +167,110 @@ Regras:
 - Não identifiques pessoas que apareçam nas fotos.
 - Isto é orientação geral de treino, não aconselhamento médico.`;
 
-/** Monta o corpo do pedido à Messages API. */
+/* A estação multifunções de casa faz muita coisa que a IA não adivinha pelo
+   nome. Diz-se-lhe o que a máquina permite, para os planos a aproveitarem. */
+const O_QUE_FAZ = {
+  'm-multi': 'Estação multifunções de casa, com pilha de pesos, polia alta e polia baixa, braços de '
+    + 'peitoral e rolos de perna. Permite: puxada alta (várias pegadas), remada baixa sentada, '
+    + 'supino sentado na máquina, peck deck, extensão de pernas, flexão de pernas, tríceps na polia '
+    + 'alta (barra e corda), rosca na polia baixa, pullover na polia, abdominal na polia, e com '
+    + 'tornozeleira na polia baixa: coice de glúteo, abdução e adução da anca, e elevações laterais '
+    + 'e frontais de ombro na polia',
+};
+
+function descreverEquipamento(id){
+  return O_QUE_FAZ[id] || nomeEquipamento(id);
+}
+
+/* Que categorias de exercício cada peça de equipamento desbloqueia. */
+const DESBLOQUEIA = {
+  'barra':['Barra'], 'barra-ez':['Barra'], 'barra-hex':['Barra'], 'landmine':['Barra'], 'rack':['Barra'],
+  'halteres':['Halteres'], 'kettlebell':['Kettlebell'], 'discos':['Acessório'],
+  'crossover':['Polia'], 'polia-alta':['Polia'], 'polia-baixa':['Polia'],
+  'banco':['Halteres','Barra'], 'banco-incl':['Halteres','Barra'],
+  'elasticos':['Elástico'], 'trx':['Acessório'], 'corda':['Acessório'], 'bola':['Acessório'],
+  'roda':['Acessório'],
+};
+
+/* A estação de casa não é "uma máquina qualquer": desbloqueia estes exercícios
+   em concreto (polia alta e baixa, peitoral, pernas), e não o leg press nem o
+   hack squat. */
+const EXERCICIOS_DA_ESTACAO = new Set([
+  'puxada-frente','close-grip-lat-pulldown','wide-grip-lat-pulldown','pulldown',
+  'remada-baixa','single-arm-cable-row','m-supino','machine-chest-press','peck-deck',
+  'ext-joelhos','flex-joelhos','leg-curl','seated-leg-curl',
+  'triceps-polia','tricep-pushdown','overhead-tricep-extension',
+  'cable-curl','rope-hammer-curl',
+  'cable-kickback','cable-standing-hip-abduction','cable-standing-hip-adduction','cable-pull-through',
+  'cable-lateral-raise','cable-front-raise','face-pull','cable-rear-delt-fly',
+  'cable-crunch','cable-woodchop','pallof-press','cable-pallof-hold','half-kneeling-pallof-press',
+]);
+
+/* Cada máquina de cardio só desbloqueia o seu exercício. */
+const CARDIO_DE = {
+  passadeira:['esteira','treadmill-incline-walk'], bicicleta:['bike'], eliptica:['eliptico'],
+  'remo-erg':['remo-ergo'], escada:['stair-climber'], 'air-bike':['assault-bike'],
+};
+
+/** Os exercícios do catálogo que dá para fazer com o equipamento escolhido,
+    agrupados por músculo, para a IA escolher entre eles. */
+function catalogoParaOPedido(equipamento){
+  const categorias = new Set(['Peso corporal']);
+  const ids = new Set();
+
+  for (const id of equipamento){
+    if (id === 'm-multi') EXERCICIOS_DA_ESTACAO.forEach(e => ids.add(e));
+    else if (CARDIO_DE[id]) CARDIO_DE[id].forEach(e => ids.add(e));
+    else if (id.startsWith('m-')) categorias.add('Máquina');       // ginásio a sério
+    else (DESBLOQUEIA[id] || ['Peso corporal']).forEach(c => categorias.add(c));
+  }
+  if (!equipamento.length){
+    ['Barra','Halteres','Máquina','Polia','Elástico','Kettlebell','Acessório'].forEach(c => categorias.add(c));
+  }
+
+  // o crossover precisa de duas colunas: só com uma polia não há crucifixo no cabo
+  const semCrossover = !equipamento.includes('crossover') && !equipamento.includes('polia-alta');
+  const porGrupo = {};
+  for (const ex of EXERCICIOS_BASE){
+    if (!categorias.has(ex.equip) && !ids.has(ex.id)) continue;
+    if (ex.grupo === 'Cardio' && !ids.has(ex.id) && !equipamento.length) continue;
+    if (semCrossover && ['crossover','cable-fly','incline-cable-fly'].includes(ex.id)) continue;
+    (porGrupo[ex.grupo] ||= []).push(ex.nome);
+  }
+  return Object.entries(porGrupo)
+    .map(([grupo, nomes]) => `- ${grupo}: ${nomes.join('; ')}`)
+    .join('\n');
+}
+
+/** Os exercícios do último plano, para a IA não os repetir todos. */
+function exerciciosDoPlanoAnterior(){
+  const treinos = Store.estado.planoIA?.plano?.treinos || [];
+  return [...new Set(treinos.flatMap(t => (t.exercicios || []).map(e => e.nome)))];
+}
+
+/** Baralha uma cópia da lista (Fisher-Yates). */
+function baralhar(lista){
+  const a = [...lista];
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* Um ângulo diferente em cada geração, para dois planos seguidos não saírem iguais. */
+const ANGULOS_DE_VARIACAO = [
+  'dá prioridade a variantes unilaterais — uma perna ou um braço de cada vez.',
+  'usa mais a polia e a máquina, e menos pesos livres.',
+  'começa cada treino por um exercício que normalmente vem no fim, e acaba com um composto.',
+  'inclui em cada treino pelo menos um exercício de glúteos e um de core.',
+  'prefere compostos e reduz os de isolamento a um ou dois por treino.',
+  'explora variantes de pegada e de inclinação em vez dos exercícios clássicos.',
+  'mete um exercício de peso corporal em cada treino, mesmo havendo máquinas.',
+  'alterna empurrar e puxar dentro do mesmo treino, em vez de agrupar.',
+];
+
+/** Monta o corpo do pedido à Messages API. *//** Monta o corpo do pedido à Messages API. */
 function construirPedido(perfil, fotos){
   const conteudo = [];
   fotos.forEach((f, i) => {
@@ -172,8 +279,15 @@ function construirPedido(perfil, fotos){
   });
   const cfg = Store.estado.planoConfig;
   const listaEquip = cfg.equipamento.length
-    ? cfg.equipamento.map(nomeEquipamento).join(', ')
+    ? cfg.equipamento.map(descreverEquipamento).join(', ')
     : 'não indicado — usa o que aparecer nas fotos';
+  const catalogo = catalogoParaOPedido(cfg.equipamento);
+  // Pedir "varia" não chega: o modelo volta aos mesmos. Proíbe-se explicitamente
+  // uma boa parte do plano anterior, escolhida ao acaso, para cada plano sair
+  // mesmo diferente do último.
+  const anterior = exerciciosDoPlanoAnterior();
+  const proibidos = baralhar(anterior).slice(0, Math.ceil(anterior.length * 0.6));
+  const angulo = ANGULOS_DE_VARIACAO[Math.floor(Math.random() * ANGULOS_DE_VARIACAO.length)];
 
   conteudo.push({ type:'text', text:
 `${fotos.length ? 'As fotos acima são do equipamento disponível.' : 'Não há fotos: guia-te pela lista de equipamento.'}
@@ -196,10 +310,19 @@ Perfil do cliente:
 - Limitações/lesões: ${perfil.limitacoes || 'nenhuma indicada'}
 - Notas: ${perfil.notas || '—'}
 
+${catalogo ? `Exercícios que a app conhece com este equipamento — escolhe entre estes e usa os nomes tal como
+estão (podes juntar outros se fizer mesmo falta):
+${catalogo}
+
+` : ''}${proibidos.length ? `NÃO USES estes exercícios, que já estavam no plano anterior (escolhe outros do mesmo músculo):
+${proibidos.join('; ')}
+
+` : ''}Desta vez: ${angulo}
+
 Monta um programa de ${cfg.semanas || 6} semanas, com ${perfil.diasSemana.length} treinos por semana,
 um em cada dia indicado. Cria entre ${Math.max(3, perfil.diasSemana.length)} e ${
   Math.max(4, perfil.diasSemana.length * 2)} treinos distintos: repete-os ao longo das semanas e vai
-introduzindo os novos a meio do programa.` });
+introduzindo os novos a meio do programa. (variação nº ${Date.now() % 1000})` });
 
   return {
     model: IA.MODELO,
