@@ -4,6 +4,13 @@
    licenças de terceiros e funciona offline.
    ============================================================ */
 
+/** Nome do grupo reduzido a uma etiqueta sem acentos, para o CSS lhe dar cor. */
+function marcaDoGrupo(nome){
+  return String(nome).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z]/g, '');
+}
+
 /* Que regiões acender para cada grupo do catálogo. */
 const REGIOES_POR_GRUPO = {
   'Peito':   ['peito'],
@@ -73,7 +80,9 @@ function diagramaMusculos(grupo){
   if (naFrente) vistas.push(vista('frente', acesas));
   if (atras)    vistas.push(vista('costas', acesas));
 
-  return `<div class="musculos" title="${esc(grupos.join(', '))}">${vistas.join('')}</div>`;
+  // o primeiro grupo dá a cor: num treino de vários, é o que manda
+  return `<div class="musculos" data-g="${marcaDoGrupo(grupos[0])}"
+    title="${esc(grupos.join(', '))}">${vistas.join('')}</div>`;
 }
 
 /** Procura de demonstração em vídeo, para quem não conhece o exercício. */

@@ -33,6 +33,19 @@
   --radius:0px;
   --pad:20px;
   --tabbar-h:72px;
+
+  /* Um tom por grupo muscular. É cor com significado, não decoração: o
+     mesmo grupo tem sempre o mesmo tom, no boneco, na etiqueta e no filtro.
+     Nenhum deles é verde — o verde continua a querer dizer "agora". */
+  --g-peito:#b3503a;
+  --g-costas:#3c5a9c;
+  --g-pernas:#7d4a7e;
+  --g-ombros:#9a6a12;
+  --g-biceps:#5c7028;
+  --g-triceps:#a63f6a;
+  --g-abdomen:#4a6572;
+  --g-cardio:#a32d3f;
+  --recorde:#9a6a12;           /* carga nunca antes levantada */
   --font:'Archivo',system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 
@@ -56,7 +69,28 @@
   --danger:#e2705b;
   --ok:#f3f2f2;
   --barra:#141614;
+
+  /* sobre fundo escuro os mesmos tons precisam de subir de luz */
+  --g-peito:#e08a72;
+  --g-costas:#8aa6e0;
+  --g-pernas:#c58fc6;
+  --g-ombros:#ddab4a;
+  --g-biceps:#a7bd60;
+  --g-triceps:#e089ab;
+  --g-abdomen:#93aab8;
+  --g-cardio:#e0798a;
+  --recorde:#ddab4a;
 }
+
+/* A cor do grupo aplica-se a tudo o que o identifique. */
+[data-g="peito"]  {--g:var(--g-peito)}
+[data-g="costas"] {--g:var(--g-costas)}
+[data-g="pernas"] {--g:var(--g-pernas)}
+[data-g="ombros"] {--g:var(--g-ombros)}
+[data-g="biceps"] {--g:var(--g-biceps)}
+[data-g="triceps"]{--g:var(--g-triceps)}
+[data-g="abdomen"]{--g:var(--g-abdomen)}
+[data-g="cardio"] {--g:var(--g-cardio)}
 
 /* Três tamanhos de texto, para quem não vê bem o miudinho.
    Os tamanhos deste ficheiro são a base 1.0. */
@@ -250,6 +284,9 @@ button,input,select,textarea{font-family:inherit}
   font-weight:600;cursor:pointer;
 }
 .chip.is-active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.chip.is-active[data-g]{background:var(--g);border-color:var(--g);color:#fff}
+:root[data-tema="escuro"] .chip.is-active[data-g],
+:root[data-tema="auto"].sistema-escuro .chip.is-active[data-g]{color:#141614}
 
 /* ---------- Tabbar ---------- */
 .tabbar{
@@ -313,6 +350,8 @@ button,input,select,textarea{font-family:inherit}
   text-transform:uppercase;margin-top:10px;text-wrap:balance;
 }
 .heroi__sub{font-size:15px;line-height:1.45;color:var(--txt-dim);margin-top:10px}
+/* cada grupo trabalhado escreve-se no seu tom */
+.grupo-cor{color:var(--g,var(--txt));font-weight:700}
 
 /* três células de largura igual, separadas por réguas */
 .stats-fila{
@@ -426,6 +465,9 @@ button,input,select,textarea{font-family:inherit}
 .ex-palco__numeros .num{font-size:34px;font-weight:800;line-height:1;display:block;margin-top:4px}
 .ex-palco__numeros .num--peq{font-size:22px}
 .ex-palco__numeros .un{font-size:11px;font-weight:700;color:var(--txt-dim);margin-left:3px}
+/* carga nunca antes levantada: âmbar, para não roubar o verde ao "agora" */
+.e-recorde .num{color:var(--recorde)}
+.e-recorde .rotulo{color:var(--recorde)}
 
 /* tabela de séries */
 .set-head,.set-row{display:grid;grid-template-columns:34px minmax(0,1fr) minmax(0,1fr) 64px;
@@ -488,6 +530,7 @@ button,input,select,textarea{font-family:inherit}
   color:var(--txt-dim);border-radius:0;padding:3px 9px;font-size:11px;font-weight:600;
   margin:0 5px 5px 0;
 }
+.tag[data-g]{color:var(--g);border-color:var(--g)}
 .empty{color:var(--txt-dim);padding:22px 0;border-top:1px solid var(--line);
   border-bottom:1px solid var(--line);font-size:13px}
 
@@ -592,7 +635,7 @@ button,input,select,textarea{font-family:inherit}
 .musculos{display:flex;gap:4px;align-items:flex-start}
 .musculos .corpo{width:34px;height:auto;flex:none}
 .m-base{fill:var(--bg-elev-2);stroke:var(--line);stroke-width:1}
-.m-ativo{fill:var(--accent);stroke:var(--accent);stroke-width:1}
+.m-ativo{fill:var(--g,var(--accent));stroke:var(--g,var(--accent));stroke-width:1}
 .demo{
   display:inline-block;margin-top:5px;font-size:11px;font-weight:700;letter-spacing:.1em;
   text-transform:uppercase;color:var(--accent-forte);text-decoration:none;
@@ -781,7 +824,8 @@ button,input,select,textarea{font-family:inherit}
 .musculo-op .musculos{gap:2px}
 .musculo-op .corpo{width:26px}
 .musculo-op span{font-size:11px;font-weight:600;line-height:1.1;text-align:center}
-.musculo-op.is-ativa{border-color:var(--accent);background:var(--accent-fundo);color:var(--txt)}
+.musculo-op.is-ativa{border-color:var(--g,var(--accent));color:var(--txt);
+  box-shadow:inset 0 -4px 0 var(--g,var(--accent))}
 
 /* ---------- Figuras de execução ---------- */
 .figura-ex{position:relative;width:100%;aspect-ratio:1;max-height:300px;
@@ -963,9 +1007,51 @@ line.an-osso.an-ativo{stroke-width:8}
 .ia-ex--toca:hover{background:var(--bg-elev-2)}
 .ia-ex--toca .prescricao{align-self:center}
 
-/* ---------- Movimento ---------- */
+/* ============================================================
+   Movimento
+   Curto e com uma razão: mostrar que o ecrã mudou, que um número
+   subiu, que a série ficou marcada. Nada a mexer sem motivo.
+   ============================================================ */
+@keyframes entrarEcra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes surgir{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes crescerBarra{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes subirToast{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes marcada{from{background:var(--accent);color:var(--accent-ink)}to{background:var(--bg-elev-2)}}
+@keyframes bater{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* O ecrã inteiro entra ao mudar de separador. */
+.view{animation:entrarEcra .24s ease-out}
+
+/* Grupos de células entram em cascata, da esquerda para a direita. */
+.dia,.stats-fila>div,.hoje__miniaturas>*,.tira-item{
+  animation:surgir .34s ease-out backwards;
+  animation-delay:calc(var(--i,0) * 34ms);
+}
+
+/* A barra verde do separador ativo cresce a partir da esquerda. */
+.tab.is-active::before{transform-origin:left;animation:crescerBarra .24s ease-out}
+
+/* O toast sobe, em vez de aparecer do nada. */
+.toast{animation:subirToast .24s cubic-bezier(.22,.9,.3,1)}
+
+/* A série marcada acende por um instante antes de assentar. */
+.set-row.acabou-de-marcar{animation:marcada .55s ease-out}
+
+/* A seta do botão largo avança quando lhe tocam. */
+.btn-largo span:last-child{transition:transform .16s ease-out}
+.btn-largo:hover span:last-child,
+.btn-largo:active span:last-child{transform:translateX(5px)}
+
+/* O rótulo AGORA respira devagar, para se encontrar o exercício em curso. */
+.tira-item.is-atual .tira-estado{animation:bater 2.4s ease-in-out infinite}
+
+/* Enquanto se descansa, o ponto do topo pisca ao ritmo da contagem. */
+.topbar__ponto{transition:background .2s ease-out}
+.a-descansar .treino-estado__rotulo{animation:bater 2s ease-in-out infinite}
+
 @media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important}
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    animation-delay:0s !important}
   .btn,.btn-largo,.tab,.dia,.linha,.pastilha,.set-check,.tira-item,.card--tap,
   .mes__dia,.equip-item,.reg-linha,.par-acoes button,.atalho,.musculo-op,.dia-opcao,.avatar{
     transition:none !important}

@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 79;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 80;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -26,6 +26,33 @@ const ICO = {
   fechar:  '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>',
 };
 const ico = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICO[nome]}</svg>`;
+
+/** Faz os números subirem até ao valor, em vez de aparecerem feitos.
+    Só mexe no que tiver data-num, e cala-se para quem pediu menos movimento. */
+function animarNumeros(zona){
+  if (!zona) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  zona.querySelectorAll('[data-num]').forEach(el => {
+    const fim = parseFloat(el.dataset.num);
+    const texto = el.textContent;
+    if (!isFinite(fim) || fim <= 0) return;
+
+    const casas = (String(el.dataset.num).split('.')[1] || '').length;
+    const arranque = performance.now(), duracao = 560;
+    const passo = agora => {
+      const t = Math.min(1, (agora - arranque) / duracao);
+      const suave = 1 - Math.pow(1 - t, 3);          // trava no fim
+      if (t < 1){
+        el.textContent = fmtNum(+(fim * suave).toFixed(casas));
+        requestAnimationFrame(passo);
+      } else {
+        el.textContent = texto;                       // acaba no valor certo
+      }
+    };
+    requestAnimationFrame(passo);
+  });
+}
 
 /* ---------------- Navegação ----------------
    Cinco separadores, como sempre foram. Os nomes que a versão anterior
@@ -204,7 +231,7 @@ function renderSemana(){
     const estado = feito ? 'feito' : eHoje ? 'hoje' : ficha ? 'tem-plano' : 'sem-treino';
     const marca  = feito ? '✓' : ficha ? esc(abreviar(ficha.nome)) : d.getDate();
     return `<button class="dia ${estado} ${i === diaSel ? 'is-sel' : ''}" data-dia-i="${i}"
-              title="${ficha ? esc(ficha.nome) : 'Sem treino planeado'}">
+              style="--i:${i}" title="${ficha ? esc(ficha.nome) : 'Sem treino planeado'}">
       <span class="dia__letra">${eHoje ? 'Hoje' : LETRAS_DIA[d.getDay()]}</span>
       <span class="dia__marca">${marca}</span>
     </button>`;
@@ -213,8 +240,13 @@ function renderSemana(){
 
 /** As três células de números por baixo do título. */
 function pintarStats(pares){
-  return `<div class="stats-fila">${pares.map(([valor, rotulo]) =>
-    `<div><span class="stat__valor">${esc(valor)}</span><span class="rotulo">${esc(rotulo)}</span></div>`).join('')}</div>`;
+  return `<div class="stats-fila">${pares.map(([valor, rotulo], i) => {
+    const conta = typeof valor === 'number' ? ` data-num="${valor}"` : '';
+    return `<div style="--i:${i}">
+      <span class="stat__valor"${conta}>${esc(valor)}</span>
+      <span class="rotulo">${esc(rotulo)}</span>
+    </div>`;
+  }).join('')}</div>`;
 }
 
 function iniciarFicha(id){
@@ -238,11 +270,12 @@ function renderCartaoHoje(){
   const ficha = Store.treinoDaData(data);
   const alvo = $('#cartaoHoje');
 
+  // o sub vem já em HTML, para os grupos poderem ir cada um no seu tom
   const cabeca = (etiqueta, titulo, sub) => `
     <div class="heroi-dia">
       <p class="kicker">${esc(etiqueta)}</p>
       <h2 class="heroi__titulo">${esc(titulo)}</h2>
-      <p class="heroi__sub">${esc(sub)}</p>
+      <p class="heroi__sub">${sub}</p>
     </div>`;
   const acao = (rotulo, tinta) => `
     <button class="btn-largo ${tinta ? 'btn-largo--tinta' : ''}" id="btnAcaoHoje">
@@ -258,10 +291,11 @@ function renderCartaoHoje(){
     const exs     = sessoes.reduce((t, x) => t + x.exercicios.length, 0);
     alvo.innerHTML =
       cabeca(eHoje ? 'Feito hoje' : 'Feito', sessoes.map(x => x.nome).join(' + '),
-             `${fmtNum(volume)} kg de volume levantado.`)
+             esc(`${fmtNum(volume)} kg de volume levantado.`))
       + pintarStats([[minutos, 'minutos'], [exs, 'exercícios'], [series, 'séries']])
       + acao('Ver resumo', true);
-    return ligar(() => detalheSessao(sessoes[0].id));
+    ligar(() => detalheSessao(sessoes[0].id));
+    return animarNumeros(alvo);
   }
 
   // 2) há ficha marcada para esse dia
@@ -270,20 +304,23 @@ function renderCartaoHoje(){
     const series = ficha.itens.reduce((t, i) => t + i.series, 0);
     // sem repetir a mesma palavra: dois supinos seguidos não dizem nada
     const nomes  = [...new Set(ficha.itens.map(i => primeiraPalavra(Store.exercicio(i.exId).nome)))].slice(0, 4);
+    const coloridos = grupos.map(g =>
+      `<span class="grupo-cor" data-g="${marcaDoGrupo(g)}">${esc(g)}</span>`).join(' · ');
     alvo.innerHTML =
       cabeca(eHoje ? 'Especial para hoje' : NOMES_DIA[data.getDay()], ficha.nome,
-             [grupos.join(' · '), nomes.join(', ')].filter(Boolean).join(' — '))
+             [coloridos, esc(nomes.join(', '))].filter(Boolean).join(' — '))
       + pintarStats([[duracaoEstimada(ficha), 'minutos'], [ficha.itens.length, 'exercícios'], [series, 'séries']])
       + '<div class="hoje__miniaturas" id="hojeMiniaturas"></div>'
       + acao(eHoje ? 'Começar agora' : 'Ver ficha');
     ligar(eHoje ? () => iniciarFicha(ficha.id) : () => detalheTreino(ficha.id));
+    animarNumeros(alvo);
     return preencherMiniaturas(ficha);
   }
 
   // 3) dia de descanso
   alvo.innerHTML =
     cabeca(eHoje ? 'Hoje' : NOMES_DIA[data.getDay()], 'Descanso',
-           'Sem treino planeado para este dia. Podes treinar à mesma.')
+           'Sem treino planeado para este dia. Podes treinar à mesma.'.replace(/&/g, '&amp;'))
     + pintarStats([['—', 'minutos'], ['—', 'exercícios'], ['—', 'séries']])
     + acao('Treino livre');
   ligar(comecarTreinoLivre);
@@ -298,7 +335,7 @@ async function preencherMiniaturas(ficha){
   alvo.innerHTML = itens.map(it => {
     const ex = Store.exercicio(it.exId);
     const fig = figuraDoExercicio(ex);
-    return `<span id="mini-${esc(it.exId)}" title="${esc(ex.nome)}">${fig
+    return `<span id="mini-${esc(it.exId)}" style="--i:${itens.indexOf(it)}" title="${esc(ex.nome)}">${fig
       ? `<img class="fig" src="exercicios/${fig}/frame-2.svg" alt="" decoding="async">`
       : diagramaMusculos(ex.grupo)}</span>`;
   }).join('');
@@ -422,9 +459,12 @@ function renderSessao(s){
 
   const volumeEx = item.series.filter(se => se.feito)
     .reduce((t, se) => t + num(se.reps) * num(se.carga), 0);
-  const melhorCarga = Math.max(0,
-    ...Store.seriesDoExercicio(item.exId).flatMap(h => h.series).map(se => num(se.carga)),
-    ...item.series.filter(se => se.feito).map(se => num(se.carga)));
+  // o recorde é o que se levantou hoje contra tudo o que já se levantou antes
+  const melhorAntes = Math.max(0,
+    ...Store.seriesDoExercicio(item.exId).flatMap(h => h.series).map(se => num(se.carga)));
+  const melhorHoje = Math.max(0, ...item.series.filter(se => se.feito).map(se => num(se.carga)));
+  const melhorCarga = Math.max(melhorAntes, melhorHoje);
+  const recorde = melhorHoje > melhorAntes && melhorHoje > 0;
   const alvo = item.series[0]?.reps ? `${item.series.length}×${num(item.series[0].reps)}` : `${item.series.length} séries`;
 
   const campo = (j, se, prop, valor) => `
@@ -444,7 +484,7 @@ function renderSessao(s){
         const completo = it.series.length && it.series.every(se => se.feito);
         const fig = figuraDoExercicio(e);
         return `<button class="tira-item ${n === i ? 'is-atual' : ''} ${completo ? 'is-feito' : ''}"
-                  data-ir-ex="${n}" id="tira-${n}" title="${esc(e.nome)}">
+                  data-ir-ex="${n}" id="tira-${n}" style="--i:${n}" title="${esc(e.nome)}">
           ${fig
             ? `<img class="tira-figura" src="exercicios/${fig}/frame-2.svg" alt="" decoding="async">`
             : diagramaMusculos(e.grupo)}
@@ -457,7 +497,8 @@ function renderSessao(s){
     <div class="ex-cabeca-treino" data-ex-idx="${i}">
       <p class="kicker">Exercício ${i + 1} de ${total} · ${feitasAqui}/${item.series.length} séries</p>
       <h2>${esc(ex.nome)}</h2>
-      <p class="ex-meta">${esc(ex.grupo)} · ${esc(ex.equip)} · alvo ${esc(alvo)}</p>
+      <p class="ex-meta"><span class="grupo-cor" data-g="${marcaDoGrupo(ex.grupo)}">${esc(ex.grupo)}</span>
+        · ${esc(ex.equip)} · alvo ${esc(alvo)}</p>
       <span class="ex-cabeca" id="exFotoMaquina"></span>
     </div>
 
@@ -468,10 +509,10 @@ function renderSessao(s){
       <div class="ex-palco__numeros">
         <div>
           <span class="rotulo">Volume acumulado</span>
-          <span class="num">${fmtNum(volumeEx)}<span class="un">kg</span></span>
+          <span class="num"><span data-num="${volumeEx}">${fmtNum(volumeEx)}</span><span class="un">kg</span></span>
         </div>
-        <div>
-          <span class="rotulo">Melhor carga</span>
+        <div class="${recorde ? 'e-recorde' : ''}">
+          <span class="rotulo">${recorde ? 'Recorde novo' : 'Melhor carga'}</span>
           <span class="num num--peq">${melhorCarga ? fmtPeso(melhorCarga) : '—'}<span class="un">kg</span></span>
         </div>
       </div>
@@ -550,6 +591,7 @@ function renderSessao(s){
   pararFiguraSessao?.();
   pararFiguraSessao = animarFigura($('#figuraSessao'), ex);
 
+  animarNumeros($('#sessaoExercicios'));
   setTimeout(carregarMiniaturas, 0);
   iniciarCrono();
 }
@@ -968,7 +1010,7 @@ function seletorExercicio(aoEscolher){
             <div class="item">
               <div><h3 style="font-size:14px">${esc(e.nome)}</h3>
                    <p class="item__meta">${esc(e.equip)}</p></div>
-              <span class="tag">${esc(e.grupo)}</span>
+              <span class="tag" data-g="${marcaDoGrupo(e.grupo)}">${esc(e.grupo)}</span>
             </div>
           </button>`).join('') || '<p class="empty">Nada encontrado.</p>'}
       </div>`;
@@ -993,7 +1035,8 @@ function renderExercicios(){
   const chips = $('#filtrosGrupo');
   if (!chips.children.length){
     chips.innerHTML = ['Todos', ...GRUPOS]
-      .map(g => `<button class="chip ${g === filtroGrupo ? 'is-active' : ''}" data-grupo="${esc(g)}">${esc(g)}</button>`).join('');
+      .map(g => `<button class="chip ${g === filtroGrupo ? 'is-active' : ''}" data-grupo="${esc(g)}"
+        ${g === 'Todos' ? '' : `data-g="${marcaDoGrupo(g)}"`}>${esc(g)}</button>`).join('');
   }
   $$('.chip', chips).forEach(c => c.classList.toggle('is-active', c.dataset.grupo === filtroGrupo));
 
@@ -1011,7 +1054,7 @@ function renderExercicios(){
               <h3 style="font-size:15px">${esc(e.nome)}</h3>
               <p class="item__meta">${esc(e.equip)}${carga ? ' · última carga ' + fmtPeso(carga) + ' kg' : ''}</p>
             </div>
-            <span class="tag">${esc(e.grupo)}</span>
+            <span class="tag" data-g="${marcaDoGrupo(e.grupo)}">${esc(e.grupo)}</span>
           </div>
         </button>`;
       }).join('')
@@ -1050,7 +1093,7 @@ async function detalheExercicio(id){
       <div class="ex-cabeca">
         ${diagramaMusculos(ex.grupo)}
         <div>
-          <p><span class="tag">${esc(ex.grupo)}</span><span class="tag">${esc(ex.equip)}</span></p>
+          <p><span class="tag" data-g="${marcaDoGrupo(ex.grupo)}">${esc(ex.grupo)}</span><span class="tag">${esc(ex.equip)}</span></p>
           <p style="margin-top:6px"><button class="btn btn--sm btn--primary" id="exDetComoFazer">Como fazer</button></p>
         </div>
       </div>
@@ -1723,7 +1766,8 @@ function renderIA(){
 function renderMusculosPlano(){
   const escolhidos = Store.estado.planoConfig.musculos;
   $('#musculosGrelha').innerHTML = GRUPOS.map(g => `
-    <button class="musculo-op ${escolhidos.includes(g) ? 'is-ativa' : ''}" data-musculo="${esc(g)}">
+    <button class="musculo-op ${escolhidos.includes(g) ? 'is-ativa' : ''}"
+            data-musculo="${esc(g)}" data-g="${marcaDoGrupo(g)}">
       ${diagramaMusculos(g)}
       <span>${esc(g)}</span>
     </button>`).join('');
@@ -2920,7 +2964,15 @@ function ligarEventos(){
       serie.feito = !serie.feito;
       Store.salvar();
       renderSessao(Store.estado.sessaoAtiva);
-      if (serie.feito) iniciarDescanso(); else pararDescanso();
+      if (serie.feito){
+        // a linha acende por meio segundo, para se ver que ficou registada
+        const linha = $$('.set-row')[j];
+        linha?.classList.add('acabou-de-marcar');
+        setTimeout(() => linha?.classList.remove('acabou-de-marcar'), 600);
+        iniciarDescanso();
+      } else {
+        pararDescanso();
+      }
       return;
     }
     const addSerie = alvo.closest('[data-add-serie]');
