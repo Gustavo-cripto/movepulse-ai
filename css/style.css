@@ -26,15 +26,13 @@
 :root[data-letra="moderno"] h2,
 :root[data-letra="moderno"] h3,
 :root[data-letra="moderno"] .hoje__tempo,
-:root[data-letra="moderno"] .timer,
-:root[data-letra="moderno"] .session-stats strong{
+:root[data-letra="moderno"] .timer{
   font-family:'Archivo',ui-sans-serif,sans-serif;letter-spacing:-.015em}
 :root[data-letra="moderno"] h1{font-size:21px}
 :root[data-letra="moderno"] h2{font-size:23.5px}
 :root[data-letra="moderno"] h3{font-size:19px}
 :root[data-letra="moderno"] .hoje__tempo{font-size:47px;font-weight:800}
-:root[data-letra="moderno"] .timer,
-:root[data-letra="moderno"] .session-stats strong{font-size:25.5px;font-weight:700}
+:root[data-letra="moderno"] .timer{font-size:25.5px;font-weight:700}
 
 :root[data-texto="grande"] body{zoom:1.15}
 :root[data-texto="enorme"] body{zoom:1.32}
@@ -189,9 +187,6 @@ h3{font-size:21px;font-weight:600}
 /* ---------- Sessão ---------- */
 .session-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .timer{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;font-size:28.5px;font-weight:700;color:var(--accent-forte)}
-.session-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;text-align:center}
-.session-stats strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:28.5px;font-weight:700}
-.session-stats span{font-size:15px;color:var(--txt-dim)}
 
 .set-row{
   display:grid;grid-template-columns:26px 1fr 1fr 42px;gap:8px;align-items:center;margin-top:8px;

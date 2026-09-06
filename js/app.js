@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 74;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 75;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -295,7 +295,6 @@ function renderSessao(s){
   const total = s.exercicios.length;
   if (!total){
     $('#sessaoExercicios').innerHTML = '<p class="empty">Adiciona o primeiro exercício deste treino.</p>';
-    atualizarStats();
     iniciarCrono();
     return;
   }
@@ -383,7 +382,6 @@ function renderSessao(s){
   if (terminar) terminar.onclick = () => confirmar('Terminar e guardar este treino?', finalizarSessao, 'Terminar');
 
   setTimeout(carregarMiniaturas, 0);
-  atualizarStats();
   iniciarCrono();
 }
 
@@ -415,16 +413,6 @@ async function carregarMiniaturas(){
   }
 }
 
-function atualizarStats(){
-  const s = Store.estado.sessaoAtiva;
-  if (!s) return;
-  const feitas = s.exercicios.flatMap(ex => ex.series.filter(se => se.feito));
-  const volume = s.exercicios.reduce((tot, ex) =>
-    tot + ex.series.filter(se => se.feito).reduce((t, se) => t + num(se.reps) * num(se.carga), 0), 0);
-  $('#statSeries').textContent  = feitas.length;
-  $('#statVolume').textContent  = fmtNum(volume);
-  $('#statExs').textContent     = s.exercicios.filter(ex => ex.series.some(se => se.feito)).length;
-}
 
 function iniciarCrono(){
   if (cronoInterval) return;
@@ -2737,7 +2725,6 @@ function ligarEventos(){
     const serie = Store.estado.sessaoAtiva.exercicios[+inp.dataset.i].series[+inp.dataset.j];
     serie[inp.dataset.campo] = inp.value;
     Store.salvar();
-    atualizarStats();
   });
 }
 
