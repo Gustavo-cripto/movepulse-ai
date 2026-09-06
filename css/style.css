@@ -12,24 +12,29 @@
 
 :root{
   color-scheme:light;
-  --bg:#f3f2f2;          /* papel */
-  --bg-elev:#f3f2f2;     /* os cartões deixaram de ter fundo próprio */
-  --bg-elev-2:#eae9e9;   /* campos, linhas alternadas, zonas expandidas */
-  --line:rgba(32,30,29,.22);   /* régua fina, 1px */
+  /* Três camadas, para o ecrã ter fundo e não ser tudo branco:
+     o chão (--bg) é a pedra quente que aparece entre os blocos,
+     a superfície (--superficie) é a folha onde o conteúdo assenta,
+     e --bg-elev-2 é o que está encaixado — campos e zonas abertas. */
+  --bg:#e6e2dc;          /* chão */
+  --superficie:#f7f6f3;  /* folhas */
+  --bg-elev:#f7f6f3;
+  --bg-elev-2:#dcd7cf;   /* campos, linhas alternadas, zonas expandidas */
+  --line:rgba(32,30,29,.20);   /* régua fina, 1px */
   --line-forte:#201e1d;        /* régua forte, 2px */
   --txt:#201e1d;
-  --txt-dim:#605d5d;
-  --txt-fraco:#9b9797;         /* números e estados inativos */
+  --txt-dim:#5f5a54;
+  --txt-fraco:#96908a;         /* números e estados inativos */
   --accent:#0d7d75;            /* verde água */
   --accent-hover:#0a6a63;
   --accent-active:#07514c;
   --accent-ink:#ffffff;        /* texto sobre o verde */
   --accent-forte:#07514c;      /* verde legível em texto pequeno sobre papel */
   --accent-med:#0d7d75;        /* gráficos e desenhos */
-  --accent-fundo:#e6f4f2;      /* tinta clara, para linhas selecionadas */
+  --accent-fundo:#d8e9e6;      /* campo verde-claro: o que é de agora */
   --danger:#a8331f;
   --ok:#201e1d;                /* "feito" é tinta */
-  --barra:#f3f2f2;
+  --barra:#f7f6f3;
   --radius:0px;
   --pad:20px;
   --tabbar-h:72px;
@@ -51,10 +56,11 @@
 
 :root[data-tema="escuro"], :root[data-tema="auto"].sistema-escuro{
   color-scheme:dark;
-  --bg:#141614;
-  --bg-elev:#141614;
-  --bg-elev-2:#1e211f;
-  --line:rgba(243,242,242,.22);
+  --bg:#0e100f;          /* chão */
+  --superficie:#1a1d1b;  /* folhas */
+  --bg-elev:#1a1d1b;
+  --bg-elev-2:#242926;   /* campos e zonas abertas */
+  --line:rgba(243,242,242,.20);
   --line-forte:#f3f2f2;
   --txt:#f3f2f2;
   --txt-dim:#a8afac;
@@ -65,10 +71,10 @@
   --accent-ink:#0b1211;
   --accent-forte:#37bdb0;
   --accent-med:#2ea79c;
-  --accent-fundo:#122a28;
+  --accent-fundo:#15302d;
   --danger:#e2705b;
   --ok:#f3f2f2;
-  --barra:#141614;
+  --barra:#1a1d1b;
 
   /* sobre fundo escuro os mesmos tons precisam de subir de luz */
   --g-peito:#e08a72;
@@ -107,11 +113,12 @@ body{
   overscroll-behavior-y:contain;
   -webkit-font-smoothing:antialiased;
 }
-h1,h2,h3{font-family:var(--font);font-weight:800;letter-spacing:-.025em;line-height:1.02}
+h1,h2,h3{font-family:var(--font);font-weight:800;letter-spacing:-.025em;line-height:1.05}
 h1{font-size:19px}
 h2{font-size:30px}
-h3{font-size:19px}
-.muted{color:var(--txt-dim);font-size:13px;line-height:1.4}
+h3{font-size:18px}
+/* subtítulo: a frase que explica o título, sempre um degrau abaixo */
+.muted{color:var(--txt-dim);font-size:14px;line-height:1.5}
 [hidden]{display:none !important}
 button,input,select,textarea{font-family:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -131,7 +138,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* ---------- Topbar ---------- */
 .topbar{
-  position:sticky;top:0;z-index:20;
+  position:sticky;top:0;z-index:20;background:var(--superficie);
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:calc(env(safe-area-inset-top) + 14px) var(--pad) 12px;
   background:var(--barra);
@@ -150,26 +157,39 @@ button,input,select,textarea{font-family:inherit}
 /* As views internas mantêm margem; as de ecrã inteiro tratam do seu padding. */
 .view--caixa{padding:var(--pad);gap:14px}
 .stack{display:flex;flex-direction:column}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.grid{display:grid;gap:2px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .grid--stats{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
 .grid--par{grid-template-columns:repeat(2,1fr)}
+/* Cabeçalho de secção: título com régua forte por baixo, para se ver
+   onde começa cada coisa sem precisar de caixas. */
 .section-head{
-  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
-  padding:20px 0 8px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:22px 0 7px;border-bottom:2px solid var(--line-forte);margin-bottom:10px;
 }
-.section-head h2{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
-.view--caixa>.section-head:first-child{padding-top:0}
+.section-head h2{
+  display:flex;align-items:center;gap:9px;
+  font-size:14px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+}
+/* quadrado verde a abrir o título: dá-lhe peso e um sítio de cor */
+.section-head h2::before{
+  content:'';width:9px;height:9px;background:var(--accent);flex:none;
+}
+.view--caixa>.section-head:first-child{padding-top:4px}
+/* frase explicativa logo abaixo de um título */
+.section-head+.item__meta,.section-head+.muted{margin-top:-4px;margin-bottom:10px}
 /* Ligação de texto no canto de uma secção: "VER TUDO", "+ NOVA FICHA". */
 .btn-ligacao{
-  background:none;border:0;padding:0;cursor:pointer;font:inherit;
-  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--accent-forte);
+  background:var(--superficie);border:1px solid var(--accent);padding:6px 10px;
+  cursor:pointer;font:inherit;flex:none;
+  font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accent-forte);transition:background .12s ease-out,color .12s ease-out;
 }
+.btn-ligacao:hover{background:var(--accent);color:var(--accent-ink)}
 .btn-ligacao:hover{color:var(--accent-hover)}
 .section-head--pad{padding-left:var(--pad);padding-right:var(--pad)}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* Célula de número numa grelha reguada (statBox). */
-.stat-cel{padding:12px 12px 12px 0;border-top:1px solid var(--line)}
+.stat-cel{padding:12px;background:var(--superficie);border:1px solid var(--line)}
 .stat-cel .rotulo{display:block;margin-top:4px}
 .stat-cel .stat__valor{font-size:20px;font-weight:800;line-height:1;display:block}
 
@@ -198,33 +218,36 @@ button,input,select,textarea{font-family:inherit}
 
 /* ---------- Blocos reguados (antigos cartões) ---------- */
 .card{
-  background:var(--bg-elev);
-  border:0;border-top:1px solid var(--line);
-  border-radius:0;padding:14px 0;
+  background:var(--superficie);
+  border:1px solid var(--line);
+  border-radius:0;padding:14px;
 }
-.card+.card{border-top:1px solid var(--line)}
+.card+.card{margin-top:10px}
 .card--tap{cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit}
 .card--tap:hover{background:var(--bg-elev-2)}
-.card--session{background:var(--bg-elev-2);padding:14px}
+.card--session{background:var(--accent-fundo);padding:14px}
 .card__title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .card__title h3{font-size:17px}
 
 /* ---------- Botões ---------- */
+/* Secundário: folha com contorno forte. Enche-se de tinta ao toque,
+   para não haver dúvida de que é um botão e não uma etiqueta. */
 .btn{
-  appearance:none;border:2px solid var(--line-forte);background:transparent;
-  color:var(--txt);border-radius:0;padding:12px 14px;
-  font:inherit;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  appearance:none;border:2px solid var(--line-forte);background:var(--superficie);
+  color:var(--txt);border-radius:0;padding:13px 16px;
+  font:inherit;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
   cursor:pointer;line-height:1;text-align:left;
   transition:background .12s ease-out,color .12s ease-out;
 }
-.btn:hover{background:var(--bg-elev-2)}
+.btn:hover{background:var(--line-forte);color:var(--bg)}
+.btn:active{background:var(--txt-dim);color:var(--bg)}
 .btn--primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn--primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .btn--primary:active{background:var(--accent-active);border-color:var(--accent-active)}
-.btn--ghost{background:transparent}
-.btn--danger{background:transparent;color:var(--danger);border-color:var(--danger)}
+.btn--ghost{background:var(--superficie)}
+.btn--danger{background:var(--superficie);color:var(--danger);border-color:var(--danger)}
 .btn--danger:hover{background:var(--danger);color:#fff}
-.btn--sm{padding:9px 12px;font-size:11px}
+.btn--sm{padding:10px 13px;font-size:11.5px}
 .btn--block{width:100%}
 /* Ação primária larga: rótulo à esquerda, seta encostada à direita. */
 .btn-largo{
@@ -244,15 +267,15 @@ button,input,select,textarea{font-family:inherit}
 :root[data-tema="auto"].sistema-escuro .btn-largo--tinta:hover{background:#d5d4d4}
 .btn-largo span:last-child{font-size:24px;font-weight:800}
 /* Duas ações lado a lado, dentro de um bloco reguado. */
-.par-acoes{display:flex;border-bottom:2px solid var(--line-forte)}
+.par-acoes{display:flex;background:var(--superficie);border-bottom:2px solid var(--line-forte)}
 .par-acoes button{
   flex:1;border:0;border-right:1px solid var(--line);background:transparent;color:var(--txt);
-  padding:15px 20px;font:inherit;font-size:11px;font-weight:800;letter-spacing:.1em;
+  padding:16px 18px;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.06em;
   text-transform:uppercase;text-align:left;cursor:pointer;
-  transition:background .12s ease-out;
+  transition:background .12s ease-out,color .12s ease-out;
 }
 .par-acoes button:last-child{border-right:0}
-.par-acoes button:hover{background:var(--bg-elev-2)}
+.par-acoes button:hover{background:var(--line-forte);color:var(--bg)}
 .icon-btn{
   background:transparent;border:0;color:var(--txt-dim);
   font-size:16px;cursor:pointer;padding:6px;border-radius:0;line-height:1;
@@ -279,7 +302,7 @@ button,input,select,textarea{font-family:inherit}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{
-  white-space:nowrap;background:transparent;border:1px solid var(--line);
+  white-space:nowrap;background:var(--superficie);border:1px solid var(--line);
   color:var(--txt-dim);border-radius:0;padding:8px 13px;font:inherit;font-size:13px;
   font-weight:600;cursor:pointer;
 }
@@ -292,7 +315,7 @@ button,input,select,textarea{font-family:inherit}
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
   display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
-  background:var(--barra);
+  background:var(--superficie);
   border-top:2px solid var(--line-forte);
   padding-bottom:env(safe-area-inset-bottom);
 }
@@ -321,10 +344,12 @@ button,input,select,textarea{font-family:inherit}
 /* ============================================================
    HOJE
    ============================================================ */
-.heroi{padding:18px var(--pad) 18px;background:none;border:0;border-radius:0;margin:0}
+.heroi{padding:18px var(--pad) 18px;background:var(--superficie);border:0;border-radius:0;margin:0}
 .ola__nome{font-size:30px;font-weight:800;line-height:1.02;letter-spacing:-.025em;margin-top:8px}
 /* o cartão do dia sangra nas tiras, mas o texto respeita a margem */
-.heroi-dia{padding:18px var(--pad) 16px}
+/* o cartão do dia é um campo verde-claro: é o que há para fazer */
+.heroi-dia{padding:18px var(--pad) 16px;background:var(--accent-fundo)}
+.heroi-dia+.stats-fila{background:var(--accent-fundo)}
 .heroi-dia .heroi__titulo{margin-top:8px}
 /* o resto do Início mantém a margem lateral; o herói e as tiras sangram */
 .corpo-inicio{padding:6px var(--pad) var(--pad)}
@@ -332,7 +357,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* miniaturas dos exercícios do dia, em células de largura igual */
 .hoje__miniaturas{
-  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--superficie);
   border-bottom:2px solid var(--line-forte);
 }
 .hoje__miniaturas>*{
@@ -355,7 +380,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* três células de largura igual, separadas por réguas */
 .stats-fila{
-  display:grid;grid-template-columns:repeat(3,1fr);
+  display:grid;grid-template-columns:repeat(3,1fr);background:var(--superficie);
   border-top:1px solid var(--line);border-bottom:2px solid var(--line-forte);
 }
 .stats-fila>div{padding:12px 16px 14px;border-right:1px solid var(--line)}
@@ -366,7 +391,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* tira de sete dias */
 .semana{
-  display:grid;grid-template-columns:repeat(7,1fr);
+  display:grid;grid-template-columns:repeat(7,1fr);background:var(--superficie);
   border-bottom:2px solid var(--line-forte);
 }
 .mes-cabeca{display:flex;align-items:center;gap:6px;margin:0}
@@ -387,7 +412,10 @@ button,input,select,textarea{font-family:inherit}
 .dia.hoje.is-sel{box-shadow:inset 0 -5px 0 var(--line-forte)}
 
 /* registo curto no fim do Início */
-.reg-lista{border-top:1px solid var(--line)}
+.reg-lista,#planoSemana{background:var(--superficie);border:1px solid var(--line)}
+#planoSemana{padding:14px}
+.reg-lista .reg-linha{padding:14px}
+.reg-lista .reg-linha:last-child{border-bottom:0}
 .reg-linha{
   display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
   padding:14px var(--pad);border:0;border-bottom:1px solid var(--line);
@@ -450,13 +478,13 @@ button,input,select,textarea{font-family:inherit}
 .tira-item.is-feito{background:var(--line-forte);color:var(--bg)}
 .tira-item.is-atual{background:var(--accent);color:var(--accent-ink)}
 
-.ex-cabeca-treino{padding:20px var(--pad) 0}
+.ex-cabeca-treino{padding:20px var(--pad) 0;background:var(--superficie)}
 .ex-cabeca-treino h2{font-size:30px;font-weight:800;line-height:1.02;letter-spacing:-.025em;
   margin-top:8px;text-wrap:balance}
 .ex-cabeca-treino .ex-meta{font-size:13.5px;color:var(--txt-dim);margin-top:8px}
 
 /* figura grande + números ao lado */
-.ex-palco{display:flex;padding:8px var(--pad) 16px;gap:0;align-items:stretch}
+.ex-palco{display:flex;padding:8px var(--pad) 16px;gap:0;align-items:stretch;background:var(--superficie)}
 .ex-palco__figura{width:190px;height:190px;flex:none;margin-left:-14px;position:relative}
 .ex-palco__numeros{
   flex:1;min-width:0;border-left:1px solid var(--line);padding-left:16px;
@@ -473,13 +501,14 @@ button,input,select,textarea{font-family:inherit}
 .set-head,.set-row{display:grid;grid-template-columns:34px minmax(0,1fr) minmax(0,1fr) 64px;
   align-items:stretch}
 .set-head{
+  background:var(--superficie);
   border-top:2px solid var(--line-forte);border-bottom:1px solid var(--line);
 }
 .set-head span{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
   color:var(--txt-dim);padding:8px 4px;display:flex;align-items:center}
 .set-head span:first-child{padding-left:var(--pad)}
 .set-head span:nth-child(2),.set-head span:nth-child(3){justify-content:center}
-.set-row{border-bottom:1px solid var(--line);background:transparent;
+.set-row{border-bottom:1px solid var(--line);background:var(--superficie);
   transition:transform .16s ease,background .16s ease}
 .set-row.is-done{background:var(--bg-elev-2);color:var(--txt-dim)}
 .set-row__n{font-size:14px;font-weight:800;display:flex;align-items:center;padding-left:var(--pad)}
@@ -516,7 +545,8 @@ button,input,select,textarea{font-family:inherit}
 .set-row.vai-marcar{background:var(--bg-elev-2)}
 
 /* dica do treinador dentro do treino */
-.dica-ia{padding:18px var(--pad);border-bottom:2px solid var(--line-forte);
+.dica-ia{padding:18px var(--pad);background:var(--accent-fundo);
+  border-bottom:2px solid var(--line-forte);
   display:flex;gap:12px;align-items:flex-start}
 .dica-ia__selo{font-size:13px;font-weight:800;letter-spacing:.1em;color:var(--accent);flex:none;line-height:1.3}
 .dica-ia p{font-size:13.5px;line-height:1.45;color:var(--txt-dim)}
@@ -524,22 +554,22 @@ button,input,select,textarea{font-family:inherit}
 
 /* ---------- Listas ---------- */
 .item{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.item__meta{font-size:12.5px;line-height:1.3;color:var(--txt-dim);margin-top:2px}
+.item__meta{font-size:13px;line-height:1.4;color:var(--txt-dim);margin-top:3px}
 .tag{
   display:inline-block;background:transparent;border:1px solid var(--line);
   color:var(--txt-dim);border-radius:0;padding:3px 9px;font-size:11px;font-weight:600;
   margin:0 5px 5px 0;
 }
 .tag[data-g]{color:var(--g);border-color:var(--g)}
-.empty{color:var(--txt-dim);padding:22px 0;border-top:1px solid var(--line);
-  border-bottom:1px solid var(--line);font-size:13px}
+.empty{color:var(--txt-dim);padding:22px 14px;background:var(--superficie);
+  border:1px solid var(--line);font-size:14px}
 
 /* ---------- Modal ---------- */
 .modal{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .modal__backdrop{position:absolute;inset:0;background:rgba(32,30,29,.45)}
 .modal__box{
   position:relative;width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;
-  background:var(--bg);border:0;border-top:2px solid var(--line-forte);
+  background:var(--superficie);border:0;border-top:2px solid var(--line-forte);
   border-radius:0;animation:subirFolha .26s cubic-bezier(.22,.9,.3,1);
   padding-bottom:env(safe-area-inset-bottom);
 }
@@ -588,7 +618,8 @@ button,input,select,textarea{font-family:inherit}
 .rest__anel b{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;z-index:1}
 
 /* ---------- Gráfico ---------- */
-#grafico,#graficoPeso{margin:14px 0 4px}
+#grafico,#graficoPeso{margin:10px 0 4px;background:var(--superficie);
+  border:1px solid var(--line);padding:12px}
 #grafico svg,#graficoPeso svg{width:100%;height:auto;display:block}
 .g-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .g-area{fill:var(--accent-fundo)}
@@ -624,8 +655,8 @@ button,input,select,textarea{font-family:inherit}
 .ia-ex b{font-weight:700;font-size:15.5px;line-height:1.2}
 .ia-ex span{color:var(--txt-dim);font-size:12.5px}
 .ia-ex .prescricao{white-space:nowrap;color:var(--accent-forte);font-size:15px;font-weight:800}
-.aviso{border:0;border-left:4px solid var(--accent);background:var(--bg-elev-2);
-  color:var(--txt-dim);border-radius:0;padding:12px 14px;font-size:13px;line-height:1.45}
+.aviso{border:1px solid var(--line);border-left:4px solid var(--accent);background:var(--superficie);
+  color:var(--txt-dim);border-radius:0;padding:13px 15px;font-size:13.5px;line-height:1.5}
 .a-carregar{display:inline-block;width:12px;height:12px;border:2px solid var(--line);
   border-top-color:var(--accent);border-radius:50%;animation:girar .8s linear infinite;
   vertical-align:-1px;margin-right:7px}
@@ -648,7 +679,8 @@ button,input,select,textarea{font-family:inherit}
 /* ---------- Mês ---------- */
 .mes-cabeca{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .mes-cabeca strong{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
-.mes{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mes{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;
+  background:var(--superficie);border:1px solid var(--line);padding:12px}
 .mes__rotulo{text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;
   color:var(--txt-dim);padding-bottom:4px}
 .mes__dia{
@@ -677,8 +709,8 @@ button,input,select,textarea{font-family:inherit}
 /* ---------- Atalhos e linhas ---------- */
 .atalho{
   display:flex;align-items:center;gap:12px;text-align:left;width:100%;
-  background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;
-  padding:14px 0;font:inherit;color:inherit;cursor:pointer;
+  background:var(--superficie);border:1px solid var(--line);border-radius:0;
+  padding:14px;font:inherit;color:inherit;cursor:pointer;
   transition:background .12s ease-out;
 }
 .atalho:hover{background:var(--bg-elev-2)}
@@ -697,7 +729,7 @@ button,input,select,textarea{font-family:inherit}
 /* ---------- Pastilhas ---------- */
 .pastilhas{display:flex;flex-wrap:wrap;gap:8px}
 .pastilha{
-  background:transparent;border:1px solid var(--line);color:var(--txt-dim);
+  background:var(--superficie);border:1px solid var(--line);color:var(--txt-dim);
   border-radius:0;padding:10px 14px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;
   transition:background .12s ease-out,color .12s ease-out;
 }
@@ -713,10 +745,12 @@ button,input,select,textarea{font-family:inherit}
 /* linha reguada com valor à direita e chevron */
 .linha{
   display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
-  background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;
-  padding:15px 0;font:inherit;color:inherit;cursor:pointer;font-weight:700;font-size:15px;
+  background:var(--superficie);border:1px solid var(--line);border-radius:0;
+  padding:15px 14px;font:inherit;color:inherit;cursor:pointer;font-weight:700;font-size:15px;
   text-align:left;transition:background .12s ease-out;
 }
+/* linhas seguidas partilham a régua, em vez de a desenharem duas vezes */
+.linha+.linha,.refino+.linha{border-top:0}
 .linha:hover{background:var(--bg-elev-2)}
 .linha::after{
   content:'';width:8px;height:8px;flex:none;
@@ -725,8 +759,8 @@ button,input,select,textarea{font-family:inherit}
 }
 .linha__valor{margin-left:auto;color:var(--accent-forte);font-weight:700;font-size:13px}
 /* zona que se abre por baixo de uma linha de refinamento */
-.refino{background:var(--bg-elev-2);padding:16px var(--pad);
-  border-bottom:1px solid var(--line)}
+.refino{background:var(--bg-elev-2);padding:16px 14px;
+  border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .refino .label:first-child{margin-top:0}
 
 /* ---------- Lista de equipamento ---------- */
@@ -738,8 +772,8 @@ button,input,select,textarea{font-family:inherit}
 }
 .equip-item{
   display:flex;align-items:center;gap:12px;width:100%;text-align:left;
-  background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;
-  padding:9px 0;font:inherit;color:inherit;cursor:pointer;font-size:15px;
+  background:var(--superficie);border:1px solid var(--line);border-radius:0;
+  padding:9px 12px;margin-bottom:6px;font:inherit;color:inherit;cursor:pointer;font-size:15px;
   transition:background .12s ease-out;
 }
 .equip-item:hover{background:var(--bg-elev-2)}
@@ -806,7 +840,7 @@ button,input,select,textarea{font-family:inherit}
 /* ---------- Dias de treino no perfil ---------- */
 .dias-escolha{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .dia-opcao{
-  aspect-ratio:1;border-radius:0;border:1px solid var(--line);background:transparent;
+  aspect-ratio:1;border-radius:0;border:1px solid var(--line);background:var(--superficie);
   color:var(--txt-dim);font:inherit;font-size:13px;font-weight:700;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:background .12s ease-out,color .12s ease-out;
@@ -816,7 +850,7 @@ button,input,select,textarea{font-family:inherit}
 /* ---------- Grelha de grupos musculares ---------- */
 .musculos-grelha{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
 .musculo-op{
-  background:transparent;border:1px solid var(--line);border-radius:0;
+  background:var(--superficie);border:1px solid var(--line);border-radius:0;
   padding:8px 4px 7px;cursor:pointer;font:inherit;color:var(--txt-dim);
   display:flex;flex-direction:column;align-items:center;gap:4px;
   transition:background .12s ease-out,color .12s ease-out;
@@ -849,7 +883,7 @@ button,input,select,textarea{font-family:inherit}
 .figura-creditos{font-size:11px;color:var(--txt-fraco);margin-top:6px;text-align:right}
 .figura-creditos a{color:inherit}
 /* boneco do movimento, quando não há figura */
-.palco{background:var(--bg-elev-2);border:0;border-radius:0;
+.palco{background:var(--bg-elev-2);border:1px solid var(--line);border-radius:0;
   display:flex;align-items:center;justify-content:center;padding:12px}
 .boneco{width:100%;max-width:260px;height:auto;display:block}
 .an-osso{stroke:var(--txt);stroke-width:6;stroke-linecap:round}
@@ -875,11 +909,10 @@ line.an-osso.an-ativo{stroke-width:8}
 .carrossel::-webkit-scrollbar{display:none}
 .treino-cartao{
   flex:0 0 86%;scroll-snap-align:center;
-  background:transparent;border:0;border-right:1px solid var(--line);border-radius:0;
-  padding:16px 16px 16px 0;
+  background:var(--superficie);border:1px solid var(--line);border-radius:0;
+  padding:16px;margin-right:10px;
 }
-.treino-cartao:first-child{padding-left:0}
-.treino-cartao.is-hoje{background:var(--accent-fundo);padding-left:16px}
+.treino-cartao.is-hoje{background:var(--accent-fundo);border-color:var(--accent)}
 .treino-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
 .selo{
   font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
@@ -914,7 +947,7 @@ line.an-osso.an-ativo{stroke-width:8}
   border:1px solid var(--line);
 }
 .balao--eu{align-self:flex-end;background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.balao--bot{align-self:flex-start;background:var(--bg-elev-2);border-color:var(--bg-elev-2)}
+.balao--bot{align-self:flex-start;background:var(--superficie);border-color:var(--line)}
 .balao b{font-weight:700}
 .balao ul{margin:6px 0 0;padding-left:1.1em}
 .balao li{margin-bottom:4px}
@@ -923,7 +956,7 @@ line.an-osso.an-ativo{stroke-width:8}
 .sugestoes{display:flex;gap:8px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
 .sugestoes::-webkit-scrollbar{display:none}
 .sugestao{
-  white-space:nowrap;background:transparent;border:1px solid var(--line);color:var(--txt-dim);
+  white-space:nowrap;background:var(--superficie);border:1px solid var(--line);color:var(--txt-dim);
   border-radius:0;padding:9px 13px;font:inherit;font-size:13px;cursor:pointer;
 }
 .sugestao:hover{background:var(--bg-elev-2)}
@@ -933,8 +966,11 @@ line.an-osso.an-ativo{stroke-width:8}
 
 /* ---------- Nutrição ---------- */
 .lista-planeada{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.lista-planeada{background:var(--superficie);border:1px solid var(--line);padding:0 14px}
 .lista-planeada li{display:flex;flex-direction:column;gap:3px;padding:12px 0 12px 16px;
   position:relative;font-size:15px;font-weight:700;border-bottom:1px solid var(--line)}
+.lista-planeada li:last-child{border-bottom:0}
+.lista-planeada li::before{left:0}
 .lista-planeada li::before{
   content:'';position:absolute;left:0;top:17px;width:6px;height:6px;background:var(--accent);
 }
@@ -944,7 +980,7 @@ line.an-osso.an-ativo{stroke-width:8}
 .ola-linha{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .avatar{
   width:44px;height:44px;border-radius:0;flex:none;
-  background:transparent;border:2px solid var(--line-forte);cursor:pointer;
+  background:var(--bg);border:2px solid var(--line-forte);cursor:pointer;
   font:inherit;font-size:15px;font-weight:800;color:var(--txt);
   display:flex;align-items:center;justify-content:center;
   transition:background .12s ease-out,color .12s ease-out;
@@ -954,8 +990,8 @@ line.an-osso.an-ativo{stroke-width:8}
 /* ---------- Definições ---------- */
 .def-grupo{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-dim);
   font-weight:700;margin:22px 0 0}
-.lista-def{display:flex;flex-direction:column;background:transparent;border:0;
-  border-top:1px solid var(--line);border-radius:0;overflow:hidden}
+.lista-def{display:flex;flex-direction:column;background:var(--superficie);
+  border:1px solid var(--line);border-radius:0;overflow:hidden;padding:0 14px}
 .lista-def button{
   display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 0;
   background:none;border:0;border-bottom:1px solid var(--line);font:inherit;font-size:15px;
@@ -983,7 +1019,7 @@ line.an-osso.an-ativo{stroke-width:8}
   border-radius:0;background:var(--txt-dim);transition:transform .18s ease}
 .switch:checked{background:var(--accent);border-color:var(--accent)}
 .switch:checked::after{transform:translateX(22px);background:var(--accent-ink)}
-.cartao-saude{background:var(--bg-elev-2);border:0;border-radius:0;padding:16px}
+.cartao-saude{background:var(--accent-fundo);border:1px solid var(--line);border-radius:0;padding:16px}
 .cartao-saude h3{font-size:17px;margin-bottom:6px}
 .cartao-saude p{font-size:13px;color:var(--txt-dim);line-height:1.5}
 .guia-saude{font-size:13.5px;line-height:1.55}

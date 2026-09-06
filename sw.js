@@ -1,5 +1,5 @@
 /* Service worker: guarda a app inteira em cache para funcionar offline. */
-const CACHE = 'movepulse-v80';
+const CACHE = 'movepulse-v81';
 const ARQUIVOS = [
   './', './index.html', './css/style.css', './css/fontes.css',
   './fonts/archivo-400.woff2', './fonts/archivo-500.woff2',
