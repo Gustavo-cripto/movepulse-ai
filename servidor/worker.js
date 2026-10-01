@@ -553,46 +553,67 @@ Separa os componentes do prato em vez de dar um só total: quem regista quer pod
 corrigir o arroz sem mexer na carne. Inclui o azeite ou o molho visível, que pesam
 pouco e contam muito.
 
-Se a fotografia não tiver comida, devolve "alimentos" vazio e explica em "nota".
-Se a comida estiver tapada ou for impossível identificar, di-lo em "nota" em vez de
-inventar.
+Quando em vez da fotografia receberes uma descrição escrita, trata-a da mesma forma:
+separa os alimentos, usa as quantidades que o utilizador deu e, onde não as der, assume
+uma porção normal para um adulto e marca "confianca" como "media".
+
+Se a fotografia não tiver comida, ou a descrição não falar de comida, devolve "alimentos"
+vazio e explica em "nota". Se a comida estiver tapada ou for impossível identificar, di-lo
+em "nota" em vez de inventar.
 
 Responde APENAS com um objeto JSON válido, sem texto à volta e sem blocos de código,
 que obedeça exatamente a este JSON Schema:
 ${JSON.stringify(ESQUEMA_ALIMENTO)}`;
 
 function validarAlimento(corpo){
-  if (!corpo.foto || typeof corpo.foto !== 'object') return 'Falta a fotografia.';
-  if (typeof corpo.foto.b64 !== 'string' || !corpo.foto.b64) return 'Fotografia inválida.';
-  if (corpo.foto.b64.length > 9 * 1024 * 1024) return 'Fotografia demasiado grande.';
+  const temFoto = corpo.foto && typeof corpo.foto === 'object' && typeof corpo.foto.b64 === 'string' && corpo.foto.b64;
+  const temTexto = typeof corpo.texto === 'string' && corpo.texto.trim().length > 2;
+  if (!temFoto && !temTexto) return 'Falta a fotografia ou a descrição.';
+  if (temFoto && corpo.foto.b64.length > 9 * 1024 * 1024) return 'Fotografia demasiado grande.';
+  if (corpo.texto && typeof corpo.texto !== 'string') return 'Descrição inválida.';
   if (corpo.pista && typeof corpo.pista !== 'string') return 'Pista inválida.';
   return null;
 }
 
 async function analisarAlimento(corpo, env, origem){
-  const tipoImagem = corpo.foto.tipo || 'image/jpeg';
+  const foto = corpo.foto && corpo.foto.b64 ? corpo.foto : null;
+  const texto = String(corpo.texto || '').trim().slice(0, 600);
+  const tipoImagem = foto?.tipo || 'image/jpeg';
   const pista = String(corpo.pista || '').slice(0, 200);
-  const pergunta = pista
-    ? `O que está neste prato? O utilizador diz que é: ${pista}`
-    : 'O que está neste prato, e em que quantidade?';
+
+  // Pela fotografia, pela descrição, ou pelas duas.
+  const pergunta = foto
+    ? (pista || texto
+        ? `O que está neste prato? O utilizador diz que é: ${pista || texto}`
+        : 'O que está neste prato, e em que quantidade?')
+    : `O utilizador descreveu o que comeu. Separa em alimentos e estima as quantidades e os
+nutrientes de cada um. Se não indicar a quantidade, assume uma porção normal para um adulto.
+
+"${texto}"`;
 
   if (provedor(env) === 'nvidia'){
     if (!env.NVIDIA_API_KEY) return erro(500, 'Falta configurar NVIDIA_API_KEY no servidor.', origem);
 
-    // Duas tentativas: os modelos pequenos falham fotos ao acaso, e uma
-    // resposta vazia aqui é pior do que esperar mais uns segundos.
+    // Sem foto é o modelo de texto que responde; com foto, o de visão.
+    const modelo = foto
+      ? (env.MODELO_NVIDIA || NVIDIA.modeloPadrao)
+      : (env.MODELO_TEXTO || NVIDIA.modeloTexto);
+    const conteudo = foto
+      ? [{ type:'text', text: pergunta },
+         { type:'image_url', image_url:{ url:`data:${tipoImagem};base64,${foto.b64}` } }]
+      : pergunta;
+
+    // Duas tentativas: os modelos pequenos falham ao acaso, e uma resposta
+    // vazia aqui é pior do que esperar mais uns segundos.
     for (let tentativa = 0; tentativa < 2; tentativa++){
       const r = await chamarNvidia(env, {
-        model: env.MODELO_NVIDIA || NVIDIA.modeloPadrao,
+        model: modelo,
         max_tokens: 1400,
         temperature: tentativa === 0 ? 0.2 : 0,
         nvext: { max_thinking_tokens: 400, guided_json: ESQUEMA_ALIMENTO },
         messages: [
           { role:'system', content: SISTEMA_ALIMENTO },
-          { role:'user', content:[
-            { type:'text', text: pergunta },
-            { type:'image_url', image_url:{ url:`data:${tipoImagem};base64,${corpo.foto.b64}` } },
-          ]},
+          { role:'user', content: conteudo },
         ],
       });
       if (r.erro) return erro(r.estado || 502, r.erro, origem);
@@ -601,7 +622,9 @@ async function analisarAlimento(corpo, env, origem){
       if (!limpo) continue;
       try { return json(JSON.parse(limpo), 200, origem); } catch { /* tenta outra vez */ }
     }
-    return erro(502, 'Não consegui ler a fotografia. Tenta com mais luz e o prato todo visível.', origem);
+    return erro(502, foto
+      ? 'Não consegui ler a fotografia. Tenta com mais luz e o prato todo visível.'
+      : 'Não consegui perceber a descrição. Tenta dizer os alimentos e as quantidades.', origem);
   }
 
   // --- Claude ---
@@ -617,17 +640,17 @@ async function analisarAlimento(corpo, env, origem){
       model:'claude-opus-5',
       max_tokens: 1600,
       system: SISTEMA_ALIMENTO,
-      messages: [{ role:'user', content:[
-        { type:'text', text: pergunta },
-        { type:'image', source:{ type:'base64', media_type: tipoImagem, data: corpo.foto.b64 } },
-      ]}],
+      messages: [{ role:'user', content: foto
+        ? [{ type:'text', text: pergunta },
+           { type:'image', source:{ type:'base64', media_type: tipoImagem, data: foto.b64 } }]
+        : [{ type:'text', text: pergunta }] }],
     }),
   });
 
   if (!r.ok) return erro(r.status, 'O fornecedor de IA falhou a ler a fotografia.', origem);
   const dados = await r.json();
-  const texto = (dados.content || []).find(b => b.type === 'text')?.text || '';
-  const limpo = extrairJson(texto, ['alimentos']);
+  const resposta = (dados.content || []).find(b => b.type === 'text')?.text || '';
+  const limpo = extrairJson(resposta, ['alimentos']);
   if (!limpo) return erro(502, 'A resposta não veio no formato esperado.', origem);
   try { return json(JSON.parse(limpo), 200, origem); }
   catch { return erro(502, 'A resposta não veio no formato esperado.', origem); }

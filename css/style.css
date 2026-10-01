@@ -1199,3 +1199,66 @@ line.an-osso.an-ativo{stroke-width:8}
   .prato-marca{grid-area:marca} .prato-nome{grid-area:nome}
   .prato-qtd{grid-area:qtd;justify-self:start;margin-top:8px}
 }
+
+/* ---------- Atalhos de registo ---------- */
+.atalhos-registo{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:14px}
+.atalhos-registo button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  background:var(--superficie);border:2px solid var(--line-forte);padding:16px 8px;
+  font:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--txt);text-align:center;line-height:1.2;cursor:pointer;
+  transition:background .12s ease-out,color .12s ease-out;
+}
+.atalhos-registo button:hover{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.atalhos-registo svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.camara-codigo{width:100%;max-height:260px;object-fit:cover;background:var(--line-forte);
+  display:block;margin-top:12px;border:1px solid var(--line)}
+
+/* ---------- Objetivos ---------- */
+.objetivo-linha{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--line);
+}
+.objetivo-linha strong{font-size:15px;font-weight:700;display:block}
+.objetivo-campo{display:flex;align-items:center;gap:6px;flex:none}
+.objetivo-campo .input{width:84px;text-align:right;padding:9px 10px}
+.objetivo-total{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:12px 0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--txt-dim);
+}
+.objetivo-total strong{font-size:15px;color:var(--txt);letter-spacing:0;text-transform:none}
+.objetivo-total.fora strong{color:var(--danger)}
+
+/* ---------- Outros nutrientes, no diário ---------- */
+.nutriente-linha{background:var(--superficie);border:1px solid var(--line);
+  border-bottom:0;padding:12px 14px}
+.nutriente-linha:last-child{border-bottom:1px solid var(--line)}
+.nutriente-linha strong{font-size:15px;font-weight:700;display:block}
+.nutriente-valor{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;
+  text-align:right;flex:none}
+.nutriente-valor .item__meta{font-weight:400}
+.nutriente-linha .barra{margin-top:10px;height:4px}
+
+/* ---------- Peso ---------- */
+.peso-linha{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:var(--superficie);border:1px solid var(--line);border-bottom:0;
+}
+.peso-linha:last-child{border-bottom:1px solid var(--line)}
+.peso-linha>span:first-child{flex:1;min-width:0}
+.peso-linha strong{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.peso-delta{font-size:13px;font-weight:800;color:var(--txt-fraco);
+  font-variant-numeric:tabular-nums;flex:none}
+.peso-delta.desceu{color:var(--accent-forte)}
+.peso-delta.subiu{color:var(--danger)}
+
+/* linhas de referência no gráfico */
+.g-ref{stroke:var(--txt-fraco);stroke-width:1.5;stroke-dasharray:4 4}
+.g-ref--alvo{stroke:var(--accent)}
+.g-ref--inicio{stroke:var(--danger)}
+.g-ref-lbl{fill:var(--txt-fraco);font-size:9px;font-family:var(--font);font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase}
+.g-ref-lbl.g-ref--alvo{fill:var(--accent-forte)}
+.g-ref-lbl.g-ref--inicio{fill:var(--danger)}

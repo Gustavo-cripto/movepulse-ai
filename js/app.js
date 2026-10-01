@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 86;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 87;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -24,6 +24,9 @@ const ICO = {
   baixar:  '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
   enviar:  '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
   fechar:  '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>',
+  codigo:  '<path d="M3 5v14M7 5v14M11 5v10M15 5v14M18 5v10M21 5v14"/>',
+  microfone:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/>',
+  objetivo:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
 };
 const ico = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICO[nome]}</svg>`;
 
@@ -81,6 +84,7 @@ function render(){
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
   if (viewAtual === 'nutricao')   renderNutricao();
+  if (viewAtual === 'peso')       renderEcraPeso();
   if (viewAtual === 'fotos')      renderFotos();
   atualizarSubtitulo();
 }
@@ -1561,9 +1565,31 @@ function proximaRefeicao(){
   return 'ou';
 }
 
-/** Os alvos do dia. Vêm do perfil, que já calcula as calorias e a proteína;
-    a gordura fica em 27% das calorias e os hidratos levam o resto. */
+/** Os alvos do dia. Se foram definidos à mão, são esses; senão saem do
+    perfil, que já calcula as calorias e a proteína — a gordura fica em 27%
+    das calorias e os hidratos levam o resto. */
 function alvosDoDia(){
+  const guardados = Store.estado.nutricao.alvos || {};
+  const base = (guardados.modo === 'manual' && num(guardados.kcal))
+    ? {
+        kcal: Math.round(num(guardados.kcal)),
+        prot: Math.round(num(guardados.prot)),
+        hc:   Math.round(num(guardados.hc)),
+        gord: Math.round(num(guardados.gord)),
+        manual: true,
+      }
+    : alvosAutomaticos();
+  if (!base) return null;
+  // os outros nutrientes são sempre opcionais, em qualquer dos modos
+  for (const n of NUTRIENTES){
+    const v = num(guardados[n.k]);
+    if (v) base[n.k] = v;
+  }
+  return base;
+}
+
+/** O que o perfil dá, sem nada definido à mão. */
+function alvosAutomaticos(){
   const m = metricasCorpo();
   if (!m || m.alvoCalorico === null) return null;
   const kcal = Math.round(m.alvoCalorico);
@@ -1573,14 +1599,271 @@ function alvosDoDia(){
   return { kcal, prot, hc, gord };
 }
 
+/* As repartições habituais, em percentagem de calorias: proteína, hidratos, gordura. */
+const REPARTICOES = [
+  { nome:'Equilibrado',      p:30, h:40, g:30 },
+  { nome:'Mais proteína',    p:40, h:30, g:30 },
+  { nome:'Poucos hidratos',  p:35, h:25, g:40 },
+  { nome:'Mais hidratos',    p:25, h:55, g:20 },
+];
+
+/** Definir os objetivos de calorias, macronutrientes e água. */
+function editarObjetivos(){
+  const guardados = Store.estado.nutricao.alvos || {};
+  const auto = alvosAutomaticos();
+  let v = {
+    modo: guardados.modo || 'auto',
+    kcal: num(guardados.kcal) || auto?.kcal || 2000,
+    prot: num(guardados.prot) || auto?.prot || 120,
+    hc:   num(guardados.hc)   || auto?.hc   || 220,
+    gord: num(guardados.gord) || auto?.gord || 65,
+    agua: Store.estado.nutricao.alvoAgua || 2000,
+    unidade: 'pct',          // 'pct' percentagem das calorias, 'g' gramas
+  };
+  for (const n of NUTRIENTES) v[n.k] = num(guardados[n.k]) || '';
+
+  /* Cada macro: as calorias que dá por grama, e os nomes. */
+  const MACROS = [
+    { k:'hc',   nome:'Hidratos', porGrama:4 },
+    { k:'prot', nome:'Proteína', porGrama:4 },
+    { k:'gord', nome:'Gordura',  porGrama:9 },
+  ];
+
+  const pctDe = m => v.kcal ? Math.round(v[m.k] * m.porGrama / v.kcal * 100) : 0;
+  const somaPct = () => MACROS.reduce((t, m) => t + pctDe(m), 0);
+
+  const desenhar = () => {
+    const manual = v.modo === 'manual';
+    const mostrar = manual ? v : (auto || { kcal:0, prot:0, hc:0, gord:0 });
+    const total = manual ? somaPct() : 100;
+
+    $('#modalCorpo').innerHTML = `
+      <div class="pastilhas">
+        <button class="pastilha ${!manual ? 'is-ativa' : ''}" data-modo="auto">Calcular do perfil</button>
+        <button class="pastilha ${manual ? 'is-ativa' : ''}" data-modo="manual">Definir eu</button>
+      </div>
+
+      ${!manual ? (auto
+        ? `<p class="item__meta" style="margin-top:12px">Calculado a partir do teu peso, altura,
+             idade, sexo e objetivo. Muda o perfil e isto acompanha.</p>
+           <div class="stats-fila" style="margin-top:14px">
+             <div><span class="stat__valor">${fmtNum(auto.kcal)}</span><span class="rotulo">kcal</span></div>
+             <div><span class="stat__valor">${fmtNum(auto.prot)}<span class="un">g</span></span><span class="rotulo">proteína</span></div>
+             <div><span class="stat__valor">${fmtNum(auto.hc)}<span class="un">g</span></span><span class="rotulo">hidratos</span></div>
+           </div>`
+        : `<div class="aviso" style="margin-top:12px">Faltam dados no perfil — preenche a altura,
+             o peso, a idade e o sexo, ou escolhe "Definir eu" e põe os números à mão.</div>`) : ''}
+
+      ${manual ? `
+        <div class="section-head" style="border-bottom-width:1px"><h2>Calorias por dia</h2></div>
+        <div class="serie-campo quantidade">
+          <button class="serie-passo" data-mais="kcal:-50" aria-label="Menos">−</button>
+          <input class="serie-valor" id="objKcal" type="number" inputmode="numeric" value="${v.kcal}">
+          <span class="quantidade__un">kcal</span>
+          <button class="serie-passo" data-mais="kcal:50" aria-label="Mais">+</button>
+        </div>
+
+        <div class="section-head" style="border-bottom-width:1px">
+          <h2>Macronutrientes</h2>
+          <button class="btn-ligacao" data-unidade>${
+            v.unidade === 'pct' ? 'Usar gramas' : 'Usar percentagem'}</button>
+        </div>
+
+        ${MACROS.map(m => `
+          <div class="objetivo-linha">
+            <span>
+              <strong>${m.nome}</strong>
+              <span class="item__meta">${v.unidade === 'pct'
+                ? `${fmtNum(v[m.k])} g`
+                : `${pctDe(m)}% das calorias`}</span>
+            </span>
+            <span class="objetivo-campo">
+              <input class="input" type="number" inputmode="numeric" min="0"
+                     data-macro="${m.k}" value="${v.unidade === 'pct' ? pctDe(m) : v[m.k]}">
+              <span class="quantidade__un">${v.unidade === 'pct' ? '%' : 'g'}</span>
+            </span>
+          </div>`).join('')}
+
+        <div class="objetivo-total ${Math.abs(total - 100) > 3 ? 'fora' : ''}">
+          <span>Soma</span>
+          <strong>${total}%${Math.abs(total - 100) > 3
+            ? ` — devia dar 100%` : ''}</strong>
+        </div>
+
+        <div class="section-head" style="border-bottom-width:1px"><h2>Repartições habituais</h2></div>
+        <div class="pastilhas">
+          ${REPARTICOES.map((r, i) => `<button class="pastilha" data-repartir="${i}">${r.nome}
+            <small style="display:block;font-weight:400;opacity:.7">${r.h}/${r.p}/${r.g}</small></button>`).join('')}
+        </div>
+        <p class="item__meta" style="margin-top:8px">hidratos / proteína / gordura</p>
+      ` : ''}
+
+      <div class="section-head" style="border-bottom-width:1px"><h2>Outros nutrientes</h2></div>
+      <p class="item__meta" style="margin:-4px 0 12px">Opcional. Deixa em branco o que não
+        quiseres acompanhar.</p>
+      ${NUTRIENTES.map(n => `
+        <div class="objetivo-linha">
+          <span><strong>${n.nome}</strong></span>
+          <span class="objetivo-campo">
+            <input class="input" type="number" inputmode="decimal" min="0" placeholder="—"
+                   data-nutriente="${n.k}" value="${v[n.k] || ''}">
+            <span class="quantidade__un">${n.unidade}</span>
+          </span>
+        </div>`).join('')}
+
+      <div class="section-head" style="border-bottom-width:1px"><h2>Água por dia</h2></div>
+      <div class="pastilhas">
+        ${[1500, 2000, 2500, 3000].map(ml =>
+          `<button class="pastilha ${v.agua === ml ? 'is-ativa' : ''}" data-agua-alvo="${ml}">
+             ${(ml / 1000).toFixed(1).replace('.', ',')} L</button>`).join('')}
+      </div>
+
+      <p class="item__meta" style="margin-top:18px">Estes números são uma orientação. Para um
+        objetivo clínico — doença, gravidez, desporto de competição — fala com um nutricionista.</p>`;
+  };
+
+  /** Lê os campos para o estado, convertendo de percentagem se for o caso. */
+  const lerCampos = () => {
+    if (v.modo !== 'manual' || !$('#objKcal')) return;
+    v.kcal = Math.max(0, num($('#objKcal').value));
+    $$('[data-macro]').forEach(campo => {
+      const m = MACROS.find(x => x.k === campo.dataset.macro);
+      const valor = Math.max(0, num(campo.value));
+      v[m.k] = v.unidade === 'pct'
+        ? Math.round(v.kcal * valor / 100 / m.porGrama)
+        : Math.round(valor);
+    });
+  };
+
+  /** Os outros nutrientes lêem-se sempre, haja modo manual ou não. */
+  const lerNutrientes = () => {
+    $$('[data-nutriente]').forEach(campo => {
+      v[campo.dataset.nutriente] = campo.value.trim() === '' ? '' : Math.max(0, num(campo.value));
+    });
+  };
+
+  Modal.abrir({
+    titulo:'Objetivos',
+    corpo:'',
+    acoes: [
+      { texto:'Fechar', onClick: Modal.fechar },
+      { texto:'Guardar', classe:'btn--primary', onClick(){
+          lerCampos(); lerNutrientes();
+          if (v.modo === 'manual' && !v.kcal) return toast('Indica as calorias por dia.');
+          const extra = {};
+          for (const n of NUTRIENTES) extra[n.k] = v[n.k] === '' ? null : v[n.k];
+          Store.guardarAlvos(v.modo === 'manual'
+            ? { modo:'manual', kcal:v.kcal, prot:v.prot, hc:v.hc, gord:v.gord, ...extra }
+            : { modo:'auto', ...extra });
+          Store.guardarAlvoAgua(v.agua);
+          Modal.fechar();
+          renderNutricao();
+          toast('Objetivos guardados.');
+        } },
+    ],
+  });
+  desenhar();
+
+  $('#modalCorpo').onchange = () => { lerCampos(); lerNutrientes(); desenhar(); };
+
+  $('#modalCorpo').onclick = e => {
+    const modo = e.target.closest('[data-modo]');
+    if (modo){ lerCampos(); lerNutrientes(); v.modo = modo.dataset.modo; return desenhar(); }
+
+    if (e.target.closest('[data-unidade]')){
+      lerCampos();
+      v.unidade = v.unidade === 'pct' ? 'g' : 'pct';
+      return desenhar();
+    }
+
+    const passo = e.target.closest('[data-mais]');
+    if (passo){
+      lerCampos();
+      const [campo, delta] = passo.dataset.mais.split(':');
+      v[campo] = Math.max(0, v[campo] + Number(delta));
+      return desenhar();
+    }
+
+    const rep = e.target.closest('[data-repartir]');
+    if (rep){
+      lerCampos();
+      const r = REPARTICOES[+rep.dataset.repartir];
+      v.hc   = Math.round(v.kcal * r.h / 100 / 4);
+      v.prot = Math.round(v.kcal * r.p / 100 / 4);
+      v.gord = Math.round(v.kcal * r.g / 100 / 9);
+      return desenhar();
+    }
+
+    const agua = e.target.closest('[data-agua-alvo]');
+    if (agua){ lerCampos(); v.agua = +agua.dataset.aguaAlvo; return desenhar(); }
+  };
+}
+
 function renderNutricao(){
   if (!diaNutri) diaNutri = chaveDia(new Date());
   renderSemanaNutri();
   renderResumoNutri();
   renderRefeicoes();
+  renderNutrientes();
   renderAgua();
   renderPesoNutri();
+  renderAlvosResumo();
   renderSemanaResumo();
+}
+
+/** O que está definido como objetivo, em resumo. */
+function renderAlvosResumo(){
+  const alvo = alvosDoDia();
+  const manual = Store.estado.nutricao.alvos?.modo === 'manual';
+  if (!alvo){
+    $('#nutriAlvos').innerHTML = `<p class="empty">Sem objetivos. Preenche o perfil ou
+      define-os aqui.</p>`;
+    return;
+  }
+  const extras = NUTRIENTES.filter(n => alvo[n.k]);
+  $('#nutriAlvos').innerHTML = `
+    <div class="stats-fila">
+      <div><span class="stat__valor">${fmtNum(alvo.kcal)}</span><span class="rotulo">kcal</span></div>
+      <div><span class="stat__valor">${fmtNum(alvo.prot)}<span class="un">g</span></span><span class="rotulo">proteína</span></div>
+      <div><span class="stat__valor">${fmtNum(alvo.hc)}<span class="un">g</span></span><span class="rotulo">hidratos</span></div>
+    </div>
+    <p class="item__meta">${manual ? 'Definidos por ti.' : 'Calculados a partir do teu perfil.'}${
+      extras.length ? ` Também segues ${extras.map(n => n.nome.toLowerCase()).join(', ')}.` : ''}</p>`;
+}
+
+/** Fibra, açúcares, saturados e sal — só os que têm objetivo definido. */
+function renderNutrientes(){
+  const alvo = alvosDoDia() || {};
+  const seguidos = NUTRIENTES.filter(n => alvo[n.k]);
+  const caixa = $('#nutriNutrientes');
+  const cabeca = $('#cabecaNutrientes');
+
+  if (!seguidos.length){
+    cabeca.hidden = true;
+    caixa.innerHTML = '';
+    return;
+  }
+  cabeca.hidden = false;
+
+  const t = Store.totaisDoDia(diaNutri);
+  caixa.innerHTML = seguidos.map(n => {
+    const feito = t[n.k] || 0;
+    const meta = alvo[n.k];
+    const pct = Math.min(100, Math.round(feito / meta * 100));
+    const faltam = t.semDados[n.k] || 0;
+    return `
+      <div class="nutriente-linha">
+        <div class="item">
+          <span><strong>${n.nome}</strong>${faltam
+            ? `<span class="item__meta">${faltam} ${faltam === 1
+                ? 'alimento não traz este valor' : 'alimentos não trazem este valor'}</span>` : ''}</span>
+          <span class="nutriente-valor">${fmtNum(feito)}<span class="un">${n.unidade}</span>
+            <span class="item__meta">de ${fmtNum(meta)}</span></span>
+        </div>
+        <div class="barra"><div class="barra__cheio${feito > meta ? ' passou' : ''}"
+          style="width:${pct}%"></div></div>
+      </div>`;
+  }).join('');
 }
 
 /** Tira de sete dias, com marca nos que já têm registo. */
@@ -1681,7 +1964,7 @@ function renderAgua(){
   const dia = Store.estado.nutricao.dias[diaNutri];
   const bebida = dia?.agua || 0;
   const alvo = Store.estado.nutricao.alvoAgua || 2000;
-  const copos = Math.round(alvo / 250);
+  const copos = Math.min(16, Math.round(alvo / 250));
   const cheios = Math.floor(bebida / 250);
 
   $('#nutriAgua').innerHTML = `
@@ -1770,11 +2053,17 @@ function escolherAlimento(refeicao){
   Modal.abrir({
     titulo: nome,
     corpo: `
-      <button class="btn btn--primary btn--block foto-prato" id="btnFotoPrato">
-        ${ico('camara')} Fotografar o prato
-      </button>
-      <p class="item__meta" style="margin-bottom:14px">A IA diz o que lá está e estima as
-        calorias. Confirmas antes de guardar.</p>
+      <div class="atalhos-registo">
+        <button data-registo="codigo">
+          ${ico('codigo')}<span>Código de barras</span>
+        </button>
+        <button data-registo="foto">
+          ${ico('camara')}<span>Analisar o prato</span>
+        </button>
+        <button data-registo="descrever">
+          ${ico('microfone')}<span>Descrever</span>
+        </button>
+      </div>
       <input type="file" id="ficheiroPrato" accept="image/*" capture="environment" hidden>
       <input class="input" id="buscaAlimento" type="search" autocomplete="off"
              placeholder="Ou procura: frango, arroz, iogurte…">
@@ -1848,6 +2137,14 @@ function escolherAlimento(refeicao){
   };
 
   $('#modalCorpo').onclick = e => {
+    const atalho = e.target.closest('[data-registo]');
+    if (atalho){
+      const qual = atalho.dataset.registo;
+      if (qual === 'codigo')    return lerCodigoDeBarras(refeicao);
+      if (qual === 'foto')      return $('#ficheiroPrato').click();
+      if (qual === 'descrever') return descreverRefeicao(refeicao);
+    }
+
     const botao = e.target.closest('[data-escolher]');
     if (!botao) return;
     const lista = JSON.parse($('#resultadosAlimentos').dataset.lista || '[]');
@@ -1855,12 +2152,199 @@ function escolherAlimento(refeicao){
     if (alimento) quantidadeDoAlimento(alimento, refeicao);
   };
 
-  $('#btnFotoPrato').onclick = () => $('#ficheiroPrato').click();
   $('#ficheiroPrato').onchange = e => {
     const f = e.target.files[0];
     e.target.value = '';
     if (f) analisarPrato(f, refeicao);
   };
+}
+
+/* ---------------- Código de barras ---------------- */
+
+/** Lê o código com a câmara se o navegador souber; senão, escreve-se à mão. */
+async function lerCodigoDeBarras(refeicao){
+  const Leitor = leitorDeCodigos();
+  if (!Leitor) return codigoAMao(refeicao);
+
+  let formatos = [];
+  try { formatos = await Leitor.getSupportedFormats(); } catch { /* segue para o manual */ }
+  const uteis = formatos.filter(f => /ean|upc|code_128|itf/.test(f));
+  if (!uteis.length) return codigoAMao(refeicao);
+
+  let video, parar = () => {};
+  Modal.abrir({
+    titulo:'Código de barras',
+    corpo: `
+      <p class="item__meta">Aponta a câmara ao código, na embalagem.</p>
+      <video id="camaraCodigo" class="camara-codigo" playsinline muted autoplay></video>
+      <p class="item__meta" id="estadoCodigo"></p>`,
+    acoes: [
+      { texto:'‹ Voltar', onClick(){ parar(); escolherAlimento(refeicao); } },
+      { texto:'Escrever o código', onClick(){ parar(); codigoAMao(refeicao); } },
+    ],
+  });
+
+  try {
+    const fluxo = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+    });
+    parar = () => fluxo.getTracks().forEach(t => t.stop());
+    video = $('#camaraCodigo');
+    video.srcObject = fluxo;
+    await video.play();
+  } catch {
+    parar();
+    return codigoAMao(refeicao, 'Não consegui abrir a câmara. Escreve o código à mão.');
+  }
+
+  const detetor = new Leitor({ formats: uteis });
+  const procurar = async () => {
+    if (!document.body.contains(video)) return parar();
+    try {
+      const encontrados = await detetor.detect(video);
+      if (encontrados.length){
+        parar();
+        return buscarCodigo(encontrados[0].rawValue, refeicao);
+      }
+    } catch { /* um fotograma falhado não é problema */ }
+    requestAnimationFrame(() => setTimeout(procurar, 180));
+  };
+  procurar();
+}
+
+/** Quando a câmara não dá, os dígitos por baixo do código servem na mesma. */
+function codigoAMao(refeicao, aviso = ''){
+  Modal.abrir({
+    titulo:'Código de barras',
+    corpo: `
+      ${aviso ? `<div class="aviso">${esc(aviso)}</div>` : ''}
+      <p class="item__meta" style="margin-top:${aviso ? '12px' : '0'}">Escreve os dígitos que
+        estão por baixo do código de barras da embalagem.</p>
+      <input class="input" id="codigoManual" type="text" inputmode="numeric"
+             placeholder="5601234567890" style="margin-top:12px">
+      <p class="item__meta" id="estadoCodigo"></p>`,
+    acoes: [
+      { texto:'‹ Voltar', onClick(){ escolherAlimento(refeicao); } },
+      { texto:'Procurar', classe:'btn--primary',
+        onClick(){ buscarCodigo($('#codigoManual').value, refeicao); } },
+    ],
+  });
+  setTimeout(() => $('#codigoManual')?.focus(), 120);
+}
+
+async function buscarCodigo(codigo, refeicao){
+  const estado = $('#estadoCodigo');
+  if (estado) estado.innerHTML = '<span class="a-carregar"></span>a procurar o produto…';
+  try {
+    const alimento = await alimentoPorCodigo(codigo);
+    quantidadeDoAlimento(alimento, refeicao);
+  } catch (e) {
+    codigoAMao(refeicao, e.message);
+  }
+}
+
+/* ---------------- Descrever o que se comeu ---------------- */
+
+/** Escrever ou ditar a refeição, e deixar a IA separá-la em alimentos. */
+function descreverRefeicao(refeicao){
+  const Voz = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let ouvinte = null;
+
+  Modal.abrir({
+    titulo:'Descrever a refeição',
+    corpo: `
+      <p class="item__meta">Diz tudo de uma vez, com as quantidades que souberes.
+        Por exemplo: <i>duas fatias de pão com queijo flamengo e um copo de leite meio-gordo</i>.</p>
+      <textarea class="input" id="descricaoRefeicao" rows="4" style="margin-top:12px"
+                placeholder="O que comeste?"></textarea>
+      ${Voz ? `<button class="btn btn--block" id="btnDitar" style="margin-top:10px">
+        ${ico('microfone')} Ditar</button>` : ''}
+      <p class="item__meta" id="estadoDescricao"></p>`,
+    acoes: [
+      { texto:'‹ Voltar', onClick(){ ouvinte?.stop(); escolherAlimento(refeicao); } },
+      { texto:'Analisar', classe:'btn--primary', onClick(){
+          ouvinte?.stop();
+          const texto = $('#descricaoRefeicao').value.trim();
+          if (texto.length < 3) return toast('Escreve o que comeste.');
+          analisarDescricao(texto, refeicao);
+        } },
+    ],
+  });
+
+  if (!Voz) return;
+  $('#btnDitar').onclick = () => {
+    if (ouvinte){ ouvinte.stop(); ouvinte = null; return; }
+    ouvinte = new Voz();
+    ouvinte.lang = 'pt-PT';
+    ouvinte.continuous = true;
+    ouvinte.interimResults = true;
+    const jaEscrito = $('#descricaoRefeicao').value;
+
+    ouvinte.onresult = e => {
+      let novo = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) novo += e.results[i][0].transcript;
+      $('#descricaoRefeicao').value = (jaEscrito + ' ' + novo).trim();
+    };
+    ouvinte.onerror = () => {
+      $('#estadoDescricao').textContent = 'Não consegui ouvir. Escreve em vez de ditar.';
+      ouvinte = null;
+      $('#btnDitar').innerHTML = `${ico('microfone')} Ditar`;
+    };
+    ouvinte.onend = () => {
+      ouvinte = null;
+      const botao = $('#btnDitar');
+      if (botao) botao.innerHTML = `${ico('microfone')} Ditar`;
+    };
+
+    try {
+      ouvinte.start();
+      $('#btnDitar').innerHTML = `${ico('microfone')} A ouvir — toca para parar`;
+      $('#estadoDescricao').textContent = '';
+    } catch {
+      $('#estadoDescricao').textContent = 'Não consegui ligar o microfone.';
+      ouvinte = null;
+    }
+  };
+}
+
+async function analisarDescricao(texto, refeicao){
+  Modal.abrir({
+    titulo:'A analisar',
+    corpo: `<p class="item__meta">«${esc(texto)}»</p>
+      <p class="item__meta" style="margin-top:12px"><span class="a-carregar"></span>
+        A separar os alimentos e a estimar as quantidades.</p>`,
+    acoes: [{ texto:'Cancelar', onClick: Modal.fechar }],
+  });
+
+  const soltar = await manterEcraAceso();
+  let resultado;
+  try {
+    resultado = await analisarRefeicao(null, '', texto);
+  } catch (erro) {
+    soltar();
+    return Modal.abrir({
+      titulo:'Não deu',
+      corpo: `<div class="aviso">${esc(erro.message)}</div>`,
+      acoes: [
+        { texto:'‹ Voltar', onClick(){ descreverRefeicao(refeicao); } },
+        { texto:'Tentar outra vez', classe:'btn--primary',
+          onClick(){ analisarDescricao(texto, refeicao); } },
+      ],
+    });
+  }
+  soltar();
+
+  if (!resultado.alimentos.length){
+    return Modal.abrir({
+      titulo:'Não percebi',
+      corpo: `<div class="aviso">${esc(resultado.nota ||
+        'Não consegui separar alimentos nessa descrição. Tenta dizer o que comeste e quanto.')}</div>`,
+      acoes: [{ texto:'‹ Voltar', classe:'btn--primary',
+                onClick(){ descreverRefeicao(refeicao); } }],
+    });
+  }
+
+  confirmarPrato(resultado, null, refeicao);
 }
 
 /* ---------------- Registar pela fotografia ---------------- */
@@ -1961,7 +2445,7 @@ function confirmarPrato(resultado, foto, refeicao){
   Modal.abrir({
     titulo:'Confere antes de guardar',
     corpo: `
-      <img class="foto-prato__previa" src="${foto.dataUrl}" alt="">
+      ${foto ? `<img class="foto-prato__previa" src="${foto.dataUrl}" alt="">` : ''}
       ${resultado.nota ? `<p class="item__meta" style="margin-top:10px">${esc(resultado.nota)}</p>` : ''}
       <div class="stats-fila" id="totalPrato" style="margin:14px 0 4px"></div>
       <div id="listaPrato"></div>
@@ -2148,6 +2632,101 @@ function criarAlimento(refeicao){
         } },
     ],
   });
+}
+
+/* ============================================================
+   TELA: PESO
+   ============================================================ */
+function renderEcraPeso(){
+  const pesos = Store.estado.pesos;
+  const perfil = Store.estado.perfil;
+  const objetivo = num(perfil.pesoObjetivo);
+  const atual = pesos.length ? num(pesos[pesos.length - 1].kg) : num(perfil.peso);
+  const inicial = pesos.length ? num(pesos[0].kg) : null;
+
+  if (!atual){
+    $('#pesoTopo').innerHTML = `
+      <div class="heroi-dia">
+        <p class="kicker">Peso</p>
+        <h2 class="heroi__titulo">Sem registo</h2>
+        <p class="heroi__sub">Regista o teu peso para veres a evolução ao longo do tempo.</p>
+      </div>`;
+    $('#pesoNumeros').innerHTML = '';
+    $('#pesoGrafico').innerHTML = '';
+    $('#pesoHistorico').innerHTML = '';
+    return;
+  }
+
+  const dias = pesos.length
+    ? Math.round((Date.now() - new Date(pesos[pesos.length - 1].data + 'T12:00')) / 864e5)
+    : null;
+
+  $('#pesoTopo').innerHTML = `
+    <div class="heroi-dia">
+      <p class="kicker">Peso atual</p>
+      <h2 class="heroi__titulo">${fmtPeso(atual)} kg</h2>
+      <p class="heroi__sub">${dias === null ? ''
+        : dias === 0 ? 'Pesado hoje.'
+        : dias === 1 ? 'Última pesagem ontem.'
+        : `Última pesagem há ${dias} dias.`}</p>
+    </div>`;
+
+  const perdido = inicial !== null ? inicial - atual : null;
+  const falta = objetivo ? atual - objetivo : null;
+
+  $('#pesoNumeros').innerHTML = `
+    <div class="stats-fila">
+      <div>
+        <span class="stat__valor">${inicial !== null ? fmtPeso(inicial) : '—'}${
+          inicial !== null ? '<span class="un">kg</span>' : ''}</span>
+        <span class="rotulo">no início</span>
+      </div>
+      <div>
+        <span class="stat__valor">${perdido !== null
+          ? (perdido >= 0 ? '−' : '+') + fmtPeso(Math.abs(perdido)) : '—'}${
+          perdido !== null ? '<span class="un">kg</span>' : ''}</span>
+        <span class="rotulo">${perdido !== null && perdido < 0 ? 'ganhou' : 'perdeu'}</span>
+      </div>
+      <div>
+        <span class="stat__valor">${objetivo ? fmtPeso(Math.abs(falta)) : '—'}${
+          objetivo ? '<span class="un">kg</span>' : ''}</span>
+        <span class="rotulo">${!objetivo ? 'sem objetivo'
+          : Math.abs(falta) < 0.1 ? 'chegaste lá'
+          : falta > 0 ? 'ainda faltam' : 'abaixo do alvo'}</span>
+      </div>
+    </div>`;
+
+  // o gráfico leva as linhas do peso inicial e do objetivo
+  const referencias = [];
+  if (inicial !== null && pesos.length > 1) referencias.push({ v: inicial, rotulo:'início', classe:'g-ref--inicio' });
+  if (objetivo) referencias.push({ v: objetivo, rotulo:'objetivo', classe:'g-ref--alvo' });
+
+  $('#pesoGrafico').innerHTML = pesos.length >= 2
+    ? grafico(pesos.map(x => ({ x: fmtData(new Date(x.data + 'T12:00')), y: num(x.kg) })), ' kg', referencias)
+    : '<p class="empty">Regista o peso em dois dias diferentes para veres a linha.</p>';
+
+  // o histórico, do mais recente para trás, com a diferença para a pesagem anterior
+  $('#pesoHistorico').innerHTML = pesos.length
+    ? [...pesos].reverse().map((x, i, lista) => {
+        const anterior = lista[i + 1];
+        const delta = anterior ? num(x.kg) - num(anterior.kg) : null;
+        const seta = delta === null || Math.abs(delta) < 0.05 ? '—' : delta < 0 ? '↓' : '↑';
+        const classe = delta === null || Math.abs(delta) < 0.05 ? '' : delta < 0 ? 'desceu' : 'subiu';
+        const data = new Date(x.data + 'T12:00');
+        return `
+          <div class="peso-linha">
+            <span>
+              <strong>${fmtPeso(num(x.kg))} kg</strong>
+              <span class="item__meta">${data.toLocaleDateString('pt-PT',
+                { weekday:'short', day:'numeric', month:'long', year:'numeric' })}</span>
+            </span>
+            <span class="peso-delta ${classe}">${seta}${delta !== null && Math.abs(delta) >= 0.05
+              ? ' ' + fmtPeso(Math.abs(delta)) : ''}</span>
+            <button class="icon-btn" data-rm-peso="${x.data}"
+                    aria-label="Apagar a pesagem de ${x.data}">${ico('lixo')}</button>
+          </div>`;
+      }).join('')
+    : '<p class="empty">Ainda não há pesagens.</p>';
 }
 
 /* ============================================================
@@ -3515,7 +4094,19 @@ function ligarEventos(){
     Store.registarAgua(diaNutri, +copo.dataset.agua);
     renderAgua();
   };
-  $op('#nutriIrPeso').onclick = registarPesoHoje;
+  $op('#nutriObjetivos').onclick = editarObjetivos;
+  $op('#nutriIrPeso').onclick = () => mostrar('peso');
+  $op('#pesoVoltar').onclick = () => mostrar('nutricao');
+  $op('#pesoRegistar').onclick = registarPesoHoje;
+  $op('#pesoHistorico').onclick = e => {
+    const apagar = e.target.closest('[data-rm-peso]');
+    if (!apagar) return;
+    confirmar('Apagar esta pesagem?', () => {
+      Store.removerPeso(apagar.dataset.rmPeso);
+      renderEcraPeso();
+      toast('Pesagem apagada.');
+    }, 'Apagar');
+  };
   $op('#nutriCopiarOntem').onclick = () => {
     const d = new Date(diaNutri + 'T12:00');
     d.setDate(d.getDate() - 1);

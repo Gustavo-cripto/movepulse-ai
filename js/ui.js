@@ -131,7 +131,12 @@ function confirmar(msg, aoConfirmar, textoOk = 'Confirmar'){
 
 /* ---------- Gráfico de linha (SVG) ---------- */
 /** pontos: [{x:'01 mar', y:1234}] */
-function grafico(pontos, sufixo = ''){
+/**
+ * Gráfico de linha.
+ * `referencias` são linhas horizontais com rótulo — o peso inicial e o peso
+ * alvo, por exemplo: [{ v: 93.5, rotulo:'início', classe:'g-ref--inicio' }]
+ */
+function grafico(pontos, sufixo = '', referencias = []){
   if (pontos.length < 2){
     return '<p class="empty">Regista este exercício em pelo menos 2 treinos para veres a evolução.</p>';
   }
@@ -139,7 +144,12 @@ function grafico(pontos, sufixo = ''){
   const iw = W - L - R, ih = H - T - B;
   const ys = pontos.map(p => p.y);
   let min = Math.min(...ys), max = Math.max(...ys);
+  // as referências têm de caber no desenho, senão ficam de fora
+  for (const r of referencias){ if (isFinite(r.v)){ min = Math.min(min, r.v); max = Math.max(max, r.v); } }
   if (min === max){ min = min * 0.9; max = max * 1.1 || 1; }
+  // uma folga em cima e em baixo, para a linha não encostar à moldura
+  const folga = (max - min) * 0.08;
+  min -= folga; max += folga;
   const px = i => L + (pontos.length === 1 ? iw / 2 : (i / (pontos.length - 1)) * iw);
   const py = v => T + ih - ((v - min) / (max - min)) * ih;
 
@@ -156,13 +166,17 @@ function grafico(pontos, sufixo = ''){
   const rotulos = [0, pontos.length - 1].map(i =>
     `<text class="g-lbl" x="${px(i).toFixed(1)}" y="${H - 6}" text-anchor="${i ? 'end' : 'start'}">${esc(pontos[i].x)}</text>`).join('');
 
+  const refs = referencias.filter(r => isFinite(r.v)).map(r => {
+    const y = py(r.v).toFixed(1);
+    return `<line class="g-ref ${r.classe || ''}" x1="${L}" y1="${y}" x2="${W - R}" y2="${y}"/>
+            <text class="g-ref-lbl ${r.classe || ''}" x="${W - R}" y="${(+y - 4).toFixed(1)}"
+                  text-anchor="end">${esc(r.rotulo || '')}</text>`;
+  }).join('');
+
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de evolução">
-    <defs><linearGradient id="gFade" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="#c6f24e" stop-opacity=".28"/>
-      <stop offset="100%" stop-color="#c6f24e" stop-opacity="0"/>
-    </linearGradient></defs>
     ${grades}
     <polygon class="g-area" points="${area}"/>
+    ${refs}
     <polyline class="g-line" points="${linha}"/>
     ${dots}${rotulos}
   </svg>`;

@@ -13,8 +13,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/fontes.css?v=86">
-<link rel="stylesheet" href="css/style.css?v=86">
+<link rel="stylesheet" href="css/fontes.css?v=87">
+<link rel="stylesheet" href="css/style.css?v=87">
 </head>
 <body>
 
@@ -294,14 +294,23 @@
       <div class="section-head"><h2>O que comi</h2></div>
       <div id="nutriRefeicoes"></div>
 
+      <div class="section-head" id="cabecaNutrientes" hidden><h2>Outros nutrientes</h2></div>
+      <div id="nutriNutrientes"></div>
+
       <div class="section-head"><h2>Água</h2></div>
       <div id="nutriAgua"></div>
 
       <div class="section-head">
         <h2>Peso</h2>
-        <button class="btn-ligacao" id="nutriIrPeso">Registar</button>
+        <button class="btn-ligacao" id="nutriIrPeso">Ver evolução</button>
       </div>
       <div id="nutriPeso"></div>
+
+      <div class="section-head">
+        <h2>Objetivos</h2>
+        <button class="btn-ligacao" id="nutriObjetivos">Definir</button>
+      </div>
+      <div id="nutriAlvos"></div>
 
       <div class="section-head"><h2>Esta semana</h2></div>
       <div id="nutriSemana"></div>
@@ -316,6 +325,30 @@
         acompanhar a tendência, não para pesar ao grama — e não substitui um
         nutricionista, sobretudo em contexto de doença, gravidez ou distúrbio
         alimentar.</div>
+    </div>
+  </section>
+
+  <!-- ============ PESO ============ -->
+  <section class="view" id="view-peso" hidden>
+    <div id="pesoTopo"></div>
+    <div id="pesoNumeros"></div>
+
+    <button class="btn-largo" id="pesoRegistar">
+      <span>Registar peso de hoje</span><span aria-hidden="true">→</span>
+    </button>
+
+    <div class="corpo-inicio">
+      <div class="section-head"><h2>Evolução</h2></div>
+      <div id="pesoGrafico"></div>
+
+      <div class="section-head">
+        <h2>Pesagens</h2>
+        <button class="btn-ligacao" id="pesoVoltar">‹ Nutrição</button>
+      </div>
+      <div id="pesoHistorico"></div>
+
+      <p class="item__meta" style="margin-top:18px">O peso oscila de dia para dia com a água e
+        a comida no corpo. O que conta é a linha ao longo das semanas, não a pesagem de ontem.</p>
     </div>
   </section>
 
@@ -563,18 +596,18 @@
   <button class="btn btn--sm" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=86"></script>
-<script src="js/store.js?v=86"></script>
-<script src="js/nuvem.js?v=86"></script>
-<script src="js/saude.js?v=86"></script>
-<script src="js/db.js?v=86"></script>
-<script src="js/ia.js?v=86"></script>
-<script src="js/ui.js?v=86"></script>
-<script src="js/musculos.js?v=86"></script>
-<script src="js/figuras.js?v=86"></script>
-<script src="js/animacao.js?v=86"></script>
-<script src="js/icones.js?v=86"></script>
-<script src="js/alimentos.js?v=86"></script>
-<script src="js/app.js?v=86"></script>
+<script src="js/data.js?v=87"></script>
+<script src="js/store.js?v=87"></script>
+<script src="js/nuvem.js?v=87"></script>
+<script src="js/saude.js?v=87"></script>
+<script src="js/db.js?v=87"></script>
+<script src="js/ia.js?v=87"></script>
+<script src="js/ui.js?v=87"></script>
+<script src="js/musculos.js?v=87"></script>
+<script src="js/figuras.js?v=87"></script>
+<script src="js/animacao.js?v=87"></script>
+<script src="js/icones.js?v=87"></script>
+<script src="js/alimentos.js?v=87"></script>
+<script src="js/app.js?v=87"></script>
 </body>
 </html>

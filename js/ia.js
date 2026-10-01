@@ -685,7 +685,7 @@ function contextoDoUtilizador(){
 
     É uma estimativa por observação — a app mostra os valores para serem
     corrigidos antes de ficarem guardados. */
-async function analisarRefeicao(foto, pista = ''){
+async function analisarRefeicao(foto, pista = '', texto = ''){
   const cfg = Store.estado.config.ia;
   if (cfg.modo === 'direto'){
     throw new Error('A análise por fotografia só funciona pelo servidor. Muda o modo nas definições.');
@@ -699,7 +699,8 @@ async function analisarRefeicao(foto, pista = ''){
       headers:{ 'content-type':'application/json' },
       body: JSON.stringify({
         tipo:'alimento',
-        foto: { b64: foto.b64, tipo:'image/jpeg' },
+        ...(foto ? { foto: { b64: foto.b64, tipo:'image/jpeg' } } : {}),
+        texto: String(texto || '').slice(0, 600),
         pista: String(pista || '').slice(0, 200),
       }),
       signal: AbortSignal.timeout(120000),

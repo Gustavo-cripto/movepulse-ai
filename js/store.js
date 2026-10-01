@@ -41,6 +41,11 @@ const ESTADO_PADRAO = {
     dias: {},             // '2026-10-01': { refeicoes:{...}, agua: 0 }
     meus: [],             // alimentos já usados, para repetir num toque
     alvoAgua: 2000,       // ml por dia
+    // Em 'auto' os alvos saem do perfil (peso, altura, idade, sexo, objetivo).
+    // Em 'manual' mandam os números aqui em baixo.
+    // null num nutriente quer dizer "não acompanhar"
+    alvos: { modo:'auto', kcal:null, prot:null, hc:null, gord:null,
+             fib:null, ac:null, sat:null, sal:null },
   },
   perfil: {
     nome:'', idade:'', altura:'', peso:'', sexo:'', pesoObjetivo:'',
@@ -67,7 +72,8 @@ function carregar(){
       pesos: salvo.pesos || [],
       nutricao: { ...base.nutricao, ...salvo.nutricao,
         dias: (salvo.nutricao && salvo.nutricao.dias) || {},
-        meus: (salvo.nutricao && salvo.nutricao.meus) || [] },
+        meus: (salvo.nutricao && salvo.nutricao.meus) || [],
+        alvos: { ...base.nutricao.alvos, ...(salvo.nutricao && salvo.nutricao.alvos) } },
       planoConfig: { ...base.planoConfig, ...salvo.planoConfig },
       config: { ...base.config, ...salvo.config,
         saude: { ...base.config.saude, ...(salvo.config && salvo.config.saude) },
@@ -236,6 +242,17 @@ const Store = {
     salvar();
   },
 
+  /** Apaga a pesagem de um dia. */
+  removerPeso(data){
+    const n = estado.pesos.findIndex(p => p.data === data);
+    if (n === -1) return;
+    estado.pesos.splice(n, 1);
+    // o peso do perfil acompanha o registo mais recente que sobrou
+    const ultimo = estado.pesos[estado.pesos.length - 1];
+    if (ultimo) estado.perfil.peso = String(ultimo.kg);
+    salvar();
+  },
+
   guardarPerfil(campo, valor){
     estado.perfil[campo] = valor;
     salvar();
@@ -337,28 +354,46 @@ const Store = {
     if (n !== -1){ meus.splice(n, 1); salvar(); }
   },
 
+  /** Guarda os objetivos de nutrição. Passar null em tudo volta ao automático. */
+  guardarAlvos(alvos){
+    estado.nutricao.alvos = { ...estado.nutricao.alvos, ...alvos };
+    salvar();
+  },
+
+  guardarAlvoAgua(ml){
+    estado.nutricao.alvoAgua = Math.max(250, Math.min(6000, Math.round(ml / 50) * 50));
+    salvar();
+  },
+
   registarAgua(chave, ml){
     const dia = Store.diaNutricao(chave);
     dia.agua = Math.max(0, (dia.agua || 0) + ml);
     salvar();
   },
 
-  /** Soma de tudo o que foi comido num dia. */
+  /** Soma de tudo o que foi comido num dia. `semDados` conta os alimentos
+      que não trazem cada nutriente, para a app poder dizer que o total é
+      parcial em vez de fingir que é zero. */
   totaisDoDia(chave){
+    const campos = ['prot', 'hc', 'gord', 'fib', 'ac', 'sat', 'sal'];
+    const total = { kcal:0, itens:0, semDados:{} };
+    for (const k of campos){ total[k] = 0; total.semDados[k] = 0; }
+
     const dia = estado.nutricao.dias[chave];
-    const total = { kcal:0, prot:0, hc:0, gord:0, itens:0 };
     if (!dia) return total;
+
     for (const lista of Object.values(dia.refeicoes || {})){
       for (const it of lista){
         total.kcal += num(it.kcal);
-        total.prot += num(it.prot);
-        total.hc   += num(it.hc);
-        total.gord += num(it.gord);
         total.itens++;
+        for (const k of campos){
+          if (it[k] === undefined || it[k] === null) total.semDados[k]++;
+          else total[k] += num(it[k]);
+        }
       }
     }
     total.kcal = Math.round(total.kcal);
-    for (const k of ['prot', 'hc', 'gord']) total[k] = Math.round(total[k] * 10) / 10;
+    for (const k of campos) total[k] = Math.round(total[k] * 10) / 10;
     return total;
   },
 
