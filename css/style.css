@@ -1166,7 +1166,36 @@ line.an-osso.an-ativo{stroke-width:8}
 .copos{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .copo{width:22px;height:30px;border:2px solid var(--line-forte);background:transparent}
 .copo.cheio{background:var(--accent);border-color:var(--accent)}
-/* a prévia da quantidade tem quatro números, não três */
-#previaAlimento{grid-template-columns:repeat(4,1fr)}
-#previaAlimento>div{padding:10px 8px}
-#previaAlimento .stat__valor{font-size:19px}
+/* a prévia da quantidade e o total do prato têm quatro números, não três */
+#previaAlimento,#totalPrato{grid-template-columns:repeat(4,1fr)}
+#previaAlimento>div,#totalPrato>div{padding:10px 8px}
+#previaAlimento .stat__valor,#totalPrato .stat__valor{font-size:19px}
+
+/* ---------- Registar pela fotografia ---------- */
+.foto-prato{display:flex;align-items:center;justify-content:center;gap:10px;
+  text-align:center;margin-bottom:8px}
+.foto-prato svg{width:20px;height:20px;flex:none}
+.foto-prato__previa{width:100%;max-height:220px;object-fit:cover;display:block;
+  border:1px solid var(--line)}
+
+.prato-linha{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  padding:12px 0;border-top:1px solid var(--line);
+}
+.prato-linha.fora{opacity:.4}
+.prato-marca{
+  width:26px;height:26px;flex:none;border:2px solid var(--line-forte);background:transparent;
+  color:transparent;font-size:14px;font-weight:800;line-height:1;cursor:pointer;padding:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.prato-linha:not(.fora) .prato-marca{background:var(--accent);border-color:var(--accent);
+  color:var(--accent-ink)}
+.prato-nome strong{font-size:15px;font-weight:700;display:block}
+.prato-qtd{padding:0;gap:4px;flex:none}
+.prato-qtd .serie-valor{width:52px;font-size:17px}
+.prato-qtd .serie-passo{width:26px;height:26px;font-size:15px}
+@media(max-width:420px){
+  .prato-linha{grid-template-columns:auto 1fr;grid-template-areas:'marca nome' '. qtd'}
+  .prato-marca{grid-area:marca} .prato-nome{grid-area:nome}
+  .prato-qtd{grid-area:qtd;justify-self:start;margin-top:8px}
+}

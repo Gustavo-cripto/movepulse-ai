@@ -64,6 +64,12 @@ export default {
       return conversa(corpo, env, origem);
     }
 
+    if (corpo.tipo === 'alimento'){
+      const problemaAlimento = validarAlimento(corpo);
+      if (problemaAlimento) return erro(400, problemaAlimento, origem);
+      return analisarAlimento(corpo, env, origem);
+    }
+
     const problema = validar(corpo);
     if (problema) return erro(400, problema, origem);
 
@@ -496,6 +502,137 @@ function limparResposta(texto){
 
 /* Aceita apenas o formato que a app envia — impede que a chave
    seja usada para outra coisa qualquer por quem descubra o endereço. */
+/* ============================================================
+   Analisar uma fotografia de comida
+
+   Recebe uma foto de um prato e devolve o que lá está, com a
+   quantidade estimada e os nutrientes dessa quantidade. É uma
+   ESTIMATIVA por observação: a app mostra os valores para o
+   utilizador corrigir antes de guardar.
+   ============================================================ */
+
+const ESQUEMA_ALIMENTO = {
+  type: 'object',
+  properties: {
+    alimentos: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          nome:         { type:'string' },
+          quantidade_g: { type:'number' },
+          kcal:         { type:'number' },
+          prot:         { type:'number' },
+          hc:           { type:'number' },
+          gord:         { type:'number' },
+          confianca:    { type:'string', enum:['alta','media','baixa'] },
+        },
+        required: ['nome','quantidade_g','kcal','prot','hc','gord','confianca'],
+      },
+    },
+    nota: { type:'string' },
+  },
+  required: ['alimentos'],
+};
+
+const SISTEMA_ALIMENTO =
+`Identificas comida em fotografias e estimas o seu valor nutricional.
+
+Para CADA alimento que vês no prato:
+- "nome": em português de Portugal, curto e concreto ("arroz branco cozido", "bife de
+  frango grelhado", "brócolos cozidos"). Nunca uses inglês nem português do Brasil.
+- "quantidade_g": a quantidade que está NA FOTOGRAFIA, em gramas. Usa as referências
+  visíveis para calibrar — um prato raso tem cerca de 26 cm, um garfo 19 cm, uma lata
+  33 cl. Se o prato estiver cheio de arroz, são 200 a 300 g, não 50.
+- "kcal", "prot", "hc", "gord": os valores DESSA QUANTIDADE, já multiplicados. Não
+  devolvas valores por 100 g.
+- "confianca": "alta" se reconheces o alimento e a quantidade é fácil de julgar;
+  "media" se tens dúvidas na quantidade; "baixa" se não tens a certeza do que é.
+
+Separa os componentes do prato em vez de dar um só total: quem regista quer poder
+corrigir o arroz sem mexer na carne. Inclui o azeite ou o molho visível, que pesam
+pouco e contam muito.
+
+Se a fotografia não tiver comida, devolve "alimentos" vazio e explica em "nota".
+Se a comida estiver tapada ou for impossível identificar, di-lo em "nota" em vez de
+inventar.
+
+Responde APENAS com um objeto JSON válido, sem texto à volta e sem blocos de código,
+que obedeça exatamente a este JSON Schema:
+${JSON.stringify(ESQUEMA_ALIMENTO)}`;
+
+function validarAlimento(corpo){
+  if (!corpo.foto || typeof corpo.foto !== 'object') return 'Falta a fotografia.';
+  if (typeof corpo.foto.b64 !== 'string' || !corpo.foto.b64) return 'Fotografia inválida.';
+  if (corpo.foto.b64.length > 9 * 1024 * 1024) return 'Fotografia demasiado grande.';
+  if (corpo.pista && typeof corpo.pista !== 'string') return 'Pista inválida.';
+  return null;
+}
+
+async function analisarAlimento(corpo, env, origem){
+  const tipoImagem = corpo.foto.tipo || 'image/jpeg';
+  const pista = String(corpo.pista || '').slice(0, 200);
+  const pergunta = pista
+    ? `O que está neste prato? O utilizador diz que é: ${pista}`
+    : 'O que está neste prato, e em que quantidade?';
+
+  if (provedor(env) === 'nvidia'){
+    if (!env.NVIDIA_API_KEY) return erro(500, 'Falta configurar NVIDIA_API_KEY no servidor.', origem);
+
+    // Duas tentativas: os modelos pequenos falham fotos ao acaso, e uma
+    // resposta vazia aqui é pior do que esperar mais uns segundos.
+    for (let tentativa = 0; tentativa < 2; tentativa++){
+      const r = await chamarNvidia(env, {
+        model: env.MODELO_NVIDIA || NVIDIA.modeloPadrao,
+        max_tokens: 1400,
+        temperature: tentativa === 0 ? 0.2 : 0,
+        nvext: { max_thinking_tokens: 400, guided_json: ESQUEMA_ALIMENTO },
+        messages: [
+          { role:'system', content: SISTEMA_ALIMENTO },
+          { role:'user', content:[
+            { type:'text', text: pergunta },
+            { type:'image_url', image_url:{ url:`data:${tipoImagem};base64,${corpo.foto.b64}` } },
+          ]},
+        ],
+      });
+      if (r.erro) return erro(r.estado || 502, r.erro, origem);
+
+      const limpo = extrairJson(r.texto, ['alimentos']);
+      if (!limpo) continue;
+      try { return json(JSON.parse(limpo), 200, origem); } catch { /* tenta outra vez */ }
+    }
+    return erro(502, 'Não consegui ler a fotografia. Tenta com mais luz e o prato todo visível.', origem);
+  }
+
+  // --- Claude ---
+  if (!env.ANTHROPIC_API_KEY) return erro(500, 'Falta configurar ANTHROPIC_API_KEY no servidor.', origem);
+  const r = await fetch(ANTHROPIC.url, {
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version':'2023-06-01',
+    },
+    body: JSON.stringify({
+      model:'claude-opus-5',
+      max_tokens: 1600,
+      system: SISTEMA_ALIMENTO,
+      messages: [{ role:'user', content:[
+        { type:'text', text: pergunta },
+        { type:'image', source:{ type:'base64', media_type: tipoImagem, data: corpo.foto.b64 } },
+      ]}],
+    }),
+  });
+
+  if (!r.ok) return erro(r.status, 'O fornecedor de IA falhou a ler a fotografia.', origem);
+  const dados = await r.json();
+  const texto = (dados.content || []).find(b => b.type === 'text')?.text || '';
+  const limpo = extrairJson(texto, ['alimentos']);
+  if (!limpo) return erro(502, 'A resposta não veio no formato esperado.', origem);
+  try { return json(JSON.parse(limpo), 200, origem); }
+  catch { return erro(502, 'A resposta não veio no formato esperado.', origem); }
+}
+
 function validar(corpo) {
   if (!corpo || typeof corpo !== 'object') return 'Corpo inválido.';
   if (!Number.isInteger(corpo.max_tokens) || corpo.max_tokens > MAX_TOKENS) return 'max_tokens inválido.';

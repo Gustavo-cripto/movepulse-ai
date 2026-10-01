@@ -680,6 +680,59 @@ function contextoDoUtilizador(){
 }
 
 /** Envia a conversa ao servidor e devolve a resposta do treinador. */
+/** Manda a fotografia de um prato ao servidor e recebe o que lá está,
+    com a quantidade estimada e os nutrientes dessa quantidade.
+
+    É uma estimativa por observação — a app mostra os valores para serem
+    corrigidos antes de ficarem guardados. */
+async function analisarRefeicao(foto, pista = ''){
+  const cfg = Store.estado.config.ia;
+  if (cfg.modo === 'direto'){
+    throw new Error('A análise por fotografia só funciona pelo servidor. Muda o modo nas definições.');
+  }
+  if (!cfg.servidor) throw new Error('Falta o endereço do servidor nas definições.');
+
+  let resposta;
+  try {
+    resposta = await fetch(cfg.servidor, {
+      method:'POST',
+      headers:{ 'content-type':'application/json' },
+      body: JSON.stringify({
+        tipo:'alimento',
+        foto: { b64: foto.b64, tipo:'image/jpeg' },
+        pista: String(pista || '').slice(0, 200),
+      }),
+      signal: AbortSignal.timeout(120000),
+    });
+  } catch (e) {
+    if (e.name === 'TimeoutError') throw new Error('A análise demorou demasiado. Tenta outra vez.');
+    throw new Error('Não consegui falar com o servidor. Tens ligação à internet?');
+  }
+
+  if (!resposta.ok){
+    const txt = await resposta.text().catch(() => '');
+    throw new Error(mensagemErro(resposta.status, txt));
+  }
+
+  const dados = await resposta.json();
+  const alimentos = Array.isArray(dados.alimentos) ? dados.alimentos : [];
+  return {
+    nota: String(dados.nota || ''),
+    // só o que vem completo: um alimento sem calorias não serve para registar
+    alimentos: alimentos
+      .filter(a => a && a.nome && num(a.quantidade_g) > 0 && num(a.kcal) > 0)
+      .map(a => ({
+        nome: String(a.nome).slice(0, 80),
+        g: Math.round(num(a.quantidade_g)),
+        kcal: Math.round(num(a.kcal)),
+        prot: Math.round(num(a.prot) * 10) / 10,
+        hc:   Math.round(num(a.hc) * 10) / 10,
+        gord: Math.round(num(a.gord) * 10) / 10,
+        confianca: ['alta','media','baixa'].includes(a.confianca) ? a.confianca : 'media',
+      })),
+  };
+}
+
 async function perguntarAoTreinador(mensagens){
   const cfg = Store.estado.config.ia;
   const corpo = {

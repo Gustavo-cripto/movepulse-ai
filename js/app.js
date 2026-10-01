@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 85;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 86;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -1770,8 +1770,14 @@ function escolherAlimento(refeicao){
   Modal.abrir({
     titulo: nome,
     corpo: `
+      <button class="btn btn--primary btn--block foto-prato" id="btnFotoPrato">
+        ${ico('camara')} Fotografar o prato
+      </button>
+      <p class="item__meta" style="margin-bottom:14px">A IA diz o que lá está e estima as
+        calorias. Confirmas antes de guardar.</p>
+      <input type="file" id="ficheiroPrato" accept="image/*" capture="environment" hidden>
       <input class="input" id="buscaAlimento" type="search" autocomplete="off"
-             placeholder="O que comeste? Ex.: frango, arroz, iogurte…">
+             placeholder="Ou procura: frango, arroz, iogurte…">
       <p class="item__meta" id="estadoBusca"></p>
       <div id="resultadosAlimentos" class="stack"></div>`,
     acoes: [
@@ -1849,7 +1855,181 @@ function escolherAlimento(refeicao){
     if (alimento) quantidadeDoAlimento(alimento, refeicao);
   };
 
-  setTimeout(() => caixa.focus(), 120);
+  $('#btnFotoPrato').onclick = () => $('#ficheiroPrato').click();
+  $('#ficheiroPrato').onchange = e => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (f) analisarPrato(f, refeicao);
+  };
+}
+
+/* ---------------- Registar pela fotografia ---------------- */
+
+/** Tira a foto, manda-a analisar e mostra o que veio para ser corrigido. */
+async function analisarPrato(ficheiro, refeicao){
+  let foto;
+  try {
+    foto = await comprimirFoto(ficheiro);
+  } catch {
+    return toast('Não consegui ler essa imagem.');
+  }
+
+  Modal.abrir({
+    titulo:'A analisar o prato',
+    corpo: `
+      <img class="foto-prato__previa" src="${foto.dataUrl}" alt="">
+      <p class="item__meta" style="margin-top:12px"><span class="a-carregar"></span>
+        A IA está a olhar para a fotografia. Costuma demorar meio minuto.</p>`,
+    acoes: [{ texto:'Cancelar', onClick(){ Modal.fechar(); } }],
+  });
+
+  const soltar = await manterEcraAceso();
+  let resultado;
+  try {
+    resultado = await analisarRefeicao(foto);
+  } catch (erro) {
+    soltar();
+    return Modal.abrir({
+      titulo:'Não deu',
+      corpo: `<div class="aviso">${esc(erro.message)}</div>`,
+      acoes: [
+        { texto:'Fechar', onClick: Modal.fechar },
+        { texto:'Tentar outra vez', classe:'btn--primary',
+          onClick(){ analisarPrato(ficheiro, refeicao); } },
+      ],
+    });
+  }
+  soltar();
+
+  if (!resultado.alimentos.length){
+    return Modal.abrir({
+      titulo:'Não reconheci comida',
+      corpo: `<img class="foto-prato__previa" src="${foto.dataUrl}" alt="">
+        <div class="aviso" style="margin-top:12px">${esc(resultado.nota ||
+          'Não consegui identificar o que está no prato. Tenta com mais luz, de cima, e com o prato todo visível.')}</div>`,
+      acoes: [
+        { texto:'‹ Voltar', onClick(){ escolherAlimento(refeicao); } },
+        { texto:'Outra foto', classe:'btn--primary', onClick(){ $('#ficheiroPrato')?.click(); } },
+      ],
+    });
+  }
+
+  confirmarPrato(resultado, foto, refeicao);
+}
+
+/** O que a IA viu, para se corrigir antes de guardar. */
+function confirmarPrato(resultado, foto, refeicao){
+  // cada linha pode ser desligada ou ter a quantidade mudada
+  const itens = resultado.alimentos.map(a => ({ ...a, incluir: true }));
+
+  const soma = () => itens.filter(i => i.incluir)
+    .reduce((t, i) => ({
+      kcal: t.kcal + i.kcal, prot: t.prot + i.prot,
+      hc: t.hc + i.hc, gord: t.gord + i.gord,
+    }), { kcal:0, prot:0, hc:0, gord:0 });
+
+  const desenhar = () => {
+    const t = soma();
+    $('#listaPrato').innerHTML = itens.map((a, n) => `
+      <div class="prato-linha ${a.incluir ? '' : 'fora'}">
+        <button class="prato-marca" data-alternar="${n}"
+                aria-label="${a.incluir ? 'Não contar' : 'Contar'} ${esc(a.nome)}">
+          ${a.incluir ? '✓' : ''}
+        </button>
+        <span class="prato-nome">
+          <strong>${esc(a.nome)}</strong>
+          <span class="item__meta">${fmtNum(a.kcal)} kcal · ${fmtNum(a.prot)} P ·
+            ${fmtNum(a.hc)} H · ${fmtNum(a.gord)} G${
+            a.confianca === 'baixa' ? ' · <b>pouca certeza</b>' : ''}</span>
+        </span>
+        <span class="serie-campo prato-qtd">
+          <button class="serie-passo" data-g="${n}:-25" aria-label="Menos">−</button>
+          <input class="serie-valor" type="number" inputmode="numeric" min="0"
+                 value="${a.g}" data-g-item="${n}">
+          <span class="quantidade__un">g</span>
+          <button class="serie-passo" data-g="${n}:25" aria-label="Mais">+</button>
+        </span>
+      </div>`).join('');
+
+    $('#totalPrato').innerHTML = `
+      <div><span class="stat__valor">${fmtNum(Math.round(t.kcal))}</span><span class="rotulo">kcal</span></div>
+      <div><span class="stat__valor">${fmtNum(Math.round(t.prot))}</span><span class="rotulo">proteína</span></div>
+      <div><span class="stat__valor">${fmtNum(Math.round(t.hc))}</span><span class="rotulo">hidratos</span></div>
+      <div><span class="stat__valor">${fmtNum(Math.round(t.gord))}</span><span class="rotulo">gordura</span></div>`;
+  };
+
+  Modal.abrir({
+    titulo:'Confere antes de guardar',
+    corpo: `
+      <img class="foto-prato__previa" src="${foto.dataUrl}" alt="">
+      ${resultado.nota ? `<p class="item__meta" style="margin-top:10px">${esc(resultado.nota)}</p>` : ''}
+      <div class="stats-fila" id="totalPrato" style="margin:14px 0 4px"></div>
+      <div id="listaPrato"></div>
+      <p class="item__meta" style="margin-top:12px">Isto é uma estimativa a olho. Corrige as
+        quantidades que estiverem erradas e desliga o que não comeste.</p>`,
+    acoes: [
+      { texto:'‹ Voltar', onClick(){ escolherAlimento(refeicao); } },
+      { texto:'Guardar', classe:'btn--primary', onClick(){
+          const guardar = itens.filter(i => i.incluir);
+          if (!guardar.length) return toast('Não há nada escolhido.');
+          for (const a of guardar){
+            Store.adicionarAlimento(diaNutri, refeicao, {
+              nome: a.nome, marca:'', g: a.g,
+              kcal: a.kcal, prot: a.prot, hc: a.hc, gord: a.gord,
+              // guardamos a ficha por 100 g, para o alimento voltar a servir
+              alimento: { nome: a.nome, marca:'', ...porCem(a), porcao: a.g, medida:'porção da foto' },
+            });
+          }
+          Modal.fechar();
+          renderNutricao();
+          toast(`${guardar.length} ${guardar.length === 1 ? 'alimento' : 'alimentos'} ·
+            ${fmtNum(Math.round(soma().kcal))} kcal`);
+        } },
+    ],
+  });
+  desenhar();
+
+  /** Mexer numa quantidade recalcula os nutrientes dessa linha. */
+  const mudarQuantidade = (n, novoG) => {
+    const a = itens[n];
+    const g = Math.max(0, novoG);
+    if (!a.g || !g) return;
+    const f = g / a.g;
+    a.kcal = Math.round(a.kcal * f);
+    a.prot = Math.round(a.prot * f * 10) / 10;
+    a.hc   = Math.round(a.hc   * f * 10) / 10;
+    a.gord = Math.round(a.gord * f * 10) / 10;
+    a.g = g;
+    desenhar();
+  };
+
+  $('#modalCorpo').onclick = e => {
+    const marca = e.target.closest('[data-alternar]');
+    if (marca){
+      itens[+marca.dataset.alternar].incluir = !itens[+marca.dataset.alternar].incluir;
+      return desenhar();
+    }
+    const passo = e.target.closest('[data-g]');
+    if (passo){
+      const [n, delta] = passo.dataset.g.split(':').map(Number);
+      mudarQuantidade(n, itens[n].g + delta);
+    }
+  };
+  $('#modalCorpo').onchange = e => {
+    const campo = e.target.closest('[data-g-item]');
+    if (campo) mudarQuantidade(+campo.dataset.gItem, num(campo.value));
+  };
+}
+
+/** Os valores de um item por 100 g, para ele poder ser reutilizado. */
+function porCem(a){
+  const f = 100 / (a.g || 100);
+  return {
+    kcal: Math.round(a.kcal * f),
+    prot: Math.round(a.prot * f * 10) / 10,
+    hc:   Math.round(a.hc   * f * 10) / 10,
+    gord: Math.round(a.gord * f * 10) / 10,
+  };
 }
 
 /** Quanto é que comeste disto. */
