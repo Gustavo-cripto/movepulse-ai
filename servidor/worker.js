@@ -41,8 +41,10 @@ export default {
 
     if (pedido.method === 'OPTIONS') return new Response(null, { headers: cors(origem) });
 
-    // Diagnóstico: que provedor está ativo e que modelos existem.
     if (pedido.method === 'GET') {
+      if (url.pathname === '/alimentos') return procurarAlimentos(url, origem);
+
+      // Diagnóstico: que provedor está ativo e que modelos existem.
       if (url.pathname === '/modelos'){
         const testar = url.searchParams.get('testar');
         return testar ? testarModelo(env, testar, origem) : listarModelos(env, origem);
@@ -667,6 +669,62 @@ function validar(corpo) {
   if (conteudo.filter(b => b.type === 'image').length > MAX_IMAGENS) return `Máximo de ${MAX_IMAGENS} imagens.`;
   if (conteudo.some(b => b.type !== 'image' && b.type !== 'text')) return 'Tipo de bloco não permitido.';
   return null;
+}
+
+/* ============================================================
+   Procura de produtos embalados no Open Food Facts.
+
+   Porque é que isto passa pelo servidor: o Open Food Facts tem dois motores
+   de busca. O novo (search.openfoodfacts.org) é rápido e não falha, mas não
+   devolve cabeçalhos CORS, pelo que o browser não lhe pode falar diretamente.
+   O antigo (cgi/search.pl) tem CORS mas responde 503 a cerca de metade dos
+   pedidos — e um 503 deles chega sem CORS, pelo que o browser nem consegue
+   dizer o que aconteceu: só "Failed to fetch".
+
+   Aqui não há CORS a cumprir, por isso usa-se o motor novo. A resposta sai no
+   formato antigo para a app continuar a ler produtos como sempre leu.
+   ============================================================ */
+
+const OFF_BUSCA = 'https://search.openfoodfacts.org/search';
+
+async function procurarAlimentos(url, origem){
+  const termo = (url.searchParams.get('q') || '').trim().slice(0, 80);
+  if (!termo) return erro(400, 'Falta dizer o que procurar.', origem);
+
+  // O que está nas prateleiras cá é o que interessa; 'pais=' desliga o filtro.
+  const pais = url.searchParams.has('pais') ? url.searchParams.get('pais') : 'en:portugal';
+
+  const alvo = `${OFF_BUSCA}?${new URLSearchParams({
+    q: pais ? `${termo} countries_tags:"${pais}"` : termo,
+    langs: 'pt,en',
+    page_size: '25',
+    fields: 'code,product_name,brands,nutriments',
+  })}`;
+
+  let resposta;
+  try {
+    resposta = await fetch(alvo, {
+      headers: { 'user-agent': 'MovePulse AI - https://gustavo-cripto.github.io/movepulse-ai/' },
+      // a lista de um termo muda pouco; uma hora de cache poupa-lhes pedidos
+      cf: { cacheTtl: 3600, cacheEverything: true },
+    });
+  } catch {
+    return erro(502, 'A base de produtos não respondeu.', origem);
+  }
+  if (!resposta.ok) return erro(502, 'A base de produtos não respondeu.', origem);
+
+  let dados;
+  try { dados = await resposta.json(); }
+  catch { return erro(502, 'A base de produtos respondeu com lixo.', origem); }
+
+  const products = (dados.hits || []).map(h => ({
+    code: String(h.code || ''),
+    product_name: h.product_name || '',
+    brands: Array.isArray(h.brands) ? h.brands.filter(Boolean).join(', ') : (h.brands || ''),
+    nutriments: h.nutriments || {},
+  }));
+
+  return json({ products }, 200, origem);
 }
 
 function cors(origem) {

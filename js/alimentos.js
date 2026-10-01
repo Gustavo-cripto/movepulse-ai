@@ -146,7 +146,43 @@ function normalizar(s){
 
 const OFF_PROCURA = 'https://world.openfoodfacts.org/cgi/search.pl';
 
+/** Os produtos que a rede conseguir dar para este termo, já no nosso formato.
+    Lista vazia é uma resposta legítima; só se atira erro quando nem o
+    servidor nem o endereço direto responderam. */
 async function procurarNoOpenFoodFacts(termo, sinal){
+  const brutos = await produtosDaRede(termo, sinal);
+  return brutos.map(traduzirProduto).filter(Boolean).slice(0, 25);
+}
+
+/* Dois caminhos, por esta ordem:
+
+   1. o nosso servidor, que fala com o motor de busca novo do Open Food Facts
+      — rápido, estável, mas sem CORS, por isso só de lá é que se lhe chega;
+   2. o endereço antigo, diretamente. Esse responde 503 a grande parte dos
+      pedidos — nas medições de 1 de outubro de 2026, a oito de cada dez — e um
+      503 deles chega sem CORS, pelo que o browser não vê o código: só diz
+      "Failed to fetch". Daí insistir-se cinco vezes, e daí o caminho 1 não ser
+      um luxo. Sem o servidor publicado, a procura por marca falha muito. */
+async function produtosDaRede(termo, sinal){
+  const servidor = enderecoDaProcura();
+  if (servidor){
+    try {
+      const r = await fetch(`${servidor}?q=${encodeURIComponent(termo)}`, { signal: sinal });
+      if (r.ok) return (await r.json()).products || [];
+    } catch (e) {
+      if (e.name === 'AbortError') throw e;   // foi o utilizador, não a rede
+    }
+  }
+  return viaEnderecoAntigo(termo, sinal);
+}
+
+/** O /alimentos do servidor configurado, ou '' se não houver servidor. */
+function enderecoDaProcura(){
+  try { return new URL(Store.estado.config.ia.servidor).origin + '/alimentos'; }
+  catch { return ''; }
+}
+
+async function viaEnderecoAntigo(termo, sinal, tentativas = 5){
   const url = `${OFF_PROCURA}?${new URLSearchParams({
     search_terms: termo,
     search_simple: '1',
@@ -158,21 +194,38 @@ async function procurarNoOpenFoodFacts(termo, sinal){
     fields: 'code,product_name,product_name_pt,brands,nutriments,serving_quantity',
   })}`;
 
-  const resposta = await fetch(url, { signal: sinal });
-  if (!resposta.ok) throw new Error('A base de alimentos não respondeu.');
-  const dados = await resposta.json();
+  for (let i = 0; i < tentativas; i++){
+    try {
+      const resposta = await fetch(url, { signal: sinal });
+      if (resposta.ok) return (await resposta.json()).products || [];
+    } catch (e) {
+      if (e.name === 'AbortError') throw e;
+    }
+    if (i < tentativas - 1) await espera(250 * (i + 1), sinal);
+  }
+  throw new Error('A base de produtos está em baixo.');
+}
 
-  return (dados.products || [])
-    .map(traduzirProduto)
-    .filter(Boolean)
-    .slice(0, 25);
+/** Pausa que se deixa interromper, para não ficar a contar depois de o
+    utilizador já ter escrito outra coisa. */
+function espera(ms, sinal){
+  return new Promise((ok, falha) => {
+    if (sinal?.aborted) return falha(new DOMException('Abortado', 'AbortError'));
+    const t = setTimeout(ok, ms);
+    sinal?.addEventListener('abort', () => {
+      clearTimeout(t);
+      falha(new DOMException('Abortado', 'AbortError'));
+    }, { once: true });
+  });
 }
 
 /** Um produto do Open Food Facts no nosso formato. Devolve null se não
     trouxer os valores nutricionais — sem eles não serve para nada. */
 function traduzirProduto(p){
   const n = p.nutriments || {};
-  const kcal = num(n['energy-kcal_100g']);
+  // Muitos rótulos cá só declaram quilojoules. 1 kcal = 4,184 kJ, e um produto
+  // bom não se deita fora por os valores vierem na outra unidade.
+  const kcal = num(n['energy-kcal_100g']) || num(n['energy-kj_100g']) / 4.184;
   const nome = (p.product_name_pt || p.product_name || '').trim();
   if (!nome || !kcal) return null;
 
@@ -220,9 +273,20 @@ async function alimentoPorCodigo(codigo, sinal){
 
   const url = `https://world.openfoodfacts.org/api/v2/product/${limpo}.json?fields=` +
     'code,product_name,product_name_pt,brands,nutriments,serving_quantity';
-  const resposta = await fetch(url, { signal: sinal });
+
+  // Como na procura: o Open Food Facts deixa cair pedidos de vez em quando.
+  // Um código de barras lido não se perde por causa disso.
+  let resposta = null;
+  for (let i = 0; i < 3 && !resposta; i++){
+    try { resposta = await fetch(url, { signal: sinal }); }
+    catch (e) {
+      if (e.name === 'AbortError') throw e;
+      if (i < 2) await espera(300 * (i + 1), sinal);
+    }
+  }
+  if (!resposta) throw new Error('A base de produtos está em baixo. Tenta outra vez daqui a pouco.');
   if (resposta.status === 404) throw new Error('Esse produto não está na base aberta.');
-  if (!resposta.ok) throw new Error('A base de alimentos não respondeu.');
+  if (!resposta.ok) throw new Error('A base de produtos não respondeu.');
 
   const dados = await resposta.json();
   if (dados.status !== 1 || !dados.product) throw new Error('Esse produto não está na base aberta.');

@@ -1,5 +1,5 @@
 /* Service worker: guarda a app inteira em cache para funcionar offline. */
-const CACHE = 'movepulse-v87';
+const CACHE = 'movepulse-v89';
 const ARQUIVOS = [
   './', './index.html', './css/style.css', './css/fontes.css',
   './fonts/archivo-400.woff2', './fonts/archivo-500.woff2',
@@ -26,6 +26,12 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
 
+  // Só tratamos o que é nosso. A base de alimentos aberta e o servidor da IA
+  // vivem noutros endereços: passá-los por aqui não os torna mais rápidos e
+  // partia-os — um pedido sem cópia guardada acabava em respondWith(undefined),
+  // que o browser reporta como "Returned response is null".
+  if (new URL(e.request.url).origin !== self.location.origin) return;
+
   // O documento vai primeiro à rede: assim uma versão nova entra logo na
   // abertura seguinte, em vez de a app ficar sempre uma versão atrasada.
   // Sem rede, cai na cópia guardada e continua a abrir.
@@ -36,7 +42,7 @@ self.addEventListener('fetch', e => {
       fetch(new Request(e.request.url, { cache: 'reload' }))
         .then(resp => {
           const copia = resp.clone();
-          caches.open(CACHE).then(c => c.put(e.request, copia));
+          caches.open(CACHE).then(c => c.put(e.request, copia)).catch(() => {});
           return resp;
         })
         .catch(() => caches.match(e.request, { ignoreSearch: true })
@@ -53,10 +59,16 @@ self.addEventListener('fetch', e => {
       if (hit) return hit;
       return fetch(e.request)
         .then(resp => {
-          if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
+          if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, resp.clone())).catch(() => {});
           return resp;
         })
-        .catch(() => caches.match(e.request, { ignoreSearch: true }));
+        // Sem rede, serve-se qualquer versão guardada do mesmo ficheiro. Se
+        // nem isso houver, devolve-se uma resposta a dizê-lo: nunca undefined,
+        // que rebenta o pedido em vez de o deixar falhar com jeito.
+        .catch(() => caches.match(e.request, { ignoreSearch: true })
+          .then(guardado => guardado || new Response('', {
+            status: 504, statusText: 'Sem ligação',
+          })));
     })
   );
 });

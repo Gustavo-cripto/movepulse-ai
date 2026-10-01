@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 87;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 89;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -2045,10 +2045,18 @@ function renderSemanaResumo(){
 /* ---------------- Escolher o que se comeu ---------------- */
 
 let procuraEmCurso = null;
+/* Cada abertura da folha de procura tem o seu número. A procura online demora,
+   e quando volta a folha pode já ter dado lugar a outra coisa — sem isto,
+   escrevia em elementos que já não existem e rebentava a meio do registo. */
+let sessaoBusca = 0;
 
 /** A folha que procura o alimento e pergunta a quantidade. */
 function escolherAlimento(refeicao){
   const nome = REFEICOES.find(r => r.id === refeicao)?.nome || 'Refeição';
+  const minhaSessao = ++sessaoBusca;
+  procuraEmCurso?.abort();
+  /** Esta folha ainda é a que está à frente? */
+  const aindaCa = () => minhaSessao === sessaoBusca && !!$('#resultadosAlimentos');
 
   Modal.abrir({
     titulo: nome,
@@ -2077,6 +2085,7 @@ function escolherAlimento(refeicao){
 
   const caixa = $('#buscaAlimento');
   const pintar = lista => {
+    if (!aindaCa()) return;
     $('#resultadosAlimentos').innerHTML = lista.length
       ? lista.map((a, i) => `
         <button class="alimento-op" data-escolher="${i}">
@@ -2092,10 +2101,18 @@ function escolherAlimento(refeicao){
     $('#resultadosAlimentos').dataset.lista = JSON.stringify(lista);
   };
 
+  /** O aviso por baixo da caixa, só enquanto a folha estiver aberta. */
+  const avisar = (html, comoTexto = true) => {
+    if (!aindaCa()) return;
+    const alvo = $('#estadoBusca');
+    if (!alvo) return;
+    if (comoTexto) alvo.textContent = html; else alvo.innerHTML = html;
+  };
+
   // começa pelos que já usaste: é o caso mais comum
   const recentes = (Store.estado.nutricao.meus || []).slice(0, 12);
   pintar(recentes);
-  if (recentes.length) $('#estadoBusca').textContent = 'Os teus alimentos mais recentes.';
+  if (recentes.length) avisar('Os teus alimentos mais recentes.');
 
   let temporizador = null;
   caixa.oninput = () => {
@@ -2105,13 +2122,13 @@ function escolherAlimento(refeicao){
 
     if (termo.length < 2){
       pintar(recentes);
-      $('#estadoBusca').textContent = recentes.length ? 'Os teus alimentos mais recentes.' : '';
+      avisar(recentes.length ? 'Os teus alimentos mais recentes.' : '');
       return;
     }
 
     const locais = procurarAlimentosLocais(termo);
     pintar(locais);
-    $('#estadoBusca').innerHTML = '<span class="a-carregar"></span>a procurar produtos embalados…';
+    avisar('<span class="a-carregar"></span>a procurar produtos embalados…', false);
 
     // a base online só é chamada depois de parares de escrever
     temporizador = setTimeout(async () => {
@@ -2119,19 +2136,20 @@ function escolherAlimento(refeicao){
       procuraEmCurso = controlo;
       try {
         const online = await procurarNoOpenFoodFacts(termo, controlo.signal);
-        if (controlo.signal.aborted) return;
+        if (controlo.signal.aborted || !aindaCa()) return;
         // sem repetidos: o que já é teu tem prioridade
         const vistos = new Set(locais.map(a => normalizar(a.nome)));
         const novos = online.filter(a => !vistos.has(normalizar(a.nome)));
         pintar([...locais, ...novos]);
-        $('#estadoBusca').textContent = novos.length
+        avisar(novos.length
           ? `${novos.length} produtos encontrados na base aberta.`
-          : 'Sem produtos embalados para este termo.';
+          : 'Sem produtos embalados para este termo.');
       } catch (e) {
-        if (controlo.signal.aborted || e.name === 'AbortError') return;
+        if (controlo.signal.aborted || e.name === 'AbortError' || !aindaCa()) return;
         console.warn('procura de alimentos:', e);
-        $('#estadoBusca').textContent =
-          `Sem ligação à base de produtos — ficam os locais. (${e.message})`;
+        avisar(navigator.onLine
+          ? `${esc(e.message)} Ficam os teus e os da tabela.`
+          : 'Sem rede — ficam os teus alimentos e os da tabela.');
       }
     }, 450);
   };
@@ -2149,7 +2167,12 @@ function escolherAlimento(refeicao){
     if (!botao) return;
     const lista = JSON.parse($('#resultadosAlimentos').dataset.lista || '[]');
     const alimento = lista[+botao.dataset.escolher];
-    if (alimento) quantidadeDoAlimento(alimento, refeicao);
+    if (!alimento) return;
+    // a partir daqui a folha de procura morreu: o que vier da rede é ignorado
+    sessaoBusca++;
+    clearTimeout(temporizador);
+    procuraEmCurso?.abort();
+    quantidadeDoAlimento(alimento, refeicao);
   };
 
   $('#ficheiroPrato').onchange = e => {
