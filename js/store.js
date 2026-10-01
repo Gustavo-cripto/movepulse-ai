@@ -35,6 +35,13 @@ const ESTADO_PADRAO = {
     equipamento:[],                      // ids do catálogo; vazio = tudo
     semanas: 6,                          // quantas semanas dura o programa gerado
   },
+  // Diário alimentar. Os dias são guardados à parte, por chave AAAA-MM-DD,
+  // para não se andar a reescrever o histórico todo a cada garfada.
+  nutricao: {
+    dias: {},             // '2026-10-01': { refeicoes:{...}, agua: 0 }
+    meus: [],             // alimentos já usados, para repetir num toque
+    alvoAgua: 2000,       // ml por dia
+  },
   perfil: {
     nome:'', idade:'', altura:'', peso:'', sexo:'', pesoObjetivo:'',
     objetivo:'Hipertrofia (ganho de massa)', experiencia:'Iniciante',
@@ -58,6 +65,9 @@ function carregar(){
       perfil: { ...base.perfil, ...salvo.perfil },
       conversa: salvo.conversa || [],
       pesos: salvo.pesos || [],
+      nutricao: { ...base.nutricao, ...salvo.nutricao,
+        dias: (salvo.nutricao && salvo.nutricao.dias) || {},
+        meus: (salvo.nutricao && salvo.nutricao.meus) || [] },
       planoConfig: { ...base.planoConfig, ...salvo.planoConfig },
       config: { ...base.config, ...salvo.config,
         saude: { ...base.config.saude, ...(salvo.config && salvo.config.saude) },
@@ -280,6 +290,91 @@ const Store = {
       ? { inicio: +inicioDaSemana(new Date()), nome: nome || 'Programa', semanas, focos }
       : null;
     salvar();
+  },
+
+  /* ---------------- Diário alimentar ---------------- */
+
+  /** O dia pedido, criado em branco se ainda não existir. */
+  diaNutricao(chave){
+    const dias = estado.nutricao.dias;
+    if (!dias[chave]) dias[chave] = { refeicoes: {}, agua: 0 };
+    return dias[chave];
+  },
+
+  /** Regista um alimento numa refeição. O que fica guardado são os valores
+      já calculados para aquela quantidade: se a ficha do alimento mudar
+      amanhã, o que comeste ontem continua a ser o que comeste. */
+  adicionarAlimento(chave, refeicao, item){
+    const dia = Store.diaNutricao(chave);
+    (dia.refeicoes[refeicao] ||= []).push(item);
+    Store.lembrarAlimento(item);
+    salvar();
+  },
+
+  removerAlimento(chave, refeicao, indice){
+    const lista = estado.nutricao.dias[chave]?.refeicoes[refeicao];
+    if (!lista) return;
+    lista.splice(indice, 1);
+    if (!lista.length) delete estado.nutricao.dias[chave].refeicoes[refeicao];
+    salvar();
+  },
+
+  /** Guarda o alimento na lista dos usados, para a próxima ser um toque.
+      Os mais recentes ficam à frente; guardamos 80, que chega. */
+  lembrarAlimento(item){
+    if (!item.alimento) return;
+    const meus = estado.nutricao.meus;
+    const igual = a => a.nome === item.alimento.nome && (a.marca || '') === (item.alimento.marca || '');
+    const jaLa = meus.findIndex(igual);
+    if (jaLa !== -1) meus.splice(jaLa, 1);
+    meus.unshift({ ...item.alimento, origem: 'meu' });
+    if (meus.length > 80) meus.length = 80;
+  },
+
+  esquecerAlimento(nome, marca = ''){
+    const meus = estado.nutricao.meus;
+    const n = meus.findIndex(a => a.nome === nome && (a.marca || '') === marca);
+    if (n !== -1){ meus.splice(n, 1); salvar(); }
+  },
+
+  registarAgua(chave, ml){
+    const dia = Store.diaNutricao(chave);
+    dia.agua = Math.max(0, (dia.agua || 0) + ml);
+    salvar();
+  },
+
+  /** Soma de tudo o que foi comido num dia. */
+  totaisDoDia(chave){
+    const dia = estado.nutricao.dias[chave];
+    const total = { kcal:0, prot:0, hc:0, gord:0, itens:0 };
+    if (!dia) return total;
+    for (const lista of Object.values(dia.refeicoes || {})){
+      for (const it of lista){
+        total.kcal += num(it.kcal);
+        total.prot += num(it.prot);
+        total.hc   += num(it.hc);
+        total.gord += num(it.gord);
+        total.itens++;
+      }
+    }
+    total.kcal = Math.round(total.kcal);
+    for (const k of ['prot', 'hc', 'gord']) total[k] = Math.round(total[k] * 10) / 10;
+    return total;
+  },
+
+  /** Copia um dia inteiro para outro — para quem come o mesmo à segunda. */
+  copiarDia(de, para){
+    const fonte = estado.nutricao.dias[de];
+    if (!fonte) return 0;
+    const destino = Store.diaNutricao(para);
+    let n = 0;
+    for (const [refeicao, lista] of Object.entries(fonte.refeicoes || {})){
+      destino.refeicoes[refeicao] = [...(destino.refeicoes[refeicao] || []),
+                                     ...lista.map(x => ({ ...x }))];
+      n += lista.length;
+    }
+    salvar();
+    return n;
   },
 
   exerciciosComHistorico(){

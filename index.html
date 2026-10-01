@@ -13,8 +13,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MovePulse">
-<link rel="stylesheet" href="css/fontes.css?v=83">
-<link rel="stylesheet" href="css/style.css?v=83">
+<link rel="stylesheet" href="css/fontes.css?v=85">
+<link rel="stylesheet" href="css/style.css?v=85">
 </head>
 <body>
 
@@ -276,23 +276,47 @@
   </section>
 
   <!-- ============ NUTRIÇÃO ============ -->
-  <section class="view view--caixa" id="view-nutricao" hidden>
-    <div class="section-head"><h2>Nutrição</h2></div>
-    <p class="muted">Esta parte ainda está por construir. A ideia é acompanhar a alimentação ao lado
-      do treino — e não vale a pena fingir que já faz algo.</p>
+  <section class="view" id="view-nutricao" hidden>
+    <div class="semana" id="semanaNutri"></div>
 
-    <label class="label" style="margin-top:8px">O que está pensado</label>
-    <ul class="lista-planeada">
-      <li><b>Registo de refeições</b><span>o que comeste, sem contar cada grama</span></li>
-      <li><b>Objetivo calórico e proteína</b><span>calculado a partir do teu perfil e treino</span></li>
-      <li><b>Sugestões do treinador</b><span>perguntas sobre alimentação no separador Treinador</span></li>
-      <li><b>Peso ao longo do tempo</b><span>gráfico junto ao progresso do treino</span></li>
-    </ul>
-    <p class="item__meta">Diz-me por onde queres começar e construo essa parte primeiro.</p>
+    <header class="heroi">
+      <p class="kicker" id="nutriData">—</p>
+      <h2 class="ola__nome" id="nutriTitulo">Diário alimentar</h2>
+    </header>
 
-    <div class="aviso">Nutrição toca em saúde: o que for feito aqui serão orientações gerais, não
-      dietas clínicas. Para alimentação em contexto de doença, gravidez ou distúrbio alimentar, o
-      caminho é um nutricionista.</div>
+    <div id="nutriResumo"></div>
+
+    <button class="btn-largo" id="btnNutriAdicionar">
+      <span>Registar refeição</span><span aria-hidden="true">→</span>
+    </button>
+
+    <div class="corpo-inicio">
+      <div class="section-head"><h2>O que comi</h2></div>
+      <div id="nutriRefeicoes"></div>
+
+      <div class="section-head"><h2>Água</h2></div>
+      <div id="nutriAgua"></div>
+
+      <div class="section-head">
+        <h2>Peso</h2>
+        <button class="btn-ligacao" id="nutriIrPeso">Registar</button>
+      </div>
+      <div id="nutriPeso"></div>
+
+      <div class="section-head"><h2>Esta semana</h2></div>
+      <div id="nutriSemana"></div>
+
+      <div class="par-acoes sangra" style="margin-top:18px">
+        <button id="nutriCopiarOntem">Copiar o dia de ontem</button>
+        <button id="nutriLimparDia">Limpar este dia</button>
+      </div>
+
+      <div class="aviso" style="margin-top:18px">Os valores dos alimentos são de
+        referência e variam com a marca e o modo de preparação. Isto serve para
+        acompanhar a tendência, não para pesar ao grama — e não substitui um
+        nutricionista, sobretudo em contexto de doença, gravidez ou distúrbio
+        alimentar.</div>
+    </div>
   </section>
 
   <!-- ============ DEFINIÇÕES ============ -->
@@ -539,17 +563,18 @@
   <button class="btn btn--sm" id="restPular">Saltar</button>
 </div>
 
-<script src="js/data.js?v=83"></script>
-<script src="js/store.js?v=83"></script>
-<script src="js/nuvem.js?v=83"></script>
-<script src="js/saude.js?v=83"></script>
-<script src="js/db.js?v=83"></script>
-<script src="js/ia.js?v=83"></script>
-<script src="js/ui.js?v=83"></script>
-<script src="js/musculos.js?v=83"></script>
-<script src="js/figuras.js?v=83"></script>
-<script src="js/animacao.js?v=83"></script>
-<script src="js/icones.js?v=83"></script>
-<script src="js/app.js?v=83"></script>
+<script src="js/data.js?v=85"></script>
+<script src="js/store.js?v=85"></script>
+<script src="js/nuvem.js?v=85"></script>
+<script src="js/saude.js?v=85"></script>
+<script src="js/db.js?v=85"></script>
+<script src="js/ia.js?v=85"></script>
+<script src="js/ui.js?v=85"></script>
+<script src="js/musculos.js?v=85"></script>
+<script src="js/figuras.js?v=85"></script>
+<script src="js/animacao.js?v=85"></script>
+<script src="js/icones.js?v=85"></script>
+<script src="js/alimentos.js?v=85"></script>
+<script src="js/app.js?v=85"></script>
 </body>
 </html>

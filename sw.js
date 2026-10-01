@@ -1,10 +1,10 @@
 /* Service worker: guarda a app inteira em cache para funcionar offline. */
-const CACHE = 'movepulse-v83';
+const CACHE = 'movepulse-v85';
 const ARQUIVOS = [
   './', './index.html', './css/style.css', './css/fontes.css',
   './fonts/archivo-400.woff2', './fonts/archivo-500.woff2',
   './fonts/archivo-600.woff2', './fonts/archivo-700.woff2',
-  './js/data.js', './js/store.js', './js/nuvem.js', './js/saude.js', './js/figuras.js', './imagens/estacao-multifuncoes.svg', './js/db.js', './js/ia.js', './js/ui.js', './js/musculos.js', './js/animacao.js', './js/icones.js', './js/app.js',
+  './js/data.js', './js/store.js', './js/nuvem.js', './js/saude.js', './js/figuras.js', './imagens/estacao-multifuncoes.svg', './js/db.js', './js/ia.js', './js/ui.js', './js/musculos.js', './js/alimentos.js', './js/animacao.js', './js/icones.js', './js/app.js',
   './manifest.webmanifest',
   './icons/icone-192.png', './icons/icone-512.png',
   './icons/maskable-512.png', './icons/apple-touch-180.png',

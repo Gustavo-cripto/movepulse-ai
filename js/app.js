@@ -2,7 +2,7 @@
    MovePulse AI — app de treinos. Controlador principal dos ecrãs.
    ============================================================ */
 
-const VERSAO_APP = 83;      // sobe a cada publicação, junto com o sw.js
+const VERSAO_APP = 85;      // sobe a cada publicação, junto com o sw.js
 let viewAtual = 'inicio';
 let filtroGrupo = 'Todos';
 let cronoInterval = null;
@@ -80,6 +80,7 @@ function render(){
   if (viewAtual === 'ia')         renderIA();
   if (viewAtual === 'treinos')    renderTreinos();
   if (viewAtual === 'exercicios') renderExercicios();
+  if (viewAtual === 'nutricao')   renderNutricao();
   if (viewAtual === 'fotos')      renderFotos();
   atualizarSubtitulo();
 }
@@ -1537,6 +1538,439 @@ async function enviarPergunta(texto){
 }
 
 /* ============================================================
+   TELA: NUTRIÇÃO
+   ============================================================ */
+const REFEICOES = [
+  { id:'pa', nome:'Pequeno-almoço' },
+  { id:'al', nome:'Almoço' },
+  { id:'la', nome:'Lanche' },
+  { id:'ja', nome:'Jantar' },
+  { id:'ou', nome:'Outros' },
+];
+
+let diaNutri = null;      // chave AAAA-MM-DD do dia em que estamos
+
+/** A refeição provável, pela hora a que se está a registar. */
+function proximaRefeicao(){
+  const h = new Date().getHours();
+  if (diaNutri !== chaveDia(new Date())) return 'al';   // noutro dia, o almoço
+  if (h < 11) return 'pa';
+  if (h < 15) return 'al';
+  if (h < 18) return 'la';
+  if (h < 22) return 'ja';
+  return 'ou';
+}
+
+/** Os alvos do dia. Vêm do perfil, que já calcula as calorias e a proteína;
+    a gordura fica em 27% das calorias e os hidratos levam o resto. */
+function alvosDoDia(){
+  const m = metricasCorpo();
+  if (!m || m.alvoCalorico === null) return null;
+  const kcal = Math.round(m.alvoCalorico);
+  const prot = m.proteina;
+  const gord = Math.round(kcal * 0.27 / 9);
+  const hc = Math.max(0, Math.round((kcal - prot * 4 - gord * 9) / 4));
+  return { kcal, prot, hc, gord };
+}
+
+function renderNutricao(){
+  if (!diaNutri) diaNutri = chaveDia(new Date());
+  renderSemanaNutri();
+  renderResumoNutri();
+  renderRefeicoes();
+  renderAgua();
+  renderPesoNutri();
+  renderSemanaResumo();
+}
+
+/** Tira de sete dias, com marca nos que já têm registo. */
+function renderSemanaNutri(){
+  const hoje = chaveDia(new Date());
+  $('#semanaNutri').innerHTML = Array.from({ length:7 }, (_, i) => {
+    const d = dataDoIndice(i);
+    const chave = chaveDia(d);
+    const total = Store.totaisDoDia(chave);
+    const estado = chave === diaNutri ? 'hoje' : total.itens ? 'tem-plano' : 'sem-treino';
+    return `<button class="dia ${estado}" data-dia-nutri="${chave}" style="--i:${i}"
+              title="${total.itens ? fmtNum(total.kcal) + ' kcal' : 'sem registo'}">
+      <span class="dia__letra">${chave === hoje ? 'Hoje' : LETRAS_DIA[d.getDay()]}</span>
+      <span class="dia__marca">${total.itens ? fmtNum(total.kcal) : d.getDate()}</span>
+    </button>`;
+  }).join('');
+}
+
+/** O cabeçalho: data, calorias do dia e os três macros. */
+function renderResumoNutri(){
+  const [ano, mes, dia] = diaNutri.split('-').map(Number);
+  const data = new Date(ano, mes - 1, dia);
+  const eHoje = diaNutri === chaveDia(new Date());
+  const legivel = data.toLocaleDateString('pt-PT', { weekday:'long', day:'numeric', month:'long' });
+  $('#nutriData').textContent = legivel.charAt(0).toUpperCase() + legivel.slice(1) + (eHoje ? ' · hoje' : '');
+
+  const t = Store.totaisDoDia(diaNutri);
+  const alvo = alvosDoDia();
+  $('#nutriTitulo').textContent = t.itens
+    ? `${fmtNum(t.kcal)} kcal`
+    : 'Nada registado';
+
+  const barra = (feito, meta) => {
+    const pct = meta ? Math.min(100, Math.round(feito / meta * 100)) : 0;
+    const passou = meta && feito > meta;
+    return `<div class="barra"><div class="barra__cheio${passou ? ' passou' : ''}"
+      style="width:${pct}%"></div></div>`;
+  };
+
+  const macro = (rotulo, feito, meta, unidade) => `
+    <div>
+      <span class="stat__valor">${fmtNum(feito)}<span class="un">${unidade}</span></span>
+      <span class="rotulo">${rotulo}${meta ? ` · de ${fmtNum(meta)}` : ''}</span>
+      ${meta ? barra(feito, meta) : ''}
+    </div>`;
+
+  $('#nutriResumo').innerHTML = `
+    ${alvo ? `<div class="nutri-calorias">
+      <div class="item">
+        <span class="rotulo">Calorias</span>
+        <span class="item__meta">${t.kcal > alvo.kcal
+          ? `${fmtNum(t.kcal - alvo.kcal)} kcal acima do alvo`
+          : `faltam ${fmtNum(alvo.kcal - t.kcal)} kcal para o alvo de ${fmtNum(alvo.kcal)}`}</span>
+      </div>
+      ${barra(t.kcal, alvo.kcal)}
+    </div>` : `<p class="item__meta nutri-sem-alvo">Preenche a altura, o peso, a idade e o
+      sexo no perfil e a app calcula o teu alvo de calorias e de proteína.</p>`}
+    <div class="stats-fila stats-fila--macro">
+      ${macro('Proteína', t.prot, alvo?.prot, 'g')}
+      ${macro('Hidratos', t.hc, alvo?.hc, 'g')}
+      ${macro('Gordura', t.gord, alvo?.gord, 'g')}
+    </div>`;
+}
+
+/** As refeições do dia, cada uma com o que lá foi posto. */
+function renderRefeicoes(){
+  const dia = Store.estado.nutricao.dias[diaNutri];
+  $('#nutriRefeicoes').innerHTML = REFEICOES.map(r => {
+    const itens = dia?.refeicoes?.[r.id] || [];
+    const kcal = itens.reduce((t, i) => t + num(i.kcal), 0);
+    return `
+      <div class="refeicao">
+        <button class="refeicao__topo" data-add-refeicao="${r.id}">
+          <span>
+            <strong>${r.nome}</strong>
+            ${itens.length ? `<span class="item__meta">${itens.length} ${
+              itens.length === 1 ? 'alimento' : 'alimentos'}</span>` : ''}
+          </span>
+          <span class="refeicao__kcal">${kcal ? fmtNum(Math.round(kcal)) + ' kcal' : '+'}</span>
+        </button>
+        ${itens.map((it, n) => `
+          <div class="alimento-linha">
+            <span>
+              <strong>${esc(it.nome)}</strong>
+              ${it.marca ? `<span class="alimento-marca">${esc(it.marca)}</span>` : ''}
+              <span class="item__meta">${fmtNum(it.g)} g · ${fmtNum(it.prot)} P ·
+                ${fmtNum(it.hc)} H · ${fmtNum(it.gord)} G</span>
+            </span>
+            <span class="alimento-kcal">${fmtNum(it.kcal)}</span>
+            <button class="icon-btn" data-rm-alimento="${r.id}:${n}"
+                    aria-label="Remover ${esc(it.nome)}">${ico('lixo')}</button>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
+function renderAgua(){
+  const dia = Store.estado.nutricao.dias[diaNutri];
+  const bebida = dia?.agua || 0;
+  const alvo = Store.estado.nutricao.alvoAgua || 2000;
+  const copos = Math.round(alvo / 250);
+  const cheios = Math.floor(bebida / 250);
+
+  $('#nutriAgua').innerHTML = `
+    <div class="item">
+      <div>
+        <span class="stat__valor">${(bebida / 1000).toFixed(1).replace('.', ',')}<span class="un">L</span></span>
+        <p class="item__meta">de ${(alvo / 1000).toFixed(1).replace('.', ',')} litros</p>
+      </div>
+    </div>
+    <div class="copos">${Array.from({ length: copos }, (_, i) =>
+      `<span class="copo ${i < cheios ? 'cheio' : ''}"></span>`).join('')}</div>
+    <div class="par-acoes sangra" style="margin-top:12px">
+      <button data-agua="250">+ 1 copo</button>
+      <button data-agua="500">+ Garrafa</button>
+      <button data-agua="-250">− 1 copo</button>
+    </div>`;
+}
+
+/** O peso não se duplica: mostra-se o que já existe e manda-se para o perfil. */
+function renderPesoNutri(){
+  const pesos = Store.estado.pesos;
+  const atual = num(Store.estado.perfil.peso);
+  const objetivo = num(Store.estado.perfil.pesoObjetivo);
+  const primeiro = pesos.length ? num(pesos[0].kg) : null;
+  const perdido = primeiro !== null && atual ? primeiro - atual : null;
+
+  if (!atual){
+    $('#nutriPeso').innerHTML = '<p class="empty">Ainda não registaste o teu peso.</p>';
+    return;
+  }
+
+  $('#nutriPeso').innerHTML = `
+    <div class="stats-fila">
+      <div>
+        <span class="stat__valor">${fmtPeso(atual)}<span class="un">kg</span></span>
+        <span class="rotulo">agora</span>
+      </div>
+      <div>
+        <span class="stat__valor">${perdido ? (perdido > 0 ? '−' : '+') + fmtPeso(Math.abs(perdido)) : '—'}${
+          perdido ? '<span class="un">kg</span>' : ''}</span>
+        <span class="rotulo">desde o início</span>
+      </div>
+      <div>
+        <span class="stat__valor">${objetivo ? fmtPeso(Math.abs(atual - objetivo)) : '—'}${
+          objetivo ? '<span class="un">kg</span>' : ''}</span>
+        <span class="rotulo">${objetivo ? 'por fazer' : 'sem objetivo'}</span>
+      </div>
+    </div>`;
+}
+
+/** Barras das calorias dos sete dias da semana. */
+function renderSemanaResumo(){
+  const dias = Array.from({ length:7 }, (_, i) => {
+    const d = dataDoIndice(i);
+    return { d, total: Store.totaisDoDia(chaveDia(d)) };
+  });
+  const alvo = alvosDoDia();
+  const maximo = Math.max(alvo?.kcal || 0, ...dias.map(x => x.total.kcal), 1);
+  const comRegisto = dias.filter(x => x.total.itens);
+  const media = comRegisto.length
+    ? Math.round(comRegisto.reduce((t, x) => t + x.total.kcal, 0) / comRegisto.length)
+    : 0;
+
+  $('#nutriSemana').innerHTML = `
+    <div class="volumes" style="padding-left:0;padding-right:0">
+      <div class="volumes__barras">
+        ${dias.map(x => `<i class="${x.total.kcal > (alvo?.kcal || Infinity) ? 'penultima' : 'atual'}"
+          style="height:${Math.max(2, Math.round(x.total.kcal / maximo * 88))}px"
+          title="${LETRAS_DIA[x.d.getDay()]}: ${fmtNum(x.total.kcal)} kcal"></i>`).join('')}
+      </div>
+      <p class="volumes__legenda">${comRegisto.length
+        ? `média de ${fmtNum(media)} kcal nos ${comRegisto.length} dias registados${
+            alvo ? ` · alvo ${fmtNum(alvo.kcal)}` : ''}`
+        : 'Sem registos esta semana.'}</p>
+    </div>`;
+}
+
+/* ---------------- Escolher o que se comeu ---------------- */
+
+let procuraEmCurso = null;
+
+/** A folha que procura o alimento e pergunta a quantidade. */
+function escolherAlimento(refeicao){
+  const nome = REFEICOES.find(r => r.id === refeicao)?.nome || 'Refeição';
+
+  Modal.abrir({
+    titulo: nome,
+    corpo: `
+      <input class="input" id="buscaAlimento" type="search" autocomplete="off"
+             placeholder="O que comeste? Ex.: frango, arroz, iogurte…">
+      <p class="item__meta" id="estadoBusca"></p>
+      <div id="resultadosAlimentos" class="stack"></div>`,
+    acoes: [
+      { texto:'Fechar', onClick: Modal.fechar },
+      { texto:'Criar alimento', classe:'btn--primary', onClick(){ criarAlimento(refeicao); } },
+    ],
+  });
+
+  const caixa = $('#buscaAlimento');
+  const pintar = lista => {
+    $('#resultadosAlimentos').innerHTML = lista.length
+      ? lista.map((a, i) => `
+        <button class="alimento-op" data-escolher="${i}">
+          <span>
+            <strong>${esc(a.nome)}</strong>
+            ${a.marca ? `<span class="alimento-marca">${esc(a.marca)}</span>` : ''}
+            <span class="item__meta">${fmtNum(a.kcal)} kcal · ${fmtNum(a.prot)} g de proteína
+              · por 100 g</span>
+          </span>
+          ${a.origem === 'meu' ? '<span class="tag">usado</span>' : ''}
+        </button>`).join('')
+      : '<p class="empty">Nada encontrado. Podes criar o alimento à mão.</p>';
+    $('#resultadosAlimentos').dataset.lista = JSON.stringify(lista);
+  };
+
+  // começa pelos que já usaste: é o caso mais comum
+  const recentes = (Store.estado.nutricao.meus || []).slice(0, 12);
+  pintar(recentes);
+  if (recentes.length) $('#estadoBusca').textContent = 'Os teus alimentos mais recentes.';
+
+  let temporizador = null;
+  caixa.oninput = () => {
+    const termo = caixa.value.trim();
+    clearTimeout(temporizador);
+    procuraEmCurso?.abort();
+
+    if (termo.length < 2){
+      pintar(recentes);
+      $('#estadoBusca').textContent = recentes.length ? 'Os teus alimentos mais recentes.' : '';
+      return;
+    }
+
+    const locais = procurarAlimentosLocais(termo);
+    pintar(locais);
+    $('#estadoBusca').innerHTML = '<span class="a-carregar"></span>a procurar produtos embalados…';
+
+    // a base online só é chamada depois de parares de escrever
+    temporizador = setTimeout(async () => {
+      const controlo = new AbortController();
+      procuraEmCurso = controlo;
+      try {
+        const online = await procurarNoOpenFoodFacts(termo, controlo.signal);
+        if (controlo.signal.aborted) return;
+        // sem repetidos: o que já é teu tem prioridade
+        const vistos = new Set(locais.map(a => normalizar(a.nome)));
+        const novos = online.filter(a => !vistos.has(normalizar(a.nome)));
+        pintar([...locais, ...novos]);
+        $('#estadoBusca').textContent = novos.length
+          ? `${novos.length} produtos encontrados na base aberta.`
+          : 'Sem produtos embalados para este termo.';
+      } catch (e) {
+        if (controlo.signal.aborted || e.name === 'AbortError') return;
+        console.warn('procura de alimentos:', e);
+        $('#estadoBusca').textContent =
+          `Sem ligação à base de produtos — ficam os locais. (${e.message})`;
+      }
+    }, 450);
+  };
+
+  $('#modalCorpo').onclick = e => {
+    const botao = e.target.closest('[data-escolher]');
+    if (!botao) return;
+    const lista = JSON.parse($('#resultadosAlimentos').dataset.lista || '[]');
+    const alimento = lista[+botao.dataset.escolher];
+    if (alimento) quantidadeDoAlimento(alimento, refeicao);
+  };
+
+  setTimeout(() => caixa.focus(), 120);
+}
+
+/** Quanto é que comeste disto. */
+function quantidadeDoAlimento(alimento, refeicao){
+  let gramas = alimento.porcao || 100;
+
+  Modal.abrir({
+    titulo: alimento.nome,
+    corpo: `
+      ${alimento.marca ? `<p class="item__meta">${esc(alimento.marca)}</p>` : ''}
+      <label class="label" style="margin-top:14px">Quantidade</label>
+      <div class="serie-campo quantidade">
+        <button class="serie-passo" data-g="-50" aria-label="Menos 50 gramas">−</button>
+        <input class="serie-valor" id="qtdAlimento" type="number" inputmode="decimal"
+               min="0" step="5" value="${gramas}">
+        <span class="quantidade__un">g</span>
+        <button class="serie-passo" data-g="50" aria-label="Mais 50 gramas">+</button>
+      </div>
+      ${alimento.porcao ? `<div class="pastilhas" style="margin-top:12px">
+        <button class="pastilha" data-g-fixo="${alimento.porcao}">${esc(alimento.medida || 'porção')}
+          · ${fmtNum(alimento.porcao)} g</button>
+        <button class="pastilha" data-g-fixo="100">100 g</button>
+      </div>` : ''}
+      <div class="stats-fila" id="previaAlimento" style="margin-top:18px"></div>`,
+    acoes: [
+      { texto:'‹ Voltar', onClick(){ escolherAlimento(refeicao); } },
+      { texto:'Adicionar', classe:'btn--primary', onClick(){
+          const g = num($('#qtdAlimento').value);
+          if (!g) return toast('Indica a quantidade.');
+          const v = porQuantidade(alimento, g);
+          Store.adicionarAlimento(diaNutri, refeicao, {
+            nome: alimento.nome, marca: alimento.marca || '', g, ...v,
+            alimento: { nome:alimento.nome, marca:alimento.marca || '', kcal:alimento.kcal,
+                        prot:alimento.prot, hc:alimento.hc, gord:alimento.gord,
+                        porcao:alimento.porcao, medida:alimento.medida },
+          });
+          Modal.fechar();
+          renderNutricao();
+          toast(`${alimento.nome} · ${fmtNum(v.kcal)} kcal`);
+        } },
+    ],
+  });
+
+  const previa = () => {
+    const g = num($('#qtdAlimento').value);
+    const v = porQuantidade(alimento, g);
+    $('#previaAlimento').innerHTML = `
+      <div><span class="stat__valor">${fmtNum(v.kcal)}</span><span class="rotulo">kcal</span></div>
+      <div><span class="stat__valor">${fmtNum(v.prot)}</span><span class="rotulo">proteína</span></div>
+      <div><span class="stat__valor">${fmtNum(v.hc)}</span><span class="rotulo">hidratos</span></div>
+      <div><span class="stat__valor">${fmtNum(v.gord)}</span><span class="rotulo">gordura</span></div>`;
+  };
+  previa();
+
+  $('#qtdAlimento').oninput = previa;
+  $('#modalCorpo').onclick = e => {
+    const passo = e.target.closest('[data-g]');
+    if (passo){
+      $('#qtdAlimento').value = Math.max(0, num($('#qtdAlimento').value) + +passo.dataset.g);
+      return previa();
+    }
+    const fixo = e.target.closest('[data-g-fixo]');
+    if (fixo){
+      $('#qtdAlimento').value = fixo.dataset.gFixo;
+      previa();
+    }
+  };
+}
+
+/** Para o que não está em lado nenhum: escreve-se à mão. */
+function criarAlimento(refeicao){
+  Modal.abrir({
+    titulo:'Novo alimento',
+    corpo: `
+      <p class="item__meta">Os valores são por 100 g ou 100 ml, como vêm no rótulo.</p>
+      <div class="field" style="margin-top:14px">
+        <label class="label" for="aNome">Nome</label>
+        <input class="input" id="aNome" placeholder="Ex.: Iogurte de aveia">
+      </div>
+      <div class="field">
+        <label class="label" for="aMarca">Marca (opcional)</label>
+        <input class="input" id="aMarca" placeholder="Ex.: Continente">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label" for="aKcal">Calorias</label>
+          <input class="input" type="number" inputmode="decimal" id="aKcal" placeholder="kcal">
+        </div>
+        <div class="field">
+          <label class="label" for="aProt">Proteína</label>
+          <input class="input" type="number" inputmode="decimal" id="aProt" placeholder="g">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="label" for="aHc">Hidratos</label>
+          <input class="input" type="number" inputmode="decimal" id="aHc" placeholder="g">
+        </div>
+        <div class="field">
+          <label class="label" for="aGord">Gordura</label>
+          <input class="input" type="number" inputmode="decimal" id="aGord" placeholder="g">
+        </div>
+      </div>`,
+    acoes: [
+      { texto:'‹ Voltar', onClick(){ escolherAlimento(refeicao); } },
+      { texto:'Continuar', classe:'btn--primary', onClick(){
+          const nome = $('#aNome').value.trim();
+          const kcal = num($('#aKcal').value);
+          if (!nome) return toast('Dá um nome ao alimento.');
+          if (!kcal) return toast('Indica as calorias por 100 g.');
+          quantidadeDoAlimento({
+            nome, marca: $('#aMarca').value.trim(), kcal,
+            prot: num($('#aProt').value), hc: num($('#aHc').value), gord: num($('#aGord').value),
+            porcao: 100, medida: '100 g', origem: 'meu',
+          }, refeicao);
+        } },
+    ],
+  });
+}
+
+/* ============================================================
    TELA: PERFIL
    ============================================================ */
 function renderPerfil(){
@@ -2875,6 +3309,49 @@ function ligarEventos(){
     fotosGinasio.splice(+btn.dataset.rmFoto, 1);
     renderFotos();
   };
+
+  // Nutrição
+  $op('#semanaNutri').onclick = e => {
+    const d = e.target.closest('[data-dia-nutri]');
+    if (!d) return;
+    diaNutri = d.dataset.diaNutri;
+    renderNutricao();
+  };
+  $op('#btnNutriAdicionar').onclick = () => escolherAlimento(proximaRefeicao());
+  $op('#nutriRefeicoes').onclick = e => {
+    const juntar = e.target.closest('[data-add-refeicao]');
+    if (juntar) return escolherAlimento(juntar.dataset.addRefeicao);
+
+    const tirar = e.target.closest('[data-rm-alimento]');
+    if (tirar){
+      const [refeicao, n] = tirar.dataset.rmAlimento.split(':');
+      Store.removerAlimento(diaNutri, refeicao, +n);
+      renderNutricao();
+    }
+  };
+  $op('#nutriAgua').onclick = e => {
+    const copo = e.target.closest('[data-agua]');
+    if (!copo) return;
+    Store.registarAgua(diaNutri, +copo.dataset.agua);
+    renderAgua();
+  };
+  $op('#nutriIrPeso').onclick = registarPesoHoje;
+  $op('#nutriCopiarOntem').onclick = () => {
+    const d = new Date(diaNutri + 'T12:00');
+    d.setDate(d.getDate() - 1);
+    const n = Store.copiarDia(chaveDia(d), diaNutri);
+    renderNutricao();
+    toast(n ? `${n} ${n === 1 ? 'alimento copiado' : 'alimentos copiados'}.`
+            : 'Ontem não tem nada registado.');
+  };
+  $op('#nutriLimparDia').onclick = () => confirmar(
+    'Apagar tudo o que está registado neste dia?',
+    () => {
+      delete Store.estado.nutricao.dias[diaNutri];
+      Store.salvar();
+      renderNutricao();
+      toast('Dia limpo.');
+    }, 'Apagar');
 
   // Semana
   $op('#btnHistorico').onclick = historicoCompleto;
