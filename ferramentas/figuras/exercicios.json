@@ -1,0 +1,2720 @@
+{
+ "bench-press": {
+  "slug": "bench-press",
+  "id": "suo-reto",
+  "nome": "Supino reto com barra",
+  "grupo": "Peito",
+  "equip": "Barra",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "bench press"
+ },
+ "incline-dumbbell-press": {
+  "slug": "incline-dumbbell-press",
+  "id": "sup-incl-hal",
+  "nome": "Supino inclinado com halteres",
+  "grupo": "Peito",
+  "equip": "Halteres",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "incline dumbbell press"
+ },
+ "decline-bench-press": {
+  "slug": "decline-bench-press",
+  "id": "sup-decl",
+  "nome": "Supino declinado",
+  "grupo": "Peito",
+  "equip": "Barra",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "decline bench press"
+ },
+ "dumbbell-fly": {
+  "slug": "dumbbell-fly",
+  "id": "crucifixo",
+  "nome": "Crucifixo com halteres",
+  "grupo": "Peito",
+  "equip": "Halteres",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "dumbbell fly"
+ },
+ "cable-fly": {
+  "slug": "cable-fly",
+  "id": "crossover",
+  "nome": "Crossover na polia",
+  "grupo": "Peito",
+  "equip": "Polia",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "cable fly"
+ },
+ "push-up": {
+  "slug": "push-up",
+  "id": "flexao",
+  "nome": "Flexão de braço",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "push up"
+ },
+ "pec-deck": {
+  "slug": "pec-deck",
+  "id": "peck-deck",
+  "nome": "Peck deck (voador)",
+  "grupo": "Peito",
+  "equip": "Máquina",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "pec deck"
+ },
+ "pull-up": {
+  "slug": "pull-up",
+  "id": "barra-fixa",
+  "nome": "Barra fixa",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "pull up"
+ },
+ "lat-pulldown": {
+  "slug": "lat-pulldown",
+  "id": "puxada-frente",
+  "nome": "Puxada frontal",
+  "grupo": "Costas",
+  "equip": "Polia",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "lat pulldown"
+ },
+ "barbell-row": {
+  "slug": "barbell-row",
+  "id": "remada-curv",
+  "nome": "Remada curvada com barra",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "barbell row"
+ },
+ "one-arm-dumbbell-row": {
+  "slug": "one-arm-dumbbell-row",
+  "id": "remada-uni",
+  "nome": "Remada unilateral (serrote)",
+  "grupo": "Costas",
+  "equip": "Halteres",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "one arm dumbbell row"
+ },
+ "seated-row": {
+  "slug": "seated-row",
+  "id": "remada-baixa",
+  "nome": "Remada baixa na polia",
+  "grupo": "Costas",
+  "equip": "Polia",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "seated row"
+ },
+ "deadlift": {
+  "slug": "deadlift",
+  "id": "levantamento",
+  "nome": "Levantamento terra",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "deadlift"
+ },
+ "straight-arm-pulldown": {
+  "slug": "straight-arm-pulldown",
+  "id": "pulldown",
+  "nome": "Pullover na polia",
+  "grupo": "Costas",
+  "equip": "Polia",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "straight arm pulldown"
+ },
+ "squat": {
+  "slug": "squat",
+  "id": "agachamento",
+  "nome": "Agachamento livre",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "squat"
+ },
+ "leg-press": {
+  "slug": "leg-press",
+  "id": "leg-press",
+  "nome": "Leg press 45°",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "leg press"
+ },
+ "leg-extension": {
+  "slug": "leg-extension",
+  "id": "ext-joelhos",
+  "nome": "Cadeira extensora",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "leg extension"
+ },
+ "lying-leg-curl": {
+  "slug": "lying-leg-curl",
+  "id": "flex-joelhos",
+  "nome": "Mesa flexora",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "lying leg curl"
+ },
+ "romanian-deadlift": {
+  "slug": "romanian-deadlift",
+  "id": "stiff",
+  "nome": "Stiff com barra",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "romanian deadlift"
+ },
+ "walking-lunge": {
+  "slug": "walking-lunge",
+  "id": "afundo",
+  "nome": "Afundo com halteres",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "walking lunge"
+ },
+ "bulgarian-split-squat": {
+  "slug": "bulgarian-split-squat",
+  "id": "bulgaro",
+  "nome": "Agachamento búlgaro",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "bulgarian split squat"
+ },
+ "standing-calf-raise": {
+  "slug": "standing-calf-raise",
+  "id": "panturrilha",
+  "nome": "Gémeos em pé",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "standing calf raise"
+ },
+ "hip-thrust": {
+  "slug": "hip-thrust",
+  "id": "hip-thrust",
+  "nome": "Elevação pélvica (hip thrust)",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "hip thrust"
+ },
+ "hip-abduction-machine": {
+  "slug": "hip-abduction-machine",
+  "id": "cadeira-abd",
+  "nome": "Cadeira abdutora",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "hip abduction machine"
+ },
+ "seated-dumbbell-press": {
+  "slug": "seated-dumbbell-press",
+  "id": "desenvolv",
+  "nome": "Desenvolvimento com halteres",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "seated dumbbell press"
+ },
+ "overhead-press": {
+  "slug": "overhead-press",
+  "id": "desenvolv-mil",
+  "nome": "Desenvolvimento militar",
+  "grupo": "Ombros",
+  "equip": "Barra",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "overhead press"
+ },
+ "lateral-raise": {
+  "slug": "lateral-raise",
+  "id": "elev-lateral",
+  "nome": "Elevação lateral",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "lateral raise"
+ },
+ "front-raise": {
+  "slug": "front-raise",
+  "id": "elev-frontal",
+  "nome": "Elevação frontal",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "front raise"
+ },
+ "rear-delt-fly": {
+  "slug": "rear-delt-fly",
+  "id": "crucifixo-inv",
+  "nome": "Crucifixo inverso",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "rear delt fly"
+ },
+ "upright-row": {
+  "slug": "upright-row",
+  "id": "remada-alta",
+  "nome": "Remada alta",
+  "grupo": "Ombros",
+  "equip": "Barra",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "upright row"
+ },
+ "dumbbell-shrug": {
+  "slug": "dumbbell-shrug",
+  "id": "encolhimento",
+  "nome": "Encolhimento de ombros",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "dumbbell shrug"
+ },
+ "ez-bar-curl": {
+  "slug": "ez-bar-curl",
+  "id": "rosca-direta",
+  "nome": "Rosca direta com barra",
+  "grupo": "Bíceps",
+  "equip": "Barra",
+  "musculo": "biceps brachii",
+  "nome_en": "ez bar curl"
+ },
+ "bicep-curl": {
+  "slug": "bicep-curl",
+  "id": "rosca-alt",
+  "nome": "Rosca alternada",
+  "grupo": "Bíceps",
+  "equip": "Halteres",
+  "musculo": "biceps brachii",
+  "nome_en": "bicep curl"
+ },
+ "hammer-curl": {
+  "slug": "hammer-curl",
+  "id": "rosca-martelo",
+  "nome": "Rosca martelo",
+  "grupo": "Bíceps",
+  "equip": "Halteres",
+  "musculo": "biceps brachii",
+  "nome_en": "hammer curl"
+ },
+ "preacher-curl": {
+  "slug": "preacher-curl",
+  "id": "rosca-scott",
+  "nome": "Rosca scott",
+  "grupo": "Bíceps",
+  "equip": "Máquina",
+  "musculo": "biceps brachii",
+  "nome_en": "preacher curl"
+ },
+ "concentration-curl": {
+  "slug": "concentration-curl",
+  "id": "rosca-conc",
+  "nome": "Rosca concentrada",
+  "grupo": "Bíceps",
+  "equip": "Halteres",
+  "musculo": "biceps brachii",
+  "nome_en": "concentration curl"
+ },
+ "rope-tricep-pushdown": {
+  "slug": "rope-tricep-pushdown",
+  "id": "triceps-polia",
+  "nome": "Tríceps na polia (corda)",
+  "grupo": "Tríceps",
+  "equip": "Polia",
+  "musculo": "triceps brachii",
+  "nome_en": "rope tricep pushdown"
+ },
+ "skull-crusher": {
+  "slug": "skull-crusher",
+  "id": "triceps-testa",
+  "nome": "Tríceps testa",
+  "grupo": "Tríceps",
+  "equip": "Barra",
+  "musculo": "triceps brachii",
+  "nome_en": "skull crusher"
+ },
+ "dumbbell-overhead-tricep-extension": {
+  "slug": "dumbbell-overhead-tricep-extension",
+  "id": "triceps-franc",
+  "nome": "Tríceps francês",
+  "grupo": "Tríceps",
+  "equip": "Halteres",
+  "musculo": "triceps brachii",
+  "nome_en": "dumbbell overhead tricep extension"
+ },
+ "bench-dip": {
+  "slug": "bench-dip",
+  "id": "mergulho",
+  "nome": "Mergulho no banco",
+  "grupo": "Tríceps",
+  "equip": "Peso corporal",
+  "musculo": "triceps brachii",
+  "nome_en": "bench dip"
+ },
+ "dip": {
+  "slug": "dip",
+  "id": "paralelas",
+  "nome": "Paralelas",
+  "grupo": "Tríceps",
+  "equip": "Peso corporal",
+  "musculo": "triceps brachii",
+  "nome_en": "dip"
+ },
+ "plank": {
+  "slug": "plank",
+  "id": "prancha",
+  "nome": "Prancha isométrica",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "plank"
+ },
+ "crunch": {
+  "slug": "crunch",
+  "id": "abd-supra",
+  "nome": "Abdominal",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "crunch"
+ },
+ "lying-leg-raise": {
+  "slug": "lying-leg-raise",
+  "id": "elev-pernas",
+  "nome": "Elevação de pernas",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "lying leg raise"
+ },
+ "bicycle-crunch": {
+  "slug": "bicycle-crunch",
+  "id": "abd-obliquo",
+  "nome": "Abdominal oblíquo",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "bicycle crunch"
+ },
+ "ab-wheel": {
+  "slug": "ab-wheel",
+  "id": "roda-abd",
+  "nome": "Roda abdominal",
+  "grupo": "Abdómen",
+  "equip": "Acessório",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "ab wheel"
+ },
+ "running": {
+  "slug": "running",
+  "id": "esteira",
+  "nome": "Passadeira",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "running"
+ },
+ "cycling": {
+  "slug": "cycling",
+  "id": "bike",
+  "nome": "Bicicleta",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "cycling"
+ },
+ "elliptical": {
+  "slug": "elliptical",
+  "id": "eliptico",
+  "nome": "Elíptica",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "elliptical"
+ },
+ "jump-rope": {
+  "slug": "jump-rope",
+  "id": "corda",
+  "nome": "Saltar à corda",
+  "grupo": "Cardio",
+  "equip": "Acessório",
+  "musculo": "quadriceps and calves",
+  "nome_en": "jump rope"
+ },
+ "rowing": {
+  "slug": "rowing",
+  "id": "remo-ergo",
+  "nome": "Remo",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "rowing"
+ },
+ "weighted-crunch": {
+  "slug": "weighted-crunch",
+  "id": "weighted-crunch",
+  "nome": "Abdominal com disco",
+  "grupo": "Abdómen",
+  "equip": "Acessório",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "weighted crunch"
+ },
+ "reverse-crunch": {
+  "slug": "reverse-crunch",
+  "id": "reverse-crunch",
+  "nome": "Abdominal invertido",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "reverse crunch"
+ },
+ "cable-crunch": {
+  "slug": "cable-crunch",
+  "id": "cable-crunch",
+  "nome": "Abdominal na polia",
+  "grupo": "Abdómen",
+  "equip": "Polia",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "cable crunch"
+ },
+ "decline-sit-up": {
+  "slug": "decline-sit-up",
+  "id": "decline-sit-up",
+  "nome": "Abdominal no banco declinado",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "decline sit up"
+ },
+ "mountain-climber": {
+  "slug": "mountain-climber",
+  "id": "mountain-climber",
+  "nome": "Alpinista",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "mountain climber"
+ },
+ "bird-dog": {
+  "slug": "bird-dog",
+  "id": "bird-dog",
+  "nome": "Bird dog",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "bird dog"
+ },
+ "dead-bug": {
+  "slug": "dead-bug",
+  "id": "dead-bug",
+  "nome": "Dead bug",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "dead bug"
+ },
+ "banded-dead-bug": {
+  "slug": "banded-dead-bug",
+  "id": "banded-dead-bug",
+  "nome": "Dead bug com elástico",
+  "grupo": "Abdómen",
+  "equip": "Elástico",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "banded dead bug"
+ },
+ "dragon-flag": {
+  "slug": "dragon-flag",
+  "id": "dragon-flag",
+  "nome": "Dragon flag",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "dragon flag"
+ },
+ "captains-chair-knee-raise": {
+  "slug": "captains-chair-knee-raise",
+  "id": "captains-chair-knee-raise",
+  "nome": "Elevação de joelhos na cadeira romana",
+  "grupo": "Abdómen",
+  "equip": "Máquina",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "captains chair knee raise"
+ },
+ "hanging-knee-raise": {
+  "slug": "hanging-knee-raise",
+  "id": "hanging-knee-raise",
+  "nome": "Elevação de joelhos suspenso",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "hanging knee raise"
+ },
+ "hanging-leg-raise": {
+  "slug": "hanging-leg-raise",
+  "id": "hanging-leg-raise",
+  "nome": "Elevação de pernas suspenso",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "hanging leg raise"
+ },
+ "seated-knee-tuck": {
+  "slug": "seated-knee-tuck",
+  "id": "seated-knee-tuck",
+  "nome": "Encolhimento sentado",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "seated knee tuck"
+ },
+ "push-up-shoulder-tap": {
+  "slug": "push-up-shoulder-tap",
+  "id": "push-up-shoulder-tap",
+  "nome": "Flexão com toque no ombro",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "push up shoulder tap"
+ },
+ "dumbbell-side-bend": {
+  "slug": "dumbbell-side-bend",
+  "id": "dumbbell-side-bend",
+  "nome": "Flexão lateral com haltere",
+  "grupo": "Abdómen",
+  "equip": "Halteres",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "dumbbell side bend"
+ },
+ "hollow-body-hold": {
+  "slug": "hollow-body-hold",
+  "id": "hollow-body-hold",
+  "nome": "Hollow hold",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "hollow body hold"
+ },
+ "hollow-rock": {
+  "slug": "hollow-rock",
+  "id": "hollow-rock",
+  "nome": "Hollow rock",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "hollow rock"
+ },
+ "l-sit-hold": {
+  "slug": "l-sit-hold",
+  "id": "l-sit-hold",
+  "nome": "L-sit",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "l sit hold"
+ },
+ "inchworm": {
+  "slug": "inchworm",
+  "id": "inchworm",
+  "nome": "Lagarta",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "inchworm"
+ },
+ "banded-woodchop": {
+  "slug": "banded-woodchop",
+  "id": "banded-woodchop",
+  "nome": "Lenhador com elástico",
+  "grupo": "Abdómen",
+  "equip": "Elástico",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "banded woodchop"
+ },
+ "cable-woodchop": {
+  "slug": "cable-woodchop",
+  "id": "cable-woodchop",
+  "nome": "Lenhador na polia",
+  "grupo": "Abdómen",
+  "equip": "Polia",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "cable woodchop"
+ },
+ "bear-crawl": {
+  "slug": "bear-crawl",
+  "id": "bear-crawl",
+  "nome": "Marcha do urso",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "bear crawl"
+ },
+ "half-burpee": {
+  "slug": "half-burpee",
+  "id": "half-burpee",
+  "nome": "Meio burpee",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "half burpee"
+ },
+ "cable-pallof-hold": {
+  "slug": "cable-pallof-hold",
+  "id": "cable-pallof-hold",
+  "nome": "Pallof isométrico na polia",
+  "grupo": "Abdómen",
+  "equip": "Polia",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "cable pallof hold"
+ },
+ "pallof-press": {
+  "slug": "pallof-press",
+  "id": "pallof-press",
+  "nome": "Pallof press",
+  "grupo": "Abdómen",
+  "equip": "Polia",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "pallof press"
+ },
+ "banded-pallof-press": {
+  "slug": "banded-pallof-press",
+  "id": "banded-pallof-press",
+  "nome": "Pallof press com elástico",
+  "grupo": "Abdómen",
+  "equip": "Elástico",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "banded pallof press"
+ },
+ "half-kneeling-pallof-press": {
+  "slug": "half-kneeling-pallof-press",
+  "id": "half-kneeling-pallof-press",
+  "nome": "Pallof press meio ajoelhado",
+  "grupo": "Abdómen",
+  "equip": "Polia",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "half kneeling pallof press"
+ },
+ "flutter-kick": {
+  "slug": "flutter-kick",
+  "id": "flutter-kick",
+  "nome": "Pernada alternada",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "flutter kick"
+ },
+ "plank-jack": {
+  "slug": "plank-jack",
+  "id": "plank-jack",
+  "nome": "Prancha com salto",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "plank jack"
+ },
+ "plank-shoulder-tap": {
+  "slug": "plank-shoulder-tap",
+  "id": "plank-shoulder-tap",
+  "nome": "Prancha com toque no ombro",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "plank shoulder tap"
+ },
+ "copenhagen-plank": {
+  "slug": "copenhagen-plank",
+  "id": "copenhagen-plank",
+  "nome": "Prancha de Copenhaga",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "copenhagen plank"
+ },
+ "bear-plank": {
+  "slug": "bear-plank",
+  "id": "bear-plank",
+  "nome": "Prancha do urso",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "bear plank"
+ },
+ "side-plank": {
+  "slug": "side-plank",
+  "id": "side-plank",
+  "nome": "Prancha lateral",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "side plank"
+ },
+ "side-plank-hip-dip": {
+  "slug": "side-plank-hip-dip",
+  "id": "side-plank-hip-dip",
+  "nome": "Prancha lateral com descida da anca",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "side plank hip dip"
+ },
+ "russian-twist": {
+  "slug": "russian-twist",
+  "id": "russian-twist",
+  "nome": "Rotação russa",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "russian twist"
+ },
+ "weighted-russian-twist": {
+  "slug": "weighted-russian-twist",
+  "id": "weighted-russian-twist",
+  "nome": "Rotação russa com peso",
+  "grupo": "Abdómen",
+  "equip": "Halteres",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "weighted russian twist"
+ },
+ "squat-thrust": {
+  "slug": "squat-thrust",
+  "id": "squat-thrust",
+  "nome": "Squat thrust",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "squat thrust"
+ },
+ "heel-tap": {
+  "slug": "heel-tap",
+  "id": "heel-tap",
+  "nome": "Toque nos calcanhares",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "heel tap"
+ },
+ "toe-touch": {
+  "slug": "toe-touch",
+  "id": "toe-touch",
+  "nome": "Toque nos pés",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "toe touch"
+ },
+ "v-up": {
+  "slug": "v-up",
+  "id": "v-up",
+  "nome": "V-up",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "v up"
+ },
+ "chin-up": {
+  "slug": "chin-up",
+  "id": "chin-up",
+  "nome": "Elevação na barra (pegada supinada)",
+  "grupo": "Bíceps",
+  "equip": "Peso corporal",
+  "musculo": "biceps brachii",
+  "nome_en": "chin up"
+ },
+ "assisted-chin-up": {
+  "slug": "assisted-chin-up",
+  "id": "assisted-chin-up",
+  "nome": "Elevação supinada assistida",
+  "grupo": "Bíceps",
+  "equip": "Máquina",
+  "musculo": "biceps brachii",
+  "nome_en": "assisted chin up"
+ },
+ "weighted-chin-up": {
+  "slug": "weighted-chin-up",
+  "id": "weighted-chin-up",
+  "nome": "Elevação supinada com peso",
+  "grupo": "Bíceps",
+  "equip": "Peso corporal",
+  "musculo": "biceps brachii",
+  "nome_en": "weighted chin up"
+ },
+ "wrist-extension": {
+  "slug": "wrist-extension",
+  "id": "wrist-extension",
+  "nome": "Extensão de punhos",
+  "grupo": "Bíceps",
+  "equip": "Halteres",
+  "musculo": "biceps brachii",
+  "nome_en": "wrist extension"
+ },
+ "wrist-curl": {
+  "slug": "wrist-curl",
+  "id": "wrist-curl",
+  "nome": "Flexão de punhos",
+  "grupo": "Bíceps",
+  "equip": "Barra",
+  "musculo": "biceps brachii",
+  "nome_en": "wrist curl"
+ },
+ "drag-curl": {
+  "slug": "drag-curl",
+  "id": "drag-curl",
+  "nome": "Rosca arrastada",
+  "grupo": "Bíceps",
+  "equip": "Barra",
+  "musculo": "biceps brachii",
+  "nome_en": "drag curl"
+ },
+ "incline-dumbbell-curl": {
+  "slug": "incline-dumbbell-curl",
+  "id": "incline-dumbbell-curl",
+  "nome": "Rosca inclinada com halteres",
+  "grupo": "Bíceps",
+  "equip": "Halteres",
+  "musculo": "biceps brachii",
+  "nome_en": "incline dumbbell curl"
+ },
+ "reverse-curl": {
+  "slug": "reverse-curl",
+  "id": "reverse-curl",
+  "nome": "Rosca inversa",
+  "grupo": "Bíceps",
+  "equip": "Barra",
+  "musculo": "biceps brachii",
+  "nome_en": "reverse curl"
+ },
+ "rope-hammer-curl": {
+  "slug": "rope-hammer-curl",
+  "id": "rope-hammer-curl",
+  "nome": "Rosca martelo na polia",
+  "grupo": "Bíceps",
+  "equip": "Polia",
+  "musculo": "biceps brachii",
+  "nome_en": "rope hammer curl"
+ },
+ "cable-curl": {
+  "slug": "cable-curl",
+  "id": "cable-curl",
+  "nome": "Rosca na polia",
+  "grupo": "Bíceps",
+  "equip": "Polia",
+  "musculo": "biceps brachii",
+  "nome_en": "cable curl"
+ },
+ "spider-curl": {
+  "slug": "spider-curl",
+  "id": "spider-curl",
+  "nome": "Rosca spider",
+  "grupo": "Bíceps",
+  "equip": "Halteres",
+  "musculo": "biceps brachii",
+  "nome_en": "spider curl"
+ },
+ "dead-hang": {
+  "slug": "dead-hang",
+  "id": "dead-hang",
+  "nome": "Suspensão na barra",
+  "grupo": "Bíceps",
+  "equip": "Peso corporal",
+  "musculo": "biceps brachii",
+  "nome_en": "dead hang"
+ },
+ "farmer-carry": {
+  "slug": "farmer-carry",
+  "id": "farmer-carry",
+  "nome": "Transporte do agricultor",
+  "grupo": "Bíceps",
+  "equip": "Halteres",
+  "musculo": "biceps brachii",
+  "nome_en": "farmer carry"
+ },
+ "assault-bike": {
+  "slug": "assault-bike",
+  "id": "assault-bike",
+  "nome": "Air bike",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "assault bike"
+ },
+ "walking": {
+  "slug": "walking",
+  "id": "walking",
+  "nome": "Caminhada",
+  "grupo": "Cardio",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps and calves",
+  "nome_en": "walking"
+ },
+ "hiking": {
+  "slug": "hiking",
+  "id": "hiking",
+  "nome": "Caminhada na natureza",
+  "grupo": "Cardio",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps and calves",
+  "nome_en": "hiking"
+ },
+ "swimming": {
+  "slug": "swimming",
+  "id": "swimming",
+  "nome": "Natação",
+  "grupo": "Cardio",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps and calves",
+  "nome_en": "swimming"
+ },
+ "treadmill-incline-walk": {
+  "slug": "treadmill-incline-walk",
+  "id": "treadmill-incline-walk",
+  "nome": "Passadeira em inclinação",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "treadmill incline walk"
+ },
+ "skierg": {
+  "slug": "skierg",
+  "id": "skierg",
+  "nome": "SkiErg",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "skierg"
+ },
+ "stair-climber": {
+  "slug": "stair-climber",
+  "id": "stair-climber",
+  "nome": "Stepper",
+  "grupo": "Cardio",
+  "equip": "Máquina",
+  "musculo": "quadriceps and calves",
+  "nome_en": "stair climber"
+ },
+ "band-pull-apart": {
+  "slug": "band-pull-apart",
+  "id": "band-pull-apart",
+  "nome": "Abertura com elástico",
+  "grupo": "Costas",
+  "equip": "Elástico",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "band pull apart"
+ },
+ "childs-pose": {
+  "slug": "childs-pose",
+  "id": "childs-pose",
+  "nome": "Alongamento da criança",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "childs pose"
+ },
+ "reverse-snow-angel": {
+  "slug": "reverse-snow-angel",
+  "id": "reverse-snow-angel",
+  "nome": "Anjo invertido",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "reverse snow angel"
+ },
+ "assisted-pull-up": {
+  "slug": "assisted-pull-up",
+  "id": "assisted-pull-up",
+  "nome": "Elevação assistida na máquina",
+  "grupo": "Costas",
+  "equip": "Máquina",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "assisted pull up"
+ },
+ "neutral-grip-pull-up": {
+  "slug": "neutral-grip-pull-up",
+  "id": "neutral-grip-pull-up",
+  "nome": "Elevação com pegada neutra",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "neutral grip pull up"
+ },
+ "towel-pull-up": {
+  "slug": "towel-pull-up",
+  "id": "towel-pull-up",
+  "nome": "Elevação com toalha",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "towel pull up"
+ },
+ "commando-pull-up": {
+  "slug": "commando-pull-up",
+  "id": "commando-pull-up",
+  "nome": "Elevação comando",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "commando pull up"
+ },
+ "l-sit-pull-up": {
+  "slug": "l-sit-pull-up",
+  "id": "l-sit-pull-up",
+  "nome": "Elevação em L",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "l sit pull up"
+ },
+ "prone-t-raise": {
+  "slug": "prone-t-raise",
+  "id": "prone-t-raise",
+  "nome": "Elevação em T de bruços",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "prone t raise"
+ },
+ "prone-y-raise": {
+  "slug": "prone-y-raise",
+  "id": "prone-y-raise",
+  "nome": "Elevação em Y de bruços",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "prone y raise"
+ },
+ "scapular-pull-up": {
+  "slug": "scapular-pull-up",
+  "id": "scapular-pull-up",
+  "nome": "Elevação escapular",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "scapular pull up"
+ },
+ "weighted-pull-up": {
+  "slug": "weighted-pull-up",
+  "id": "weighted-pull-up",
+  "nome": "Elevação na barra com peso",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "weighted pull up"
+ },
+ "negative-pull-up": {
+  "slug": "negative-pull-up",
+  "id": "negative-pull-up",
+  "nome": "Elevação negativa",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "negative pull up"
+ },
+ "shrug": {
+  "slug": "shrug",
+  "id": "shrug",
+  "nome": "Encolhimento com barra",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "shrug"
+ },
+ "back-extension": {
+  "slug": "back-extension",
+  "id": "back-extension",
+  "nome": "Extensão lombar",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "back extension"
+ },
+ "banded-face-pull": {
+  "slug": "banded-face-pull",
+  "id": "banded-face-pull",
+  "nome": "Face pull com elástico",
+  "grupo": "Costas",
+  "equip": "Elástico",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "banded face pull"
+ },
+ "face-pull": {
+  "slug": "face-pull",
+  "id": "face-pull",
+  "nome": "Face pull na polia",
+  "grupo": "Costas",
+  "equip": "Polia",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "face pull"
+ },
+ "scapular-push-up": {
+  "slug": "scapular-push-up",
+  "id": "scapular-push-up",
+  "nome": "Flexão escapular",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "scapular push up"
+ },
+ "trap-bar-deadlift": {
+  "slug": "trap-bar-deadlift",
+  "id": "trap-bar-deadlift",
+  "nome": "Levantamento terra com barra hexagonal",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "trap bar deadlift"
+ },
+ "sumo-deadlift": {
+  "slug": "sumo-deadlift",
+  "id": "sumo-deadlift",
+  "nome": "Levantamento terra sumo",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "sumo deadlift"
+ },
+ "dumbbell-sumo-deadlift": {
+  "slug": "dumbbell-sumo-deadlift",
+  "id": "dumbbell-sumo-deadlift",
+  "nome": "Levantamento terra sumo com halteres",
+  "grupo": "Costas",
+  "equip": "Halteres",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "dumbbell sumo deadlift"
+ },
+ "banded-lat-pulldown": {
+  "slug": "banded-lat-pulldown",
+  "id": "banded-lat-pulldown",
+  "nome": "Puxada com elástico",
+  "grupo": "Costas",
+  "equip": "Elástico",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "banded lat pulldown"
+ },
+ "wide-grip-lat-pulldown": {
+  "slug": "wide-grip-lat-pulldown",
+  "id": "wide-grip-lat-pulldown",
+  "nome": "Puxada com pegada aberta",
+  "grupo": "Costas",
+  "equip": "Polia",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "wide grip lat pulldown"
+ },
+ "close-grip-lat-pulldown": {
+  "slug": "close-grip-lat-pulldown",
+  "id": "close-grip-lat-pulldown",
+  "nome": "Puxada com pegada fechada",
+  "grupo": "Costas",
+  "equip": "Polia",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "close grip lat pulldown"
+ },
+ "rack-pull": {
+  "slug": "rack-pull",
+  "id": "rack-pull",
+  "nome": "Rack pull (terra parcial)",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "rack pull"
+ },
+ "meadows-row": {
+  "slug": "meadows-row",
+  "id": "meadows-row",
+  "nome": "Remada Meadows",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "meadows row"
+ },
+ "pendlay-row": {
+  "slug": "pendlay-row",
+  "id": "pendlay-row",
+  "nome": "Remada Pendlay",
+  "grupo": "Costas",
+  "equip": "Barra",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "pendlay row"
+ },
+ "t-bar-row": {
+  "slug": "t-bar-row",
+  "id": "t-bar-row",
+  "nome": "Remada T",
+  "grupo": "Costas",
+  "equip": "Máquina",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "t bar row"
+ },
+ "chest-supported-row": {
+  "slug": "chest-supported-row",
+  "id": "chest-supported-row",
+  "nome": "Remada com apoio no peito",
+  "grupo": "Costas",
+  "equip": "Máquina",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "chest supported row"
+ },
+ "banded-row": {
+  "slug": "banded-row",
+  "id": "banded-row",
+  "nome": "Remada com elástico",
+  "grupo": "Costas",
+  "equip": "Elástico",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "banded row"
+ },
+ "towel-row": {
+  "slug": "towel-row",
+  "id": "towel-row",
+  "nome": "Remada com toalha",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "towel row"
+ },
+ "dumbbell-bent-over-row": {
+  "slug": "dumbbell-bent-over-row",
+  "id": "dumbbell-bent-over-row",
+  "nome": "Remada curvada com halteres",
+  "grupo": "Costas",
+  "equip": "Halteres",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "dumbbell bent over row"
+ },
+ "inverted-row": {
+  "slug": "inverted-row",
+  "id": "inverted-row",
+  "nome": "Remada invertida",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "inverted row"
+ },
+ "machine-row": {
+  "slug": "machine-row",
+  "id": "machine-row",
+  "nome": "Remada na máquina",
+  "grupo": "Costas",
+  "equip": "Máquina",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "machine row"
+ },
+ "doorway-row": {
+  "slug": "doorway-row",
+  "id": "doorway-row",
+  "nome": "Remada na ombreira da porta",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "doorway row"
+ },
+ "single-arm-cable-row": {
+  "slug": "single-arm-cable-row",
+  "id": "single-arm-cable-row",
+  "nome": "Remada unilateral na polia",
+  "grupo": "Costas",
+  "equip": "Polia",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "single arm cable row"
+ },
+ "superman": {
+  "slug": "superman",
+  "id": "superman",
+  "nome": "Superman",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "superman"
+ },
+ "superman-hold": {
+  "slug": "superman-hold",
+  "id": "superman-hold",
+  "nome": "Superman isométrico",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "superman hold"
+ },
+ "active-hang": {
+  "slug": "active-hang",
+  "id": "active-hang",
+  "nome": "Suspensão ativa",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "active hang"
+ },
+ "cross-body-shoulder-stretch": {
+  "slug": "cross-body-shoulder-stretch",
+  "id": "cross-body-shoulder-stretch",
+  "nome": "Alongamento de ombro cruzado",
+  "grupo": "Ombros",
+  "equip": "Peso corporal",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "cross body shoulder stretch"
+ },
+ "battle-ropes": {
+  "slug": "battle-ropes",
+  "id": "battle-ropes",
+  "nome": "Cordas de batalha",
+  "grupo": "Ombros",
+  "equip": "Acessório",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "battle ropes"
+ },
+ "cable-rear-delt-fly": {
+  "slug": "cable-rear-delt-fly",
+  "id": "cable-rear-delt-fly",
+  "nome": "Crucifixo inverso na polia",
+  "grupo": "Ombros",
+  "equip": "Polia",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "cable rear delt fly"
+ },
+ "arm-circles": {
+  "slug": "arm-circles",
+  "id": "arm-circles",
+  "nome": "Círculos de braços",
+  "grupo": "Ombros",
+  "equip": "Peso corporal",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "arm circles"
+ },
+ "arnold-press": {
+  "slug": "arnold-press",
+  "id": "arnold-press",
+  "nome": "Desenvolvimento Arnold",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "arnold press"
+ },
+ "standing-dumbbell-press": {
+  "slug": "standing-dumbbell-press",
+  "id": "standing-dumbbell-press",
+  "nome": "Desenvolvimento em pé com halteres",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "standing dumbbell press"
+ },
+ "machine-shoulder-press": {
+  "slug": "machine-shoulder-press",
+  "id": "machine-shoulder-press",
+  "nome": "Desenvolvimento na máquina",
+  "grupo": "Ombros",
+  "equip": "Máquina",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "machine shoulder press"
+ },
+ "landmine-press": {
+  "slug": "landmine-press",
+  "id": "landmine-press",
+  "nome": "Desenvolvimento no landmine",
+  "grupo": "Ombros",
+  "equip": "Barra",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "landmine press"
+ },
+ "plate-front-raise": {
+  "slug": "plate-front-raise",
+  "id": "plate-front-raise",
+  "nome": "Elevação frontal com disco",
+  "grupo": "Ombros",
+  "equip": "Acessório",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "plate front raise"
+ },
+ "cable-front-raise": {
+  "slug": "cable-front-raise",
+  "id": "cable-front-raise",
+  "nome": "Elevação frontal na polia",
+  "grupo": "Ombros",
+  "equip": "Polia",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "cable front raise"
+ },
+ "machine-lateral-raise": {
+  "slug": "machine-lateral-raise",
+  "id": "machine-lateral-raise",
+  "nome": "Elevação lateral na máquina",
+  "grupo": "Ombros",
+  "equip": "Máquina",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "machine lateral raise"
+ },
+ "cable-lateral-raise": {
+  "slug": "cable-lateral-raise",
+  "id": "cable-lateral-raise",
+  "nome": "Elevação lateral na polia",
+  "grupo": "Ombros",
+  "equip": "Polia",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "cable lateral raise"
+ },
+ "bent-over-rear-delt-raise": {
+  "slug": "bent-over-rear-delt-raise",
+  "id": "bent-over-rear-delt-raise",
+  "nome": "Elevação posterior curvado",
+  "grupo": "Ombros",
+  "equip": "Halteres",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "bent over rear delt raise"
+ },
+ "handstand-push-up": {
+  "slug": "handstand-push-up",
+  "id": "handstand-push-up",
+  "nome": "Flexão em pino",
+  "grupo": "Ombros",
+  "equip": "Peso corporal",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "handstand push up"
+ },
+ "wall-handstand-push-up": {
+  "slug": "wall-handstand-push-up",
+  "id": "wall-handstand-push-up",
+  "nome": "Flexão em pino na parede",
+  "grupo": "Ombros",
+  "equip": "Peso corporal",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "wall handstand push up"
+ },
+ "pike-push-up": {
+  "slug": "pike-push-up",
+  "id": "pike-push-up",
+  "nome": "Flexão pique",
+  "grupo": "Ombros",
+  "equip": "Peso corporal",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "pike push up"
+ },
+ "feet-elevated-pike-push-up": {
+  "slug": "feet-elevated-pike-push-up",
+  "id": "feet-elevated-pike-push-up",
+  "nome": "Flexão pique com pés elevados",
+  "grupo": "Ombros",
+  "equip": "Peso corporal",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "feet elevated pike push up"
+ },
+ "reverse-pec-deck": {
+  "slug": "reverse-pec-deck",
+  "id": "reverse-pec-deck",
+  "nome": "Peck deck inverso",
+  "grupo": "Ombros",
+  "equip": "Máquina",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "reverse pec deck"
+ },
+ "push-press": {
+  "slug": "push-press",
+  "id": "push-press",
+  "nome": "Push press",
+  "grupo": "Ombros",
+  "equip": "Barra",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "push press"
+ },
+ "wall-walk": {
+  "slug": "wall-walk",
+  "id": "wall-walk",
+  "nome": "Subida à parede",
+  "grupo": "Ombros",
+  "equip": "Peso corporal",
+  "musculo": "deltoids (shoulders)",
+  "nome_en": "wall walk"
+ },
+ "doorway-chest-stretch": {
+  "slug": "doorway-chest-stretch",
+  "id": "doorway-chest-stretch",
+  "nome": "Alongamento de peito na porta",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "doorway chest stretch"
+ },
+ "incline-cable-fly": {
+  "slug": "incline-cable-fly",
+  "id": "incline-cable-fly",
+  "nome": "Crucifixo inclinado na polia",
+  "grupo": "Peito",
+  "equip": "Polia",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "incline cable fly"
+ },
+ "archer-push-up": {
+  "slug": "archer-push-up",
+  "id": "archer-push-up",
+  "nome": "Flexão archer",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "archer push up"
+ },
+ "wide-push-up": {
+  "slug": "wide-push-up",
+  "id": "wide-push-up",
+  "nome": "Flexão com mãos afastadas",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "wide push up"
+ },
+ "incline-push-up": {
+  "slug": "incline-push-up",
+  "id": "incline-push-up",
+  "nome": "Flexão com mãos elevadas",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "incline push up"
+ },
+ "weighted-push-up": {
+  "slug": "weighted-push-up",
+  "id": "weighted-push-up",
+  "nome": "Flexão com peso",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "weighted push up"
+ },
+ "decline-push-up": {
+  "slug": "decline-push-up",
+  "id": "decline-push-up",
+  "nome": "Flexão com pés elevados",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "decline push up"
+ },
+ "knee-push-up": {
+  "slug": "knee-push-up",
+  "id": "knee-push-up",
+  "nome": "Flexão com joelhos apoiados",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "knee push up"
+ },
+ "explosive-push-up": {
+  "slug": "explosive-push-up",
+  "id": "explosive-push-up",
+  "nome": "Flexão explosiva",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "explosive push up"
+ },
+ "hindu-push-up": {
+  "slug": "hindu-push-up",
+  "id": "hindu-push-up",
+  "nome": "Flexão hindu",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "hindu push up"
+ },
+ "typewriter-push-up": {
+  "slug": "typewriter-push-up",
+  "id": "typewriter-push-up",
+  "nome": "Flexão máquina de escrever",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "typewriter push up"
+ },
+ "wall-push-up": {
+  "slug": "wall-push-up",
+  "id": "wall-push-up",
+  "nome": "Flexão na parede",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "wall push up"
+ },
+ "chest-dip": {
+  "slug": "chest-dip",
+  "id": "chest-dip",
+  "nome": "Mergulho nas paralelas (peito)",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "chest dip"
+ },
+ "seal-jack": {
+  "slug": "seal-jack",
+  "id": "seal-jack",
+  "nome": "Seal jack",
+  "grupo": "Peito",
+  "equip": "Peso corporal",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "seal jack"
+ },
+ "dumbbell-bench-press": {
+  "slug": "dumbbell-bench-press",
+  "id": "dumbbell-bench-press",
+  "nome": "Supino com halteres",
+  "grupo": "Peito",
+  "equip": "Halteres",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "dumbbell bench press"
+ },
+ "decline-dumbbell-press": {
+  "slug": "decline-dumbbell-press",
+  "id": "decline-dumbbell-press",
+  "nome": "Supino declinado com halteres",
+  "grupo": "Peito",
+  "equip": "Halteres",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "decline dumbbell press"
+ },
+ "incline-bench-press": {
+  "slug": "incline-bench-press",
+  "id": "incline-bench-press",
+  "nome": "Supino inclinado com barra",
+  "grupo": "Peito",
+  "equip": "Barra",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "incline bench press"
+ },
+ "machine-chest-press": {
+  "slug": "machine-chest-press",
+  "id": "machine-chest-press",
+  "nome": "Supino na máquina",
+  "grupo": "Peito",
+  "equip": "Máquina",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "machine chest press"
+ },
+ "smith-machine-bench-press": {
+  "slug": "smith-machine-bench-press",
+  "id": "smith-machine-bench-press",
+  "nome": "Supino no Smith",
+  "grupo": "Peito",
+  "equip": "Máquina",
+  "musculo": "pectoralis major (chest)",
+  "nome_en": "smith machine bench press"
+ },
+ "side-lying-hip-abduction": {
+  "slug": "side-lying-hip-abduction",
+  "id": "side-lying-hip-abduction",
+  "nome": "Abdução da anca deitado",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "side lying hip abduction"
+ },
+ "cable-standing-hip-abduction": {
+  "slug": "cable-standing-hip-abduction",
+  "id": "cable-standing-hip-abduction",
+  "nome": "Abdução da anca na polia",
+  "grupo": "Pernas",
+  "equip": "Polia",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "cable standing hip abduction"
+ },
+ "fire-hydrant": {
+  "slug": "fire-hydrant",
+  "id": "fire-hydrant",
+  "nome": "Abdução de joelho",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "fire hydrant"
+ },
+ "banded-fire-hydrant": {
+  "slug": "banded-fire-hydrant",
+  "id": "banded-fire-hydrant",
+  "nome": "Abdução de joelho com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded fire hydrant"
+ },
+ "banded-standing-hip-abduction": {
+  "slug": "banded-standing-hip-abduction",
+  "id": "banded-standing-hip-abduction",
+  "nome": "Abdução em pé com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded standing hip abduction"
+ },
+ "banded-seated-hip-abduction": {
+  "slug": "banded-seated-hip-abduction",
+  "id": "banded-seated-hip-abduction",
+  "nome": "Abdução sentado com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded seated hip abduction"
+ },
+ "cable-standing-hip-adduction": {
+  "slug": "cable-standing-hip-adduction",
+  "id": "cable-standing-hip-adduction",
+  "nome": "Adução da anca na polia",
+  "grupo": "Pernas",
+  "equip": "Polia",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "cable standing hip adduction"
+ },
+ "curtsy-lunge": {
+  "slug": "curtsy-lunge",
+  "id": "curtsy-lunge",
+  "nome": "Afundo cruzado",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "curtsy lunge"
+ },
+ "dumbbell-curtsy-lunge": {
+  "slug": "dumbbell-curtsy-lunge",
+  "id": "dumbbell-curtsy-lunge",
+  "nome": "Afundo cruzado com halteres",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "dumbbell curtsy lunge"
+ },
+ "lateral-lunge": {
+  "slug": "lateral-lunge",
+  "id": "lateral-lunge",
+  "nome": "Afundo lateral",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "lateral lunge"
+ },
+ "dumbbell-lateral-lunge": {
+  "slug": "dumbbell-lateral-lunge",
+  "id": "dumbbell-lateral-lunge",
+  "nome": "Afundo lateral com halteres",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "dumbbell lateral lunge"
+ },
+ "reverse-lunge": {
+  "slug": "reverse-lunge",
+  "id": "reverse-lunge",
+  "nome": "Afundo para trás",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "reverse lunge"
+ },
+ "deficit-reverse-lunge": {
+  "slug": "deficit-reverse-lunge",
+  "id": "deficit-reverse-lunge",
+  "nome": "Afundo para trás em deficit",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "deficit reverse lunge"
+ },
+ "smith-machine-reverse-lunge": {
+  "slug": "smith-machine-reverse-lunge",
+  "id": "smith-machine-reverse-lunge",
+  "nome": "Afundo para trás no Smith",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "smith machine reverse lunge"
+ },
+ "forward-lunge": {
+  "slug": "forward-lunge",
+  "id": "forward-lunge",
+  "nome": "Afundo à frente",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "forward lunge"
+ },
+ "belt-squat": {
+  "slug": "belt-squat",
+  "id": "belt-squat",
+  "nome": "Agachamento com cinto",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "belt squat"
+ },
+ "banded-squat": {
+  "slug": "banded-squat",
+  "id": "banded-squat",
+  "nome": "Agachamento com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded squat"
+ },
+ "jump-squat": {
+  "slug": "jump-squat",
+  "id": "jump-squat",
+  "nome": "Agachamento com salto",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "jump squat"
+ },
+ "cossack-squat": {
+  "slug": "cossack-squat",
+  "id": "cossack-squat",
+  "nome": "Agachamento cossaco",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "cossack squat"
+ },
+ "skater-squat": {
+  "slug": "skater-squat",
+  "id": "skater-squat",
+  "nome": "Agachamento de patinador",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "skater squat"
+ },
+ "front-squat": {
+  "slug": "front-squat",
+  "id": "front-squat",
+  "nome": "Agachamento frontal",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "front squat"
+ },
+ "goblet-squat": {
+  "slug": "goblet-squat",
+  "id": "goblet-squat",
+  "nome": "Agachamento goblet",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "goblet squat"
+ },
+ "smith-machine-squat": {
+  "slug": "smith-machine-squat",
+  "id": "smith-machine-squat",
+  "nome": "Agachamento no Smith",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "smith machine squat"
+ },
+ "landmine-squat": {
+  "slug": "landmine-squat",
+  "id": "landmine-squat",
+  "nome": "Agachamento no landmine",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "landmine squat"
+ },
+ "pistol-squat": {
+  "slug": "pistol-squat",
+  "id": "pistol-squat",
+  "nome": "Agachamento numa perna",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "pistol squat"
+ },
+ "assisted-pistol-squat": {
+  "slug": "assisted-pistol-squat",
+  "id": "assisted-pistol-squat",
+  "nome": "Agachamento numa perna assistido",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "assisted pistol squat"
+ },
+ "single-leg-box-squat": {
+  "slug": "single-leg-box-squat",
+  "id": "single-leg-box-squat",
+  "nome": "Agachamento numa perna no caixote",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "single leg box squat"
+ },
+ "bodyweight-squat": {
+  "slug": "bodyweight-squat",
+  "id": "bodyweight-squat",
+  "nome": "Agachamento sem peso",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "bodyweight squat"
+ },
+ "shrimp-squat": {
+  "slug": "shrimp-squat",
+  "id": "shrimp-squat",
+  "nome": "Agachamento shrimp",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "shrimp squat"
+ },
+ "split-squat": {
+  "slug": "split-squat",
+  "id": "split-squat",
+  "nome": "Agachamento split",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "split squat"
+ },
+ "dumbbell-sumo-squat": {
+  "slug": "dumbbell-sumo-squat",
+  "id": "dumbbell-sumo-squat",
+  "nome": "Agachamento sumo com haltere",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "dumbbell sumo squat"
+ },
+ "butterfly-stretch": {
+  "slug": "butterfly-stretch",
+  "id": "butterfly-stretch",
+  "nome": "Alongamento borboleta",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "butterfly stretch"
+ },
+ "worlds-greatest-stretch": {
+  "slug": "worlds-greatest-stretch",
+  "id": "worlds-greatest-stretch",
+  "nome": "Alongamento completo",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "worlds greatest stretch"
+ },
+ "wall-calf-stretch": {
+  "slug": "wall-calf-stretch",
+  "id": "wall-calf-stretch",
+  "nome": "Alongamento de gémeos na parede",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "wall calf stretch"
+ },
+ "hamstring-stretch": {
+  "slug": "hamstring-stretch",
+  "id": "hamstring-stretch",
+  "nome": "Alongamento de isquiotibiais",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "hamstring stretch"
+ },
+ "standing-quad-stretch": {
+  "slug": "standing-quad-stretch",
+  "id": "standing-quad-stretch",
+  "nome": "Alongamento de quadríceps em pé",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "standing quad stretch"
+ },
+ "kneeling-hip-flexor-stretch": {
+  "slug": "kneeling-hip-flexor-stretch",
+  "id": "kneeling-hip-flexor-stretch",
+  "nome": "Alongamento do flexor da anca",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "kneeling hip flexor stretch"
+ },
+ "seated-forward-fold-stretch": {
+  "slug": "seated-forward-fold-stretch",
+  "id": "seated-forward-fold-stretch",
+  "nome": "Alongamento sentado à frente",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "seated forward fold stretch"
+ },
+ "leg-swings-stretch": {
+  "slug": "leg-swings-stretch",
+  "id": "leg-swings-stretch",
+  "nome": "Balanços de perna",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "leg swings stretch"
+ },
+ "good-morning": {
+  "slug": "good-morning",
+  "id": "good-morning",
+  "nome": "Bom dia (good morning)",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "good morning"
+ },
+ "burpee": {
+  "slug": "burpee",
+  "id": "burpee",
+  "nome": "Burpee",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "burpee"
+ },
+ "smith-machine-bulgarian-split-squat": {
+  "slug": "smith-machine-bulgarian-split-squat",
+  "id": "smith-machine-bulgarian-split-squat",
+  "nome": "Búlgaro no Smith",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "smith machine bulgarian split squat"
+ },
+ "hip-adduction-machine": {
+  "slug": "hip-adduction-machine",
+  "id": "hip-adduction-machine",
+  "nome": "Cadeira adutora",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "hip adduction machine"
+ },
+ "wall-sit": {
+  "slug": "wall-sit",
+  "id": "wall-sit",
+  "nome": "Cadeira na parede",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "wall sit"
+ },
+ "lying-hamstring-walkout": {
+  "slug": "lying-hamstring-walkout",
+  "id": "lying-hamstring-walkout",
+  "nome": "Caminhada de calcanhares deitado",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "lying hamstring walkout"
+ },
+ "banded-kickback": {
+  "slug": "banded-kickback",
+  "id": "banded-kickback",
+  "nome": "Coice com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded kickback"
+ },
+ "donkey-kick": {
+  "slug": "donkey-kick",
+  "id": "donkey-kick",
+  "nome": "Coice de glúteo",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "donkey kick"
+ },
+ "banded-donkey-kick": {
+  "slug": "banded-donkey-kick",
+  "id": "banded-donkey-kick",
+  "nome": "Coice de glúteo com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded donkey kick"
+ },
+ "machine-glute-kickback": {
+  "slug": "machine-glute-kickback",
+  "id": "machine-glute-kickback",
+  "nome": "Coice de glúteo na máquina",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "machine glute kickback"
+ },
+ "cable-kickback": {
+  "slug": "cable-kickback",
+  "id": "cable-kickback",
+  "nome": "Coice de glúteo na polia",
+  "grupo": "Pernas",
+  "equip": "Polia",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "cable kickback"
+ },
+ "clamshell": {
+  "slug": "clamshell",
+  "id": "clamshell",
+  "nome": "Concha (clamshell)",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "clamshell"
+ },
+ "banded-clamshell": {
+  "slug": "banded-clamshell",
+  "id": "banded-clamshell",
+  "nome": "Concha com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded clamshell"
+ },
+ "nordic-hamstring-curl": {
+  "slug": "nordic-hamstring-curl",
+  "id": "nordic-hamstring-curl",
+  "nome": "Curl nórdico",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "nordic hamstring curl"
+ },
+ "step-down": {
+  "slug": "step-down",
+  "id": "step-down",
+  "nome": "Descida do caixote",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "step down"
+ },
+ "lateral-shuffle": {
+  "slug": "lateral-shuffle",
+  "id": "lateral-shuffle",
+  "nome": "Deslocamento lateral",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "lateral shuffle"
+ },
+ "calf-raise": {
+  "slug": "calf-raise",
+  "id": "calf-raise",
+  "nome": "Elevação de gémeos",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "calf raise"
+ },
+ "side-lying-leg-raise": {
+  "slug": "side-lying-leg-raise",
+  "id": "side-lying-leg-raise",
+  "nome": "Elevação de perna deitado de lado",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "side lying leg raise"
+ },
+ "banded-hip-thrust": {
+  "slug": "banded-hip-thrust",
+  "id": "banded-hip-thrust",
+  "nome": "Elevação pélvica com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded hip thrust"
+ },
+ "dumbbell-hip-thrust": {
+  "slug": "dumbbell-hip-thrust",
+  "id": "dumbbell-hip-thrust",
+  "nome": "Elevação pélvica com haltere",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "dumbbell hip thrust"
+ },
+ "smith-machine-hip-thrust": {
+  "slug": "smith-machine-hip-thrust",
+  "id": "smith-machine-hip-thrust",
+  "nome": "Elevação pélvica no Smith",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "smith machine hip thrust"
+ },
+ "glute-focused-back-extension": {
+  "slug": "glute-focused-back-extension",
+  "id": "glute-focused-back-extension",
+  "nome": "Extensão lombar para glúteo",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "glute focused back extension"
+ },
+ "towel-hamstring-curl": {
+  "slug": "towel-hamstring-curl",
+  "id": "towel-hamstring-curl",
+  "nome": "Flexora com toalha",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "towel hamstring curl"
+ },
+ "stability-ball-hamstring-curl": {
+  "slug": "stability-ball-hamstring-curl",
+  "id": "stability-ball-hamstring-curl",
+  "nome": "Flexora na bola suíça",
+  "grupo": "Pernas",
+  "equip": "Acessório",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "stability ball hamstring curl"
+ },
+ "leg-curl": {
+  "slug": "leg-curl",
+  "id": "leg-curl",
+  "nome": "Flexora na máquina",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "leg curl"
+ },
+ "seated-leg-curl": {
+  "slug": "seated-leg-curl",
+  "id": "seated-leg-curl",
+  "nome": "Flexora sentado",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "seated leg curl"
+ },
+ "cat-cow-stretch": {
+  "slug": "cat-cow-stretch",
+  "id": "cat-cow-stretch",
+  "nome": "Gato-camelo",
+  "grupo": "Costas",
+  "equip": "Peso corporal",
+  "musculo": "latissimus dorsi and trapezius (back)",
+  "nome_en": "cat cow stretch"
+ },
+ "heel-elevated-goblet-squat": {
+  "slug": "heel-elevated-goblet-squat",
+  "id": "heel-elevated-goblet-squat",
+  "nome": "Goblet com calcanhares elevados",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "heel elevated goblet squat"
+ },
+ "donkey-calf-raise": {
+  "slug": "donkey-calf-raise",
+  "id": "donkey-calf-raise",
+  "nome": "Gémeos donkey",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "donkey calf raise"
+ },
+ "leg-press-calf-raise": {
+  "slug": "leg-press-calf-raise",
+  "id": "leg-press-calf-raise",
+  "nome": "Gémeos na prensa",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "leg press calf raise"
+ },
+ "single-leg-calf-raise": {
+  "slug": "single-leg-calf-raise",
+  "id": "single-leg-calf-raise",
+  "nome": "Gémeos numa perna",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "single leg calf raise"
+ },
+ "seated-calf-raise": {
+  "slug": "seated-calf-raise",
+  "id": "seated-calf-raise",
+  "nome": "Gémeos sentado",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "seated calf raise"
+ },
+ "hack-squat": {
+  "slug": "hack-squat",
+  "id": "hack-squat",
+  "nome": "Hack squat",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "hack squat"
+ },
+ "reverse-hyperextension": {
+  "slug": "reverse-hyperextension",
+  "id": "reverse-hyperextension",
+  "nome": "Hiperextensão invertida",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "reverse hyperextension"
+ },
+ "high-knees": {
+  "slug": "high-knees",
+  "id": "high-knees",
+  "nome": "Joelhos ao peito",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "high knees"
+ },
+ "banded-lateral-walk": {
+  "slug": "banded-lateral-walk",
+  "id": "banded-lateral-walk",
+  "nome": "Marcha lateral com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded lateral walk"
+ },
+ "banded-monster-walk": {
+  "slug": "banded-monster-walk",
+  "id": "banded-monster-walk",
+  "nome": "Marcha monstro com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded monster walk"
+ },
+ "dumbbell-romanian-deadlift": {
+  "slug": "dumbbell-romanian-deadlift",
+  "id": "dumbbell-romanian-deadlift",
+  "nome": "Peso morto romeno com halteres",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "dumbbell romanian deadlift"
+ },
+ "kettlebell-romanian-deadlift": {
+  "slug": "kettlebell-romanian-deadlift",
+  "id": "kettlebell-romanian-deadlift",
+  "nome": "Peso morto romeno com kettlebell",
+  "grupo": "Pernas",
+  "equip": "Kettlebell",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "kettlebell romanian deadlift"
+ },
+ "smith-machine-romanian-deadlift": {
+  "slug": "smith-machine-romanian-deadlift",
+  "id": "smith-machine-romanian-deadlift",
+  "nome": "Peso morto romeno no Smith",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "smith machine romanian deadlift"
+ },
+ "landmine-romanian-deadlift": {
+  "slug": "landmine-romanian-deadlift",
+  "id": "landmine-romanian-deadlift",
+  "nome": "Peso morto romeno no landmine",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "landmine romanian deadlift"
+ },
+ "single-leg-romanian-deadlift": {
+  "slug": "single-leg-romanian-deadlift",
+  "id": "single-leg-romanian-deadlift",
+  "nome": "Peso morto romeno numa perna",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "single leg romanian deadlift"
+ },
+ "jumping-jack": {
+  "slug": "jumping-jack",
+  "id": "jumping-jack",
+  "nome": "Polichinelo",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "jumping jack"
+ },
+ "glute-bridge": {
+  "slug": "glute-bridge",
+  "id": "glute-bridge",
+  "nome": "Ponte de glúteos",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "glute bridge"
+ },
+ "barbell-glute-bridge": {
+  "slug": "barbell-glute-bridge",
+  "id": "barbell-glute-bridge",
+  "nome": "Ponte de glúteos com barra",
+  "grupo": "Pernas",
+  "equip": "Barra",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "barbell glute bridge"
+ },
+ "banded-glute-bridge": {
+  "slug": "banded-glute-bridge",
+  "id": "banded-glute-bridge",
+  "nome": "Ponte de glúteos com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded glute bridge"
+ },
+ "dumbbell-glute-bridge": {
+  "slug": "dumbbell-glute-bridge",
+  "id": "dumbbell-glute-bridge",
+  "nome": "Ponte de glúteos com haltere",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "dumbbell glute bridge"
+ },
+ "glute-bridge-march": {
+  "slug": "glute-bridge-march",
+  "id": "glute-bridge-march",
+  "nome": "Ponte de glúteos com marcha",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "glute bridge march"
+ },
+ "single-leg-glute-bridge": {
+  "slug": "single-leg-glute-bridge",
+  "id": "single-leg-glute-bridge",
+  "nome": "Ponte de glúteos numa perna",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "single leg glute bridge"
+ },
+ "frog-pump": {
+  "slug": "frog-pump",
+  "id": "frog-pump",
+  "nome": "Ponte de rã",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "frog pump"
+ },
+ "banded-frog-pump": {
+  "slug": "banded-frog-pump",
+  "id": "banded-frog-pump",
+  "nome": "Ponte de rã com elástico",
+  "grupo": "Pernas",
+  "equip": "Elástico",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "banded frog pump"
+ },
+ "cable-pull-through": {
+  "slug": "cable-pull-through",
+  "id": "cable-pull-through",
+  "nome": "Pull-through na polia",
+  "grupo": "Pernas",
+  "equip": "Polia",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "cable pull through"
+ },
+ "fast-feet": {
+  "slug": "fast-feet",
+  "id": "fast-feet",
+  "nome": "Pés rápidos",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "fast feet"
+ },
+ "hip-airplane": {
+  "slug": "hip-airplane",
+  "id": "hip-airplane",
+  "nome": "Rotação da anca em apoio único",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "hip airplane"
+ },
+ "torso-twist-stretch": {
+  "slug": "torso-twist-stretch",
+  "id": "torso-twist-stretch",
+  "nome": "Rotações de tronco",
+  "grupo": "Abdómen",
+  "equip": "Peso corporal",
+  "musculo": "rectus abdominis (abs)",
+  "nome_en": "torso twist stretch"
+ },
+ "skater-hop": {
+  "slug": "skater-hop",
+  "id": "skater-hop",
+  "nome": "Salto de patinador",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "skater hop"
+ },
+ "sissy-squat": {
+  "slug": "sissy-squat",
+  "id": "sissy-squat",
+  "nome": "Sissy squat",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "sissy squat"
+ },
+ "front-foot-elevated-split-squat": {
+  "slug": "front-foot-elevated-split-squat",
+  "id": "front-foot-elevated-split-squat",
+  "nome": "Split squat com pé da frente elevado",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "front foot elevated split squat"
+ },
+ "smith-machine-split-squat": {
+  "slug": "smith-machine-split-squat",
+  "id": "smith-machine-split-squat",
+  "nome": "Split squat no Smith",
+  "grupo": "Pernas",
+  "equip": "Máquina",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "smith machine split squat"
+ },
+ "sprawl": {
+  "slug": "sprawl",
+  "id": "sprawl",
+  "nome": "Sprawl",
+  "grupo": "Pernas",
+  "equip": "Peso corporal",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "sprawl"
+ },
+ "step-up": {
+  "slug": "step-up",
+  "id": "step-up",
+  "nome": "Subida ao caixote",
+  "grupo": "Pernas",
+  "equip": "Halteres",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "step up"
+ },
+ "kettlebell-swing": {
+  "slug": "kettlebell-swing",
+  "id": "kettlebell-swing",
+  "nome": "Swing com kettlebell",
+  "grupo": "Pernas",
+  "equip": "Kettlebell",
+  "musculo": "quadriceps, hamstrings and glutes (legs)",
+  "nome_en": "kettlebell swing"
+ },
+ "tricep-kickback": {
+  "slug": "tricep-kickback",
+  "id": "tricep-kickback",
+  "nome": "Coice de tríceps",
+  "grupo": "Tríceps",
+  "equip": "Halteres",
+  "musculo": "triceps brachii",
+  "nome_en": "tricep kickback"
+ },
+ "diamond-push-up": {
+  "slug": "diamond-push-up",
+  "id": "diamond-push-up",
+  "nome": "Flexão diamante",
+  "grupo": "Tríceps",
+  "equip": "Peso corporal",
+  "musculo": "triceps brachii",
+  "nome_en": "diamond push up"
+ },
+ "crab-walk": {
+  "slug": "crab-walk",
+  "id": "crab-walk",
+  "nome": "Marcha do caranguejo",
+  "grupo": "Tríceps",
+  "equip": "Peso corporal",
+  "musculo": "triceps brachii",
+  "nome_en": "crab walk"
+ },
+ "chair-dip": {
+  "slug": "chair-dip",
+  "id": "chair-dip",
+  "nome": "Mergulho na cadeira",
+  "grupo": "Tríceps",
+  "equip": "Peso corporal",
+  "musculo": "triceps brachii",
+  "nome_en": "chair dip"
+ },
+ "assisted-dip": {
+  "slug": "assisted-dip",
+  "id": "assisted-dip",
+  "nome": "Paralelas assistidas",
+  "grupo": "Tríceps",
+  "equip": "Máquina",
+  "musculo": "triceps brachii",
+  "nome_en": "assisted dip"
+ },
+ "weighted-dip": {
+  "slug": "weighted-dip",
+  "id": "weighted-dip",
+  "nome": "Paralelas com peso",
+  "grupo": "Tríceps",
+  "equip": "Peso corporal",
+  "musculo": "triceps brachii",
+  "nome_en": "weighted dip"
+ },
+ "close-grip-bench-press": {
+  "slug": "close-grip-bench-press",
+  "id": "close-grip-bench-press",
+  "nome": "Supino com pegada fechada",
+  "grupo": "Tríceps",
+  "equip": "Barra",
+  "musculo": "triceps brachii",
+  "nome_en": "close grip bench press"
+ },
+ "overhead-tricep-extension": {
+  "slug": "overhead-tricep-extension",
+  "id": "overhead-tricep-extension",
+  "nome": "Tríceps acima da cabeça na polia",
+  "grupo": "Tríceps",
+  "equip": "Polia",
+  "musculo": "triceps brachii",
+  "nome_en": "overhead tricep extension"
+ },
+ "tricep-pushdown": {
+  "slug": "tricep-pushdown",
+  "id": "tricep-pushdown",
+  "nome": "Tríceps na polia (barra)",
+  "grupo": "Tríceps",
+  "equip": "Polia",
+  "musculo": "triceps brachii",
+  "nome_en": "tricep pushdown"
+ },
+ "dumbbell-skull-crusher": {
+  "slug": "dumbbell-skull-crusher",
+  "id": "dumbbell-skull-crusher",
+  "nome": "Tríceps testa com halteres",
+  "grupo": "Tríceps",
+  "equip": "Halteres",
+  "musculo": "triceps brachii",
+  "nome_en": "dumbbell skull crusher"
+ },
+ "single-dumbbell-skullcrusher": {
+  "slug": "single-dumbbell-skullcrusher",
+  "id": "single-dumbbell-skullcrusher",
+  "nome": "Tríceps testa com um haltere",
+  "grupo": "Tríceps",
+  "equip": "Halteres",
+  "musculo": "triceps brachii",
+  "nome_en": "single dumbbell skullcrusher"
+ },
+ "single-arm-dumbbell-tricep-extension": {
+  "slug": "single-arm-dumbbell-tricep-extension",
+  "id": "single-arm-dumbbell-tricep-extension",
+  "nome": "Tríceps unilateral com haltere",
+  "grupo": "Tríceps",
+  "equip": "Halteres",
+  "musculo": "triceps brachii",
+  "nome_en": "single arm dumbbell tricep extension"
+ }
+}

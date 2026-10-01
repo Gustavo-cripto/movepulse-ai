@@ -2,3 +2,8 @@
 node_modules/
 servidor/.wrangler/
 _vital-teste/
+
+# moldes e saídas da geração de figuras (ficheiros grandes, não vão para o git)
+ferramentas/figuras/moldes-png/
+ferramentas/figuras/saida/
+ferramentas/figuras/moldes

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisão das figuras — MovePulse</title>
+<style>
+:root{
+  --bg:#e6e2dc; --superficie:#f7f6f3; --linha:rgba(32,30,29,.2); --forte:#201e1d;
+  --txt:#201e1d; --dim:#5f5a54; --verde:#0d7d75; --vermelho:#a8331f;
+  --font:'Archivo',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:15px/1.45 var(--font)}
+button{font:inherit;cursor:pointer}
+
+header{
+  position:sticky;top:0;z-index:5;background:var(--superficie);
+  border-bottom:2px solid var(--forte);padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+h1{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.contas{display:flex;gap:18px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.contas b{font-size:17px;font-variant-numeric:tabular-nums;display:block;letter-spacing:0}
+.aprovadas b{color:var(--verde)} .rejeitadas b{color:var(--vermelho)}
+.barra{height:4px;background:var(--linha)}
+.barra i{display:block;height:100%;background:var(--verde);transition:width .2s}
+
+main{max-width:1100px;margin:0 auto;padding:20px}
+.par{display:grid;grid-template-columns:1fr 2fr;gap:2px;background:var(--linha);
+  border:1px solid var(--linha)}
+.par figure{background:var(--superficie);padding:14px;display:flex;flex-direction:column;gap:10px}
+.par figcaption{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.par img{width:100%;height:auto;display:block;background:#fff;image-rendering:auto}
+.par img[hidden]{display:none}
+.par .falta{aspect-ratio:1;display:grid;place-items:center;background:var(--bg);
+  color:var(--dim);font-size:13px;text-align:center;padding:20px}
+
+.ficha{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:16px 0 6px}
+.ficha h2{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.ficha span{font-size:13px;color:var(--dim)}
+.ficha .slug{font-family:ui-monospace,monospace;font-size:12px}
+
+.acoes{display:flex;gap:2px;margin-top:14px;border:2px solid var(--forte)}
+.acoes button{
+  flex:1;border:0;border-right:1px solid var(--linha);background:var(--superficie);
+  color:var(--txt);padding:16px;font-size:12px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;transition:background .12s,color .12s;
+}
+.acoes button:last-child{border-right:0}
+.acoes button:hover{background:var(--forte);color:var(--bg)}
+.acoes .sim:hover{background:var(--verde);color:#fff}
+.acoes .nao:hover{background:var(--vermelho);color:#fff}
+.acoes kbd{font:inherit;font-size:10px;opacity:.55;margin-left:6px}
+
+.estado{margin-top:12px;padding:10px 14px;font-size:12px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase}
+.estado.sim{background:var(--verde);color:#fff}
+.estado.nao{background:var(--vermelho);color:#fff}
+.estado.por{background:var(--superficie);color:var(--dim);border:1px solid var(--linha)}
+
+footer{max-width:1100px;margin:0 auto;padding:24px 20px 60px;display:flex;gap:10px;flex-wrap:wrap}
+footer button{background:var(--superficie);border:2px solid var(--forte);padding:12px 16px;
+  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+footer button:hover{background:var(--forte);color:var(--bg)}
+.ajuda{color:var(--dim);font-size:12.5px;padding:0 20px 20px;max-width:1100px;margin:0 auto}
+@media(max-width:760px){.par{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Revisão das figuras</h1>
+  <div class="contas">
+    <span class="aprovadas"><b id="nSim">0</b>aprovadas</span>
+    <span class="rejeitadas"><b id="nNao">0</b>rejeitadas</span>
+    <span><b id="nPor">0</b>por ver</span>
+  </div>
+</header>
+<div class="barra"><i id="progresso" style="width:0"></i></div>
+
+<main>
+  <div class="ficha">
+    <h2 id="nome">—</h2>
+    <span id="meta"></span>
+    <span class="slug" id="slug"></span>
+  </div>
+
+  <div class="par">
+    <figure>
+      <figcaption>Molde</figcaption>
+      <img id="molde" alt="molde">
+    </figure>
+    <figure>
+      <figcaption>Gerada</figcaption>
+      <img id="gerada" alt="gerada">
+      <div class="falta" id="semImagem" hidden>Ainda não foi gerada.</div>
+    </figure>
+  </div>
+
+  <div class="estado por" id="estado">Por ver</div>
+
+  <div class="acoes">
+    <button class="sim" id="btnSim">Aprovar <kbd>A</kbd></button>
+    <button class="nao" id="btnNao">Rejeitar <kbd>R</kbd></button>
+    <button id="btnAnterior">‹ Anterior <kbd>←</kbd></button>
+    <button id="btnSeguinte">Seguinte › <kbd>→</kbd></button>
+    <button id="btnSalto">Saltar para a primeira por ver <kbd>P</kbd></button>
+  </div>
+</main>
+
+<footer>
+  <button id="btnGuardar">Guardar rejeitados.json</button>
+  <button id="btnLimpar">Apagar decisões</button>
+</footer>
+
+<p class="ajuda">
+  Guarda o <code>rejeitados.json</code> na pasta <code>ferramentas/figuras/</code> e corre
+  <code>python3 gerar.py --rejeitados</code> para voltar a gerar só esses.
+  As decisões ficam guardadas no navegador enquanto não as apagares.
+</p>
+
+<script>
+const $ = s => document.querySelector(s);
+const CHAVE = 'movepulse.revisao.figuras';
+
+let itens = [];        // { slug, frame, nome, grupo, equip }
+let i = 0;
+let decisoes = {};     // "slug/frame" -> 'sim' | 'nao'
+
+try { decisoes = JSON.parse(localStorage.getItem(CHAVE) || '{}'); } catch { decisoes = {}; }
+
+const chave = it => `${it.slug}/${it.frame}`;
+
+async function arrancar(){
+  const catalogo = await (await fetch('exercicios.json')).json();
+  for (const slug of Object.keys(catalogo).sort()){
+    const ex = catalogo[slug];
+    for (const frame of [1, 2, 3]){
+      itens.push({ slug, frame, nome: ex.nome, grupo: ex.grupo, equip: ex.equip });
+    }
+  }
+  // começa onde ficou
+  const porVer = itens.findIndex(it => !decisoes[chave(it)]);
+  i = porVer === -1 ? 0 : porVer;
+  mostrar();
+}
+
+function mostrar(){
+  const it = itens[i];
+  if (!it) return;
+
+  $('#nome').textContent = it.nome;
+  $('#meta').textContent = `${it.grupo} · ${it.equip} · desenho ${it.frame} de 3`;
+  $('#slug').textContent = it.slug;
+
+  $('#molde').src = `moldes-png/${it.slug}/frame-${it.frame}.png`;
+
+  const gerada = $('#gerada');
+  gerada.hidden = false;
+  $('#semImagem').hidden = true;
+  gerada.onerror = () => { gerada.hidden = true; $('#semImagem').hidden = false; };
+  gerada.src = `saida/${it.slug}/frame-${it.frame}.png?t=${Date.now()}`;
+
+  const d = decisoes[chave(it)];
+  const estado = $('#estado');
+  estado.className = 'estado ' + (d === 'sim' ? 'sim' : d === 'nao' ? 'nao' : 'por');
+  estado.textContent = d === 'sim' ? 'Aprovada' : d === 'nao' ? 'Rejeitada' : 'Por ver';
+
+  contar();
+}
+
+function contar(){
+  const vals = Object.values(decisoes);
+  const sim = vals.filter(v => v === 'sim').length;
+  const nao = vals.filter(v => v === 'nao').length;
+  $('#nSim').textContent = sim;
+  $('#nNao').textContent = nao;
+  $('#nPor').textContent = itens.length - sim - nao;
+  $('#progresso').style.width = (itens.length ? (sim + nao) / itens.length * 100 : 0) + '%';
+}
+
+function decidir(valor){
+  const it = itens[i];
+  if (!it) return;
+  decisoes[chave(it)] = valor;
+  localStorage.setItem(CHAVE, JSON.stringify(decisoes));
+  andar(1);
+}
+
+function andar(passo){
+  i = Math.max(0, Math.min(itens.length - 1, i + passo));
+  mostrar();
+}
+
+function saltarPorVer(){
+  const n = itens.findIndex((it, n) => n > i && !decisoes[chave(it)]);
+  i = n === -1 ? i : n;
+  mostrar();
+}
+
+/** Lista de exercícios com pelo menos um desenho rejeitado. */
+function guardar(){
+  const maus = [...new Set(itens
+    .filter(it => decisoes[chave(it)] === 'nao')
+    .map(it => it.slug))].sort();
+  const blob = new Blob([JSON.stringify(maus, null, 1)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'rejeitados.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+$('#btnSim').onclick = () => decidir('sim');
+$('#btnNao').onclick = () => decidir('nao');
+$('#btnAnterior').onclick = () => andar(-1);
+$('#btnSeguinte').onclick = () => andar(1);
+$('#btnSalto').onclick = saltarPorVer;
+$('#btnGuardar').onclick = guardar;
+$('#btnLimpar').onclick = () => {
+  if (!confirm('Apagar todas as decisões?')) return;
+  decisoes = {};
+  localStorage.removeItem(CHAVE);
+  mostrar();
+};
+
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey) return;
+  const t = { a:'sim', r:'nao' }[e.key.toLowerCase()];
+  if (t) { e.preventDefault(); return decidir(t); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); andar(1); }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); andar(-1); }
+  if (e.key.toLowerCase() === 'p') { e.preventDefault(); saltarPorVer(); }
+});
+
+arrancar();
+</script>
+</body>
+</html>
